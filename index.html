@@ -266,7 +266,7 @@ textarea.input { resize: none; line-height: 1.5; }
 
   function api(action, data, pass) {
     return fetch(API_URL, {
-      method: "POST",
+      method: "POST", credentials: "omit", redirect: "follow",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ pass: pass || (auth && auth.pass), who: S.me, action: action, data: data || {} })
     }).then(function (r) { return r.json(); });
