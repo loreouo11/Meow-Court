@@ -9,7 +9,7 @@ const TZ = 'Asia/Hong_Kong';
 
 const SHEETS = {
   Settings: ['key', 'value'],
-  Rules: ['id', 'title', 'amount', 'status', 'by', 'createdAt'],
+  Rules: ['id', 'title', 'amount', 'status', 'by', 'createdAt', 'change', 'newTitle', 'newAmount', 'changeBy'],
   Tickets: ['id', 'from', 'to', 'ruleId', 'title', 'amount', 'note', 'fund', 'status', 'final', 'self', 'card', 'appeal', 'ts', 'updatedAt'],
   Cards: ['id', 'kind', 'title', 'desc', 'color', 'owner', 'from', 'reason', 'ts', 'used', 'usedTs', 'icon']
 };
@@ -139,6 +139,43 @@ function act(action, who, d) {
       insert('Rules', { id: uid(), title: title, amount: amount, status: 'pending', by: who, createdAt: now });
       return '';
     }
+    case 'editPending': {
+      r = getById('Rules', d.id);
+      if (!r || r.status !== 'pending' || r.by !== who) return '只能修改自己還沒生效的提議';
+      const title = text(d.title, 40);
+      const amount = money(d.amount);
+      if (!title) return '請填寫規則內容';
+      if (amount === null) return '金額不正確';
+      update('Rules', r.id, { title: title, amount: amount });
+      return '';
+    }
+    case 'requestRuleChange': {
+      r = getById('Rules', d.id);
+      if (!r || r.status !== 'active') return '找不到這條規則';
+      if (r.change) return '這條規則已經有變更在等待同意';
+      if (d.kind === 'delete') {
+        update('Rules', r.id, { change: 'delete', newTitle: '', newAmount: '', changeBy: who });
+        return '';
+      }
+      const title = text(d.title, 40);
+      const amount = money(d.amount);
+      if (!title) return '請填寫規則內容';
+      if (amount === null) return '金額不正確';
+      if (title === r.title && amount === Number(r.amount)) return '內容沒有改變';
+      update('Rules', r.id, { change: 'edit', newTitle: title, newAmount: amount, changeBy: who });
+      return '';
+    }
+    case 'answerRuleChange':
+      r = getById('Rules', d.id);
+      if (!r || r.status !== 'active' || !r.change) return '沒有待處理的變更';
+      if (d.accept) {
+        if (r.changeBy === who) return '要由對方同意';
+        if (r.change === 'delete') update('Rules', r.id, { status: 'deleted', change: '', newTitle: '', newAmount: '', changeBy: '' });
+        else update('Rules', r.id, { title: r.newTitle, amount: r.newAmount, change: '', newTitle: '', newAmount: '', changeBy: '' });
+      } else {
+        update('Rules', r.id, { change: '', newTitle: '', newAmount: '', changeBy: '' });
+      }
+      return '';
     case 'agreeRule':
       r = getById('Rules', d.id);
       if (!r || r.status !== 'pending' || r.by === who) return '這條規則要由對方同意';
@@ -194,7 +231,12 @@ function getState() {
   readAll('Settings').forEach(function (r) { settings[r.key] = r.value; });
   return {
     settings: settings,
-    rules: readAll('Rules').map(function (r) { r.amount = Number(r.amount) || 0; return r; }),
+    rules: readAll('Rules').filter(function (r) { return r.status !== 'deleted'; }).map(function (r) {
+      r.amount = Number(r.amount) || 0;
+      r.newAmount = r.newAmount === '' || r.newAmount === undefined ? null : Number(r.newAmount);
+      r.change = r.change || ''; r.changeBy = r.changeBy || ''; r.newTitle = r.newTitle || '';
+      return r;
+    }),
     tickets: readAll('Tickets').map(function (t) {
       t.amount = Number(t.amount) || 0;
       t.final = t.final === '' ? null : Number(t.final) || 0;

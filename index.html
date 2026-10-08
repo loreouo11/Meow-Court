@@ -394,7 +394,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function todo() {
     return S.tickets.filter(function (t) {
       return (t.status === "pending" && t.to === S.me) || (t.status === "appeal" && t.from === S.me);
-    }).length + S.rules.filter(function (r) { return r.status === "pending" && r.by !== S.me; }).length;
+    }).length + S.rules.filter(function (r) { return (r.status === "pending" && r.by !== S.me) || (r.status === "active" && r.change && r.changeBy !== S.me); }).length;
   }
 
   var I = {
@@ -526,24 +526,38 @@ textarea.input { resize: none; line-height: 1.5; }
   }
 
   function viewRules() {
+    var me = S.me, op = other(me);
     var pend = S.rules.filter(function (r) { return r.status === "pending"; });
     var act = S.rules.filter(function (r) { return r.status === "active"; });
+    var changes = act.filter(function (r) { return r.change; });
     function count(r, p) { return S.tickets.filter(function (t) { return t.ruleId === r.id && t.to === p && paid(t); }).length; }
+    function amt(v) { return '<span class="num" style="font-size:22px;font-weight:700">' + money(v) + '</span>'; }
     return '<div class="section" style="margin-top:4px"><h2><span>規則</span><button type="button" class="btn primary" style="min-height:40px;font-size:14px" data-act="sheet" data-sheet="rule">＋ 提議新規則</button></h2>' +
       pend.map(function (r) {
-        var canAgree = r.by !== S.me;
+        var mine = r.by === me;
         return '<div class="card" style="background:var(--soft-gold);display:flex;flex-direction:column;gap:10px">' +
-          '<span class="small">' + esc(nm(r.by)) + ' 提議的新規則' + (canAgree ? '，等你同意' : '，等' + esc(nm(other(S.me))) + '同意') + '</span>' +
-          '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-size:17px">' + esc(r.title) + '</span><span class="num" style="font-size:22px;font-weight:700">' + money(r.amount) + '</span></div>' +
-          (canAgree ? '<div class="grid2"><button type="button" class="btn" data-act="rule-no" data-id="' + esc(r.id) + '">不同意</button><button type="button" class="btn mint" data-act="rule-yes" data-id="' + esc(r.id) + '">同意</button></div>'
-            : '<button type="button" class="btn" data-act="rule-no" data-id="' + esc(r.id) + '">撤回提議</button>') +
+          '<span class="small">' + esc(nm(r.by)) + ' 提議的新規則' + (mine ? '，等' + esc(nm(op)) + '同意' : '，等你同意') + '</span>' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-size:17px;overflow-wrap:anywhere">' + esc(r.title) + '</span>' + amt(r.amount) + '</div>' +
+          (mine ? '<div class="grid2"><button type="button" class="btn" data-act="rule-no" data-id="' + esc(r.id) + '"' + busyAttr(true) + '>撤回提議</button><button type="button" class="btn" data-act="rule-edit" data-id="' + esc(r.id) + '">修改</button></div>'
+            : '<div class="grid2"><button type="button" class="btn" data-act="rule-no" data-id="' + esc(r.id) + '"' + busyAttr(true) + '>不同意</button><button type="button" class="btn mint" data-act="rule-yes" data-id="' + esc(r.id) + '"' + busyAttr(true) + '>同意</button></div>') +
           '</div>';
       }).join('') +
-      '<span class="small muted">生效中 · ' + act.length + ' 條</span>' +
+      changes.map(function (r) {
+        var mine = r.changeBy === me;
+        var what = r.change === "delete"
+          ? '<span style="font-size:17px">刪除「' + esc(r.title) + '」</span>'
+          : '<span style="display:flex;flex-direction:column;gap:4px"><span class="small muted" style="text-decoration:line-through">' + esc(r.title) + ' · ' + money(r.amount) + '</span><span style="font-size:17px;overflow-wrap:anywhere">' + esc(r.newTitle) + ' · ' + money(r.newAmount) + '</span></span>';
+        return '<div class="card" style="background:var(--soft-accent);display:flex;flex-direction:column;gap:10px">' +
+          '<span class="small">' + esc(nm(r.changeBy)) + (r.change === "delete" ? ' 想刪除這條規則' : ' 想修改這條規則') + (mine ? '，等' + esc(nm(op)) + '同意' : '，等你同意') + '</span>' + what +
+          (mine ? '<button type="button" class="btn" data-act="change-no" data-id="' + esc(r.id) + '"' + busyAttr(true) + '>撤回申請</button>'
+            : '<div class="grid2"><button type="button" class="btn" data-act="change-no" data-id="' + esc(r.id) + '"' + busyAttr(true) + '>不同意</button><button type="button" class="btn mint" data-act="change-yes" data-id="' + esc(r.id) + '"' + busyAttr(true) + '>同意</button></div>') +
+          '</div>';
+      }).join('') +
+      '<span class="small muted">生效中 · ' + act.length + ' 條 · 點一下可以修改或刪除</span>' +
       (act.length ? act.map(function (r) {
-        return '<div class="row"><span class="body"><span class="t">' + esc(r.title) + '</span><span class="small muted">已犯 ' + esc(nm("a")) + ' ' + count(r, "a") + ' 次 · ' + esc(nm("b")) + ' ' + count(r, "b") + ' 次</span></span><span class="amt num">' + money(r.amount) + '</span></div>';
+        return '<button type="button" class="row" style="text-align:left;width:100%" data-act="rule-edit" data-id="' + esc(r.id) + '"><span class="body"><span class="t">' + esc(r.title) + (r.change ? ' <span class="status x">變更中</span>' : '') + '</span><span class="small muted">已犯 ' + esc(nm("a")) + ' ' + count(r, "a") + ' 次 · ' + esc(nm("b")) + ' ' + count(r, "b") + ' 次</span></span><span class="amt num">' + money(r.amount) + '</span></button>';
       }).join('') : '<div class="empty">還沒有生效的規則。</div>') +
-      '<div class="note" style="border:2px dashed var(--muted);border-radius:16px;padding:12px 14px">新規則需要雙方同意才生效。卡片只能由對方送出，每人一開始 0 張；賴貓卡可以免除一張罰單。申訴被駁回會罰雙倍。</div></div>';
+      '<div class="note" style="border:2px dashed var(--muted);border-radius:16px;padding:12px 14px">新增、修改、刪除規則都需要雙方同意才生效；同意前舊規則照樣有效。刪除規則不會刪除以前的罰單。卡片只能由對方送出；賴貓卡可以免除一張罰單（臨時罰單除外）。申訴被駁回會罰雙倍。</div></div>';
   }
 
   function viewLogin() {
@@ -647,12 +661,25 @@ textarea.input { resize: none; line-height: 1.5; }
   }
 
   function sheetRule() {
-    var f = UI.form;
-    return sheetWrap("提議新規則",
+    var f = UI.form, r = f.ruleId ? S.rules.filter(function (x) { return x.id === f.ruleId; })[0] : null;
+    var mode = !r ? "new" : r.status === "pending" ? "pending" : "active";
+    var locked = mode === "active" && r.change;
+    var title = mode === "new" ? "提議新規則" : mode === "pending" ? "修改提議" : "修改或刪除規則";
+    var foot = mode === "new" ? '<p class="note">送出後要 ' + esc(nm(other(S.me))) + ' 同意才會生效。</p>' +
+        '<button type="button" class="btn primary block" style="min-height:52px" data-act="submit-rule"' + busyAttr((f.rtitle || "").trim()) + '>送出提議</button>'
+      : mode === "pending" ? '<p class="note">這條提議還沒生效，可以直接修改。</p>' +
+        '<button type="button" class="btn primary block" style="min-height:52px" data-act="submit-rule"' + busyAttr((f.rtitle || "").trim()) + '>儲存修改</button>'
+      : locked ? '<p class="note">這條規則已經有一個變更在等待同意，處理完才可以再改。</p>'
+      : '<p class="note">修改或刪除都要 ' + esc(nm(other(S.me))) + ' 同意，同意前會沿用舊規則。</p>' +
+        '<button type="button" class="btn primary block" style="min-height:52px" data-act="submit-rule"' + busyAttr((f.rtitle || "").trim()) + '>送出修改申請</button>' +
+        (f.confirmDel
+          ? '<div class="grid2"><button type="button" class="btn" data-act="del-cancel">取消</button><button type="button" class="btn" style="background:var(--accent);color:var(--on-accent)" data-act="del-rule"' + busyAttr(true) + '>確定申請刪除</button></div>'
+          : '<button type="button" class="btn block" style="color:var(--accent)" data-act="del-ask">申請刪除這條規則</button>');
+    if (locked) return sheetWrap(title, '<div class="card"><b style="font-weight:400;font-size:17px">' + esc(r.title) + '</b> · <span class="num">' + money(r.amount) + '</span></div>' + foot);
+    return sheetWrap(title,
       '<div class="field"><label for="r-title">規則內容</label><input id="r-title" class="input" maxlength="40" data-bind="rtitle" value="' + esc(f.rtitle || "") + '" placeholder="例如：吵架後先冷戰"></div>' +
       '<div class="stepper card"><span>罰款</span><div style="display:flex;align-items:center;gap:8px"><button type="button" class="icon-btn" aria-label="減少五元" data-act="r-amt" data-v="-5">−</button><span class="amt-box"><span class="num">$</span><input id="r-amount" class="amt-input num" type="number" inputmode="decimal" min="0" max="100000" step="1" aria-label="罰款金額" data-bind-num="ramt" value="' + esc(f.ramt == null ? 20 : f.ramt) + '"></span><button type="button" class="icon-btn" aria-label="增加五元" data-act="r-amt" data-v="5">＋</button></div></div>' +
-      '<p class="note">送出後要 ' + esc(nm(other(S.me))) + ' 同意才會生效。</p>' +
-      '<button type="button" class="btn primary block" style="min-height:52px" data-act="submit-rule"' + busyAttr((f.rtitle || "").trim()) + '>送出提議</button>');
+      foot);
   }
 
   function rewardReady(f) { return (f.reason || "").trim() && (f.kind === "cat" || (f.ctitle || "").trim()); }
@@ -724,7 +751,10 @@ textarea.input { resize: none; line-height: 1.5; }
     var f = extra || {};
     if (name === "new") f = { mode: "other", confirm: true, fund: "wedding", amount: 0, ruleId: null, note: "" };
     if (name === "settings") f = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target };
-    if (name === "rule") f = { rtitle: "", ramt: 20 };
+    if (name === "rule") {
+      var er = extra && extra.ruleId ? S.rules.filter(function (x) { return x.id === extra.ruleId; })[0] : null;
+      f = er ? { ruleId: er.id, rtitle: er.title, ramt: er.amount } : { rtitle: "", ramt: 20 };
+    }
     if (name === "reward") f = { kind: "cat", reason: "", ctitle: "", cdesc: "", color: "pink", icon: "heart" };
     UI.sheet = name; UI.form = f; renderLayer();
   }
@@ -779,7 +809,19 @@ textarea.input { resize: none; line-height: 1.5; }
       case "t-card": send("catTicket", { id: id }, "賴貓卡出動，這張罰單免除了"); break;
       case "t-appeal": send("appealTicket", { id: id, reason: f.appeal }, "申訴已送出，等對方裁決"); break;
       case "t-judge": send("judgeAppeal", { id: id, accept: v === "yes" }, v === "yes" ? "已接受申訴，這張免罰" : "已駁回申訴，罰雙倍"); break;
-      case "submit-rule": send("proposeRule", { title: f.rtitle, amount: f.ramt == null ? 20 : f.ramt }, "提議已送出，等" + nm(other(S.me)) + "同意"); break;
+      case "submit-rule":
+        var amtR = f.ramt == null ? 20 : f.ramt;
+        var cur = f.ruleId ? S.rules.filter(function (x) { return x.id === f.ruleId; })[0] : null;
+        if (!cur) send("proposeRule", { title: f.rtitle, amount: amtR }, "提議已送出，等" + nm(other(S.me)) + "同意");
+        else if (cur.status === "pending") send("editPending", { id: cur.id, title: f.rtitle, amount: amtR }, "提議已更新");
+        else send("requestRuleChange", { id: cur.id, kind: "edit", title: f.rtitle, amount: amtR }, "修改申請已送出，等" + nm(other(S.me)) + "同意");
+        break;
+      case "rule-edit": openSheet("rule", { ruleId: id }); break;
+      case "del-ask": f.confirmDel = true; renderLayer(); break;
+      case "del-cancel": f.confirmDel = false; renderLayer(); break;
+      case "del-rule": send("requestRuleChange", { id: f.ruleId, kind: "delete" }, "刪除申請已送出，等" + nm(other(S.me)) + "同意"); break;
+      case "change-yes": send("answerRuleChange", { id: id, accept: true }, "已同意，規則已更新"); break;
+      case "change-no": send("answerRuleChange", { id: id, accept: false }, "已取消這個變更"); break;
       case "rule-yes": send("agreeRule", { id: id }, "規則已生效"); break;
       case "rule-no": send("removeRule", { id: id }, "已移除這個提議"); break;
       case "w-kind": f.kind = v; renderLayer(); break;
