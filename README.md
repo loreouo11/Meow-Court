@@ -21,7 +21,7 @@
 ## 接上網站
 
 把 `index.html` 裡的 `var API_URL = "";` 改成上一步的網址，提交到 `main`。
-網站網址：<https://loreouo11.github.io/meow-court/>
+網站網址：<https://loreouo11.github.io/Meow-Court/>
 
 ## 之後修改 Code.gs
 
