@@ -113,6 +113,7 @@ function act(action, who, d) {
     case 'catTicket':
       t = getById('Tickets', d.id);
       if (!t || t.status !== 'pending' || t.to !== who) return '這張罰單不能這樣處理';
+      if (!t.ruleId) return '臨時罰單不能使用賴貓卡';
       c = readAll('Cards').filter(function (x) { return x.owner === who && x.kind === 'cat' && !bool(x.used); })[0];
       if (!c) return '你沒有賴貓卡';
       update('Cards', c.id, { used: true, usedTs: now });
