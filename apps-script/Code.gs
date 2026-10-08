@@ -10,7 +10,7 @@ const TZ = 'Asia/Hong_Kong';
 const SHEETS = {
   Settings: ['key', 'value'],
   Rules: ['id', 'title', 'amount', 'status', 'by', 'createdAt', 'change', 'newTitle', 'newAmount', 'changeBy'],
-  Tickets: ['id', 'from', 'to', 'ruleId', 'title', 'amount', 'note', 'fund', 'status', 'final', 'self', 'card', 'appeal', 'ts', 'updatedAt'],
+  Tickets: ['id', 'from', 'to', 'ruleId', 'title', 'amount', 'note', 'fund', 'status', 'final', 'self', 'card', 'appeal', 'ts', 'updatedAt', 'voidBy'],
   Cards: ['id', 'kind', 'title', 'desc', 'color', 'owner', 'from', 'reason', 'ts', 'used', 'usedTs', 'icon']
 };
 const DEFAULTS = {
@@ -131,6 +131,22 @@ function act(action, who, d) {
       update('Tickets', t.id, d.accept ? { status: 'waived', final: 0, updatedAt: now }
                                        : { status: 'paid', final: Number(t.amount) * 2, updatedAt: now });
       return '';
+    case 'requestVoid':
+      t = getById('Tickets', d.id);
+      if (!t || t.status !== 'paid' || (t.from !== who && t.to !== who)) return '這張罰單不能刪除';
+      if (t.voidBy) return '已經有刪除申請';
+      update('Tickets', t.id, { voidBy: who, updatedAt: now });
+      return '';
+    case 'answerVoid':
+      t = getById('Tickets', d.id);
+      if (!t || t.status !== 'paid' || !t.voidBy) return '沒有刪除申請';
+      if (d.accept) {
+        if (t.voidBy === who) return '要由對方同意';
+        update('Tickets', t.id, { status: 'voided', updatedAt: now });
+      } else {
+        update('Tickets', t.id, { voidBy: '', updatedAt: now });
+      }
+      return '';
     case 'proposeRule': {
       const title = text(d.title, 40);
       const amount = money(d.amount);
@@ -237,7 +253,8 @@ function getState() {
       r.change = r.change || ''; r.changeBy = r.changeBy || ''; r.newTitle = r.newTitle || '';
       return r;
     }),
-    tickets: readAll('Tickets').map(function (t) {
+    tickets: readAll('Tickets').filter(function (t) { return t.status !== 'voided'; }).map(function (t) {
+      t.voidBy = t.voidBy || '';
       t.amount = Number(t.amount) || 0;
       t.final = t.final === '' ? null : Number(t.final) || 0;
       t.self = bool(t.self); t.card = bool(t.card);

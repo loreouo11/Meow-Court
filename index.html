@@ -391,10 +391,11 @@ textarea.input { resize: none; line-height: 1.5; }
   function fundTotal(f) { return S.tickets.reduce(function (sum, t) { return sum + (paid(t) && (!f || t.fund === f) ? Number(t.final) || 0 : 0); }, 0); }
   function monthOf(p) { return S.tickets.reduce(function (sum, t) { return sum + (paid(t) && t.to === p && sameMonth(t.ts) ? Number(t.final) || 0 : 0); }, 0); }
   function monthAll() { return S.tickets.reduce(function (sum, t) { return sum + (paid(t) && sameMonth(t.ts) ? Number(t.final) || 0 : 0); }, 0); }
+  function needsMe(t) {
+    return (t.status === "pending" && t.to === S.me) || (t.status === "appeal" && t.from === S.me) || (t.status === "paid" && t.voidBy && t.voidBy !== S.me);
+  }
   function todo() {
-    return S.tickets.filter(function (t) {
-      return (t.status === "pending" && t.to === S.me) || (t.status === "appeal" && t.from === S.me);
-    }).length + S.rules.filter(function (r) { return (r.status === "pending" && r.by !== S.me) || (r.status === "active" && r.change && r.changeBy !== S.me); }).length;
+    return S.tickets.filter(needsMe).length + S.rules.filter(function (r) { return (r.status === "pending" && r.by !== S.me) || (r.status === "active" && r.change && r.changeBy !== S.me); }).length;
   }
 
   var I = {
@@ -417,6 +418,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (t.status === "pending") return ['p', '等待' + nm(t.to) + '回應'];
     if (t.status === "appeal") return ['p', '申訴中，等' + nm(t.from) + '裁決'];
     if (t.status === "waived") return ['ok', t.card ? '用了賴貓卡，免罰' : '申訴成功，免罰'];
+    if (t.voidBy) return ['x', nm(t.voidBy) + '申請刪除，等' + nm(other(t.voidBy)) + '同意'];
     var s = '已入帳';
     if (t.self) s = '自首，已入帳';
     else if (t.appeal) s = '申訴被駁回，雙倍';
@@ -460,7 +462,7 @@ textarea.input { resize: none; line-height: 1.5; }
   }
 
   function viewTickets() {
-    var mine = S.tickets.filter(function (t) { return (t.status === "pending" && t.to === S.me) || (t.status === "appeal" && t.from === S.me); });
+    var mine = S.tickets.filter(needsMe);
     var rest = S.tickets.filter(function (t) { return mine.indexOf(t) < 0; }).sort(byNew);
     return '<div class="section" style="margin-top:4px"><h2>需要你處理</h2>' +
       (mine.length ? mine.map(ticketRow).join('') : '<div class="empty">沒有待處理的罰單。</div>') + '</div>' +
@@ -656,6 +658,16 @@ textarea.input { resize: none; line-height: 1.5; }
       acts = '<div class="grid2"><button type="button" class="btn" data-act="t-judge" data-v="no" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>駁回，罰 ' + money(t.amount * 2) + '</button><button type="button" class="btn mint" data-act="t-judge" data-v="yes" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>接受申訴，免罰</button></div>';
     } else if (t.status === "pending" || t.status === "appeal") {
       acts = '<p class="note">等待對方處理中。</p>';
+    } else if (paid(t) && t.voidBy === S.me) {
+      acts = '<p class="note">你已申請刪除這張罰單，等 ' + esc(nm(other(S.me))) + ' 同意。同意後 ' + money(t.final) + ' 會從基金扣除。</p>' +
+        '<button type="button" class="btn block" data-act="void-no" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>撤回申請</button>';
+    } else if (paid(t) && t.voidBy) {
+      acts = '<p class="note">' + esc(nm(t.voidBy)) + ' 申請刪除這張罰單。同意後 ' + money(t.final) + ' 會從基金扣除。</p>' +
+        '<div class="grid2"><button type="button" class="btn" data-act="void-no" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>不同意</button><button type="button" class="btn" style="background:var(--accent);color:var(--on-accent)" data-act="void-yes" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>同意刪除</button></div>';
+    } else if (paid(t)) {
+      acts = UI.form.confirmVoid
+        ? '<p class="note">送出後要 ' + esc(nm(other(S.me))) + ' 同意才會刪除，金額會從基金扣除。</p><div class="grid2"><button type="button" class="btn" data-act="void-cancel">取消</button><button type="button" class="btn" style="background:var(--accent);color:var(--on-accent)" data-act="void-ask" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>確定申請刪除</button></div>'
+        : '<button type="button" class="btn block" style="color:var(--accent)" data-act="void-confirm">申請刪除這張罰單</button>';
     }
     return sheetWrap(t.status === "pending" && t.to === S.me ? "你收到一張罰單" : "罰單詳情", head + acts);
   }
@@ -808,6 +820,11 @@ textarea.input { resize: none; line-height: 1.5; }
       case "t-pay": send("payTicket", { id: id }, "已認罰，存入基金"); break;
       case "t-card": send("catTicket", { id: id }, "賴貓卡出動，這張罰單免除了"); break;
       case "t-appeal": send("appealTicket", { id: id, reason: f.appeal }, "申訴已送出，等對方裁決"); break;
+      case "void-confirm": f.confirmVoid = true; renderLayer(); break;
+      case "void-cancel": f.confirmVoid = false; renderLayer(); break;
+      case "void-ask": send("requestVoid", { id: id }, "刪除申請已送出，等" + nm(other(S.me)) + "同意"); break;
+      case "void-yes": send("answerVoid", { id: id, accept: true }, "罰單已刪除"); break;
+      case "void-no": send("answerVoid", { id: id, accept: false }, "已取消刪除申請"); break;
       case "t-judge": send("judgeAppeal", { id: id, accept: v === "yes" }, v === "yes" ? "已接受申訴，這張免罰" : "已駁回申訴，罰雙倍"); break;
       case "submit-rule":
         var amtR = f.ramt == null ? 20 : f.ramt;
