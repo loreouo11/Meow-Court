@@ -159,6 +159,11 @@ button { cursor: pointer; }
 .swatches { display: flex; gap: 10px; }
 .swatches button { width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid #3B2A33; background: var(--sw); }
 .swatches button[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: 2px; }
+.icon-pick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.icon-pick button { min-height: 64px; border-radius: 14px; border: var(--bw) solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px 4px; font-size: 11px; color: var(--ink); }
+.icon-pick button .cat { width: 44px; }
+.icon-pick button[aria-pressed="true"] { background: var(--soft-gold); outline: 3px solid var(--accent); outline-offset: 1px; }
+button.stack { cursor: pointer; }
 
 /* list rows */
 .row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: var(--bw) solid var(--line); border-radius: 18px; box-shadow: var(--shadow-sm); }
@@ -347,10 +352,27 @@ textarea.input { resize: none; line-height: 1.5; }
     '<text x="104" y="24" font-size="13" fill="#3B2A33" font-family="Fredoka, sans-serif" font-weight="700">z</text><text x="114" y="13" font-size="10" fill="#3B2A33" font-family="Fredoka, sans-serif" font-weight="700">z</text>' +
     '</svg>';
   var STAR = '<svg class="cat" viewBox="0 0 132 96" aria-hidden="true"><path d="M66 14l12 26 28 3-21 19 6 28-25-14-25 14 6-28-21-19 28-3z" fill="#FFFFFF" stroke="#3B2A33" stroke-width="2.5" stroke-linejoin="round"/><circle cx="58" cy="52" r="2.6" fill="#3B2A33"/><circle cx="74" cy="52" r="2.6" fill="#3B2A33"/><path d="M61 60q5 4 10 0" fill="none" stroke="#3B2A33" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  var K = 'stroke="#3B2A33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"';
+  function ic(inner) { return '<svg class="cat" viewBox="0 0 132 96" aria-hidden="true">' + inner + '</svg>'; }
+  var ICONS = {
+    star: ["星星", ic('<path d="M66 14l12 26 28 3-21 19 6 28-25-14-25 14 6-28-21-19 28-3z" fill="#FFFFFF" ' + K + '/><circle cx="58" cy="52" r="2.6" fill="#3B2A33"/><circle cx="74" cy="52" r="2.6" fill="#3B2A33"/><path d="M61 60q5 4 10 0" fill="none" ' + K + '/>')],
+    heart: ["愛心", ic('<path d="M66 84C38 66 28 50 34 35c5-12 22-14 32-1 10-13 27-11 32 1 6 15-4 31-32 49z" fill="#FFFFFF" ' + K + '/><path d="M46 40c3-5 9-6 12-3" fill="none" stroke="#F7A1B5" stroke-width="4" stroke-linecap="round"/>')],
+    hug: ["抱抱", ic('<path d="M52 80C30 66 22 54 27 42c4-9 17-11 25-1 8-10 21-8 25 1 5 12-3 24-25 38z" fill="#FFFFFF" ' + K + '/><path d="M84 72C66 61 60 51 64 41c3-8 14-9 20-1 6-8 17-7 20 1 4 10-2 20-20 31z" fill="#F7A1B5" ' + K + '/>')],
+    food: ["吃飯", ic('<path d="M74 40L104 12M82 44L110 20" fill="none" ' + K + '/><path d="M36 48c3-10 13-13 19-8 4-7 15-7 19 0 6-5 16-2 19 8z" fill="#FFFFFF" ' + K + '/><path d="M30 50h72c0 19-16 32-36 32S30 69 30 50z" fill="#FFFFFF" ' + K + '/><path d="M44 62h44" stroke="#F7A1B5" stroke-width="4" stroke-linecap="round"/>')],
+    coffee: ["飲品", ic('<path d="M54 28c-4-6 4-9 0-15M68 28c-4-6 4-9 0-15" fill="none" ' + K + '/><path d="M36 36h50v24c0 13-11 22-25 22S36 73 36 60z" fill="#FFFFFF" ' + K + '/><path d="M86 42h6c9 0 9 18 0 18h-6" fill="none" ' + K + '/><path d="M48 52q13 8 26 0" fill="none" stroke="#D98A3D" stroke-width="3" stroke-linecap="round"/>')],
+    movie: ["電影", ic('<path d="M26 28h80v12a9 9 0 0 0 0 18v12H26V58a9 9 0 0 0 0-18z" fill="#FFFFFF" ' + K + '/><path d="M50 32v34" fill="none" stroke="#3B2A33" stroke-width="2.5" stroke-dasharray="4 5"/><path d="M78 37l4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z" fill="#FFD15C" ' + K + '/>')],
+    plane: ["旅行", ic('<path d="M20 52L110 16 90 82 66 62z" fill="#FFFFFF" ' + K + '/><path d="M110 16L66 62v20l11-13" fill="none" ' + K + '/><path d="M20 76h18M28 86h14" fill="none" stroke="#3B2A33" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 6"/>')],
+    moon: ["賴床", ic('<path d="M74 14a36 36 0 1 0 28 56A30 30 0 1 1 74 14z" fill="#FFFFFF" ' + K + '/><path d="M98 22l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM108 44l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z" fill="#FFD15C" stroke="#3B2A33" stroke-width="1.6" stroke-linejoin="round"/>')],
+    gift: ["禮物", ic('<path d="M66 32c-6-14-24-14-19-3 2 4 11 3 19 3zM66 32c6-14 24-14 19-3-2 4-11 3-19 3z" fill="#F7A1B5" ' + K + '/><rect x="38" y="44" width="56" height="38" rx="4" fill="#FFFFFF" ' + K + '/><rect x="32" y="32" width="68" height="13" rx="3" fill="#FFFFFF" ' + K + '/><path d="M66 32v50" ' + K + '/>')],
+    flower: ["花", ic('<path d="M66 60v28M66 76c-6-8-16-8-20-4 6 6 14 6 20 4z" fill="#8FD6B4" ' + K + '/><circle cx="66" cy="22" r="11" fill="#FFFFFF" ' + K + '/><circle cx="83" cy="35" r="11" fill="#FFFFFF" ' + K + '/><circle cx="77" cy="55" r="11" fill="#FFFFFF" ' + K + '/><circle cx="55" cy="55" r="11" fill="#FFFFFF" ' + K + '/><circle cx="49" cy="35" r="11" fill="#FFFFFF" ' + K + '/><circle cx="66" cy="40" r="9" fill="#FFD15C" ' + K + '/>')],
+    game: ["遊戲", ic('<path d="M40 34h52c12 0 20 22 18 36-1 8-9 10-15 4l-8-8H45l-8 8c-6 6-14 4-15-4-2-14 6-36 18-36z" fill="#FFFFFF" ' + K + '/><path d="M44 44v14M37 51h14" fill="none" ' + K + '/><circle cx="84" cy="46" r="3.5" fill="#F7A1B5" stroke="#3B2A33" stroke-width="1.8"/><circle cx="92" cy="54" r="3.5" fill="#8FD6B4" stroke="#3B2A33" stroke-width="1.8"/>')],
+    music: ["唱歌", ic('<path d="M54 70V26l40-8v44" fill="none" ' + K + '/><ellipse cx="45" cy="72" rx="11" ry="8" fill="#FFFFFF" ' + K + '/><ellipse cx="85" cy="64" rx="11" ry="8" fill="#FFFFFF" ' + K + '/><path d="M54 36l40-8" ' + K + '/>')]
+  };
+  function iconFor(c) { return c.kind === "cat" ? CAT : (ICONS[c.icon] || ICONS.star)[1]; }
   function cardHTML(c, actions) {
     var col = CARD_COLORS[c.color] || CARD_COLORS.gold;
     return '<div class="gcard' + (c.used ? ' used' : '') + '" style="--c1:' + col[0] + ';--c2:' + col[1] + '">' +
-      '<div class="gcard-cover">' + (c.kind === "cat" ? CAT : STAR) + '</div>' +
+      '<div class="gcard-cover">' + iconFor(c) + '</div>' +
       '<div class="gcard-body"><b>' + esc(c.title) + '</b><span>' + esc(c.desc) + '</span>' +
       '<span class="gcard-from">' + esc(nm(c.from)) + ' 送的 · ' + esc(c.reason) + '</span>' +
       (c.used ? '<span class="gcard-from">' + dateLabel(c.usedTs) + ' 已使用</span>' : '') +
@@ -372,6 +394,8 @@ textarea.input { resize: none; line-height: 1.5; }
     rules: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M6 4h12v16H6zM9 9h6M9 13h6"/></svg>',
     mail: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v10H4zM4 7l8 6 8-6"/></svg>',
     plus: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    dots: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg>',
+    back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
     gear: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>',
     close: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     check: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>',
@@ -433,6 +457,48 @@ textarea.input { resize: none; line-height: 1.5; }
     return '<div class="section" style="margin-top:4px"><h2>需要你處理</h2>' +
       (mine.length ? mine.map(ticketRow).join('') : '<div class="empty">沒有待處理的罰單。</div>') + '</div>' +
       '<div class="section"><h2>全部罰單</h2>' + (rest.length ? rest.map(ticketRow).join('') : '<div class="empty">還沒有其他罰單。</div>') + '</div>';
+  }
+
+  function viewMe() {
+    var me = S.me, op = other(me);
+    var toMe = S.tickets.filter(function (t) { return t.to === me; });
+    var paidMe = toMe.filter(paid);
+    var total = paidMe.reduce(function (s, t) { return s + (Number(t.final) || 0); }, 0);
+    var selfN = toMe.filter(function (t) { return t.self; }).length;
+    var won = toMe.filter(function (t) { return t.status === "waived" && t.appeal && !t.card; }).length;
+    var lost = toMe.filter(function (t) { return paid(t) && t.appeal; }).length;
+    var catUsed = toMe.filter(function (t) { return t.status === "waived" && t.card; }).length;
+    var issued = S.tickets.filter(function (t) { return t.from === me && !t.self; }).length;
+    var counts = {};
+    toMe.forEach(function (t) { counts[t.title] = (counts[t.title] || 0) + 1; });
+    var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })[0];
+    var got = S.cards.filter(function (c) { return c.owner === me; }).length;
+    var gave = S.cards.filter(function (c) { return c.from === me; }).length;
+    var days = daysTogether();
+    function stat(label, value, sub) {
+      return '<div class="mini" style="background:var(--surface)"><span class="small muted">' + label + '</span><b class="num">' + value + '</b>' + (sub ? '<span class="small muted">' + sub + '</span>' : '') + '</div>';
+    }
+    return '<div class="section" style="margin-top:4px">' +
+      '<div style="display:flex;align-items:center;gap:10px"><button type="button" class="icon-btn" aria-label="返回" data-act="tab" data-tab="home">' + I.back + '</button><h2 style="margin:0;font-size:20px;font-weight:400">個人中心</h2></div>' +
+      '<div class="card" style="display:flex;align-items:center;gap:16px">' +
+        '<span class="ava ' + me + '" style="width:64px;height:64px;font-size:20px;flex:none">' + esc(nm(me).slice(0, 2)) + '</span>' +
+        '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><b style="font-size:20px;font-weight:400;overflow-wrap:anywhere">' + esc(nm(me)) + '</b>' +
+        '<span class="small muted">' + (days ? '和 ' + esc(nm(op)) + ' 在一起第 ' + days + ' 天' : '另一半：' + esc(nm(op))) + '</span></div>' +
+        '<button type="button" class="btn" style="min-height:40px;font-size:13px" data-act="sheet" data-sheet="settings">編輯</button>' +
+      '</div></div>' +
+      '<div class="section"><h2>我的法庭紀錄</h2><div class="duo">' +
+        stat("累計被罰", money(total), paidMe.length + " 張入帳") +
+        stat("本月被罰", money(monthOf(me))) +
+        stat("自首次數", selfN + " 次", selfN ? "誠實的好貓" : "") +
+        stat("開出罰單", issued + " 張") +
+        stat("申訴", won + " 勝 " + lost + " 敗") +
+        stat("賴貓卡免罰", catUsed + " 次") +
+      '</div>' +
+      (top ? '<div class="row"><span class="dot x">' + I.clock + '</span><span class="body"><span class="small muted">最常犯的規則</span><span class="t">' + esc(top) + '</span></span><span class="amt num">' + counts[top] + ' 次</span></div>' : '') +
+      '</div>' +
+      '<div class="section"><h2><span>卡片</span><button type="button" class="btn" style="min-height:36px;font-size:13px" data-act="tab" data-tab="cards">打開卡包</button></h2><div class="duo">' +
+        stat("收到", got + " 張", myCards(me).length + " 張未使用") + stat("送出", gave + " 張") +
+      '</div></div>';
   }
 
   function viewCards() {
@@ -500,10 +566,10 @@ textarea.input { resize: none; line-height: 1.5; }
     var days = daysTogether();
     var head = '<header class="top">' +
       '<div class="top-row"><div class="days">' + (days ? '<span class="small muted">在一起第</span><b><span class="num">' + days + '</span> 天</b>' : '<span class="small muted">在設定填上在一起的日子</span><b>賴貓法庭</b>') + '</div>' +
-      '<div class="who"><div class="stack"><span class="ava a' + (S.me === "a" ? ' me' : '') + '">' + esc(nm("a").slice(0, 2)) + '</span><span class="ava b' + (S.me === "b" ? ' me' : '') + '">' + esc(nm("b").slice(0, 2)) + '</span></div>' +
-      '<button type="button" class="icon-btn" aria-label="設定" data-act="sheet" data-sheet="settings">' + I.gear + '</button></div></div>' +
+      '<div class="who"><button type="button" class="stack" style="border:0;background:none;padding:0" aria-label="個人中心" data-act="tab" data-tab="me"><span class="ava a' + (S.me === "a" ? ' me' : '') + '">' + esc(nm("a").slice(0, 2)) + '</span><span class="ava b' + (S.me === "b" ? ' me' : '') + '">' + esc(nm("b").slice(0, 2)) + '</span></button>' +
+      '<button type="button" class="icon-btn" aria-label="設定" data-act="sheet" data-sheet="settings">' + I.dots + '</button></div></div>' +
       '</header>';
-    var body = UI.tab === "home" ? viewHome() : UI.tab === "tickets" ? viewTickets() : UI.tab === "rules" ? viewRules() : viewCards();
+    var body = UI.tab === "home" ? viewHome() : UI.tab === "tickets" ? viewTickets() : UI.tab === "rules" ? viewRules() : UI.tab === "me" ? viewMe() : viewCards();
     var n = todo();
     var tabs = '<div class="tabbar"><nav aria-label="主選單">' +
       tabBtn("home", I.home, "首頁") + tabBtn("rules", I.rules, "規則") +
@@ -581,7 +647,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function rewardPreview(f) {
     return f.kind === "cat"
       ? { kind: "cat", title: "賴貓卡", desc: "免除一張罰單", color: "gold", from: S.me, reason: f.reason || "（填寫原因）" }
-      : { kind: "custom", title: f.ctitle || "自訂卡名稱", desc: f.cdesc || "寫下這張卡可以做什麼", color: f.color, from: S.me, reason: f.reason || "（填寫原因）" };
+      : { kind: "custom", title: f.ctitle || "自訂卡名稱", desc: f.cdesc || "寫下這張卡可以做什麼", color: f.color, icon: f.icon, from: S.me, reason: f.reason || "（填寫原因）" };
   }
   function sheetReward() {
     var f = UI.form, op = other(S.me);
@@ -591,6 +657,9 @@ textarea.input { resize: none; line-height: 1.5; }
       (f.kind === "custom" ?
         '<div class="field"><label for="w-title">卡片名稱</label><input id="w-title" class="input" maxlength="12" data-bind="ctitle" value="' + esc(f.ctitle || "") + '" placeholder="例如：指定晚餐卡"></div>' +
         '<div class="field"><label for="w-desc">可以兌換什麼</label><input id="w-desc" class="input" maxlength="40" data-bind="cdesc" value="' + esc(f.cdesc || "") + '" placeholder="例如：今晚吃什麼由你決定"></div>' +
+        '<div class="field"><span style="font-size:14px">圖案</span><div class="icon-pick" role="group" aria-label="卡片圖案">' + Object.keys(ICONS).map(function (k) {
+          return '<button type="button" aria-label="' + ICONS[k][0] + '" aria-pressed="' + (f.icon === k) + '" data-act="w-icon" data-v="' + k + '">' + ICONS[k][1] + '<span>' + ICONS[k][0] + '</span></button>';
+        }).join('') + '</div></div>' +
         '<div class="field"><span style="font-size:14px">顏色</span><div class="swatches" role="group" aria-label="卡片顏色">' + ["pink", "mint", "sky", "lilac"].map(function (k) {
           return '<button type="button" aria-label="' + k + '" aria-pressed="' + (f.color === k) + '" style="--sw:' + CARD_COLORS[k][0] + '" data-act="w-color" data-v="' + k + '"></button>';
         }).join('') + '</div></div>'
@@ -644,7 +713,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (name === "new") f = { mode: "other", confirm: true, fund: "wedding", amount: 0, ruleId: null, note: "" };
     if (name === "settings") f = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target };
     if (name === "rule") f = { rtitle: "", ramt: 20 };
-    if (name === "reward") f = { kind: "cat", reason: "", ctitle: "", cdesc: "", color: "pink" };
+    if (name === "reward") f = { kind: "cat", reason: "", ctitle: "", cdesc: "", color: "pink", icon: "heart" };
     UI.sheet = name; UI.form = f; renderLayer();
   }
   function closeSheet() { UI.sheet = null; UI.form = {}; renderLayer(); }
@@ -700,7 +769,8 @@ textarea.input { resize: none; line-height: 1.5; }
       case "rule-no": send("removeRule", { id: id }, "已移除這個提議"); break;
       case "w-kind": f.kind = v; renderLayer(); break;
       case "w-color": f.color = v; renderLayer(); break;
-      case "submit-reward": send("giveCard", { kind: f.kind, title: f.ctitle, desc: f.cdesc, color: f.color, reason: f.reason }, "已把卡放進" + nm(other(S.me)) + "的卡包"); break;
+      case "w-icon": f.icon = v; renderLayer(); break;
+      case "submit-reward": send("giveCard", { kind: f.kind, title: f.ctitle, desc: f.cdesc, color: f.color, icon: f.icon, reason: f.reason }, "已把卡放進" + nm(other(S.me)) + "的卡包"); break;
       case "use-card": openSheet("use", { id: id }); break;
       case "confirm-use": send("useCard", { id: id }, "已使用，記得找" + nm(other(S.me)) + "兌現"); break;
       case "submit-settings": send("saveSettings", { nameA: f.nameA, nameB: f.nameB, start: f.start, weddingTarget: f.weddingTarget, travelTarget: f.travelTarget }, "已儲存"); break;

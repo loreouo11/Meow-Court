@@ -11,7 +11,7 @@ const SHEETS = {
   Settings: ['key', 'value'],
   Rules: ['id', 'title', 'amount', 'status', 'by', 'createdAt'],
   Tickets: ['id', 'from', 'to', 'ruleId', 'title', 'amount', 'note', 'fund', 'status', 'final', 'self', 'card', 'appeal', 'ts', 'updatedAt'],
-  Cards: ['id', 'kind', 'title', 'desc', 'color', 'owner', 'from', 'reason', 'ts', 'used', 'usedTs']
+  Cards: ['id', 'kind', 'title', 'desc', 'color', 'owner', 'from', 'reason', 'ts', 'used', 'usedTs', 'icon']
 };
 const DEFAULTS = {
   nameA: '我', nameB: 'BB', start: '',
@@ -19,6 +19,7 @@ const DEFAULTS = {
   travelName: '旅行基金', travelTarget: '8000'
 };
 const COLORS = ['pink', 'mint', 'sky', 'lilac'];
+const ICONS = ['star', 'heart', 'hug', 'food', 'coffee', 'movie', 'plane', 'moon', 'gift', 'flower', 'game', 'music'];
 
 /* ---------- 一次性設定 ---------- */
 function setup() {
@@ -57,6 +58,7 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
+    ensureColumns();
     if (action !== 'get') {
       const err = act(action, who, body.data || {});
       if (err) return out({ ok: false, error: err, state: getState() });
@@ -147,7 +149,8 @@ function act(action, who, d) {
         title: cat ? '賴貓卡' : text(d.title, 12),
         desc: cat ? '免除一張罰單' : (text(d.desc, 40) || '兌換內容由你們決定'),
         color: cat ? 'gold' : (COLORS.indexOf(d.color) >= 0 ? d.color : 'pink'),
-        owner: op, from: who, reason: reason, ts: now, used: false, usedTs: ''
+        owner: op, from: who, reason: reason, ts: now, used: false, usedTs: '',
+        icon: cat ? '' : (ICONS.indexOf(d.icon) >= 0 ? d.icon : 'star')
       });
       return '';
     }
@@ -193,6 +196,20 @@ function getState() {
 }
 
 /* ---------- 工作表工具 ---------- */
+// 舊版工作表缺少的欄位會自動補上
+function ensureColumns() {
+  Object.keys(SHEETS).forEach(function (name) {
+    const sh = SpreadsheetApp.getActive().getSheetByName(name);
+    if (!sh) return;
+    const want = SHEETS[name];
+    const have = sh.getLastColumn();
+    if (have >= want.length) return;
+    const head = have ? sh.getRange(1, 1, 1, have).getValues()[0] : [];
+    want.forEach(function (k, i) {
+      if (head.indexOf(k) < 0) sh.getRange(1, i + 1).setValue(k).setFontWeight('bold');
+    });
+  });
+}
 function sheet(name) {
   const sh = SpreadsheetApp.getActive().getSheetByName(name);
   if (!sh) throw new Error('請先執行 setup');
