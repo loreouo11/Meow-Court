@@ -82,14 +82,23 @@ function act(action, who, d) {
   let t, r, c;
   switch (action) {
     case 'createTicket': {
-      r = getById('Rules', d.ruleId);
-      if (!r || r.status !== 'active') return '找不到這條規則';
+      const temp = !!d.temp;
+      let title = '';
+      if (temp) {
+        title = text(d.title, 40);
+        if (!title) return '請填寫罰單原因';
+      } else {
+        r = getById('Rules', d.ruleId);
+        if (!r || r.status !== 'active') return '找不到這條規則';
+        title = r.title;
+      }
       const amount = money(d.amount);
       if (amount === null) return '金額不正確';
       const self = d.mode === 'self';
-      const paid = self || !d.confirm;
+      // 臨時罰單一定要對方確認（自首除外）
+      const paid = self || (!d.confirm && !temp);
       insert('Tickets', {
-        id: uid(), from: who, to: self ? who : op, ruleId: r.id, title: r.title,
+        id: uid(), from: who, to: self ? who : op, ruleId: temp ? '' : r.id, title: title,
         amount: amount, note: text(d.note, 200), fund: d.fund === 'travel' ? 'travel' : 'wedding',
         status: paid ? 'paid' : 'pending', final: paid ? amount : '', self: self, card: false,
         appeal: '', ts: now, updatedAt: now

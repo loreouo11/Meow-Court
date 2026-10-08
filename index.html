@@ -219,6 +219,8 @@ button.stack { cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: var(--glow); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { min-height: 44px; padding: 0 14px; border-radius: 16px; border: var(--bw) solid var(--line); background: var(--surface); font-size: 14px; }
+.chip-temp { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+.chip-temp[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-style: solid; }
 .chip[aria-pressed="true"] { background: var(--gold); color: #3B2A33; box-shadow: var(--shadow-sm); }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 14px; }
@@ -423,7 +425,7 @@ textarea.input { resize: none; line-height: 1.5; }
 
   function ticketRow(t) {
     var st = ticketStatus(t);
-    var who = t.self ? nm(t.to) + ' 自首' : nm(t.from) + ' → ' + nm(t.to);
+    var who = (t.ruleId ? '' : '臨時 · ') + (t.self ? nm(t.to) + ' 自首' : nm(t.from) + ' → ' + nm(t.to));
     var shown = paid(t) ? t.final : (t.status === "waived" ? 0 : t.amount);
     return '<button type="button" class="row" style="text-align:left;width:100%" data-act="open-ticket" data-id="' + esc(t.id) + '">' +
       '<span class="dot ' + st[0] + '">' + I.clock + '</span>' +
@@ -595,22 +597,26 @@ textarea.input { resize: none; line-height: 1.5; }
   }
   function busyAttr(ok) { return ok && !UI.busy ? '' : ' disabled'; }
 
+  function ticketReady(f) { return f.ruleId === "__temp__" ? !!(f.ttitle || "").trim() : !!f.ruleId; }
   function sheetNew() {
     var f = UI.form, act = S.rules.filter(function (r) { return r.status === "active"; });
     var op = other(S.me);
     return sheetWrap("開一張罰單",
       '<div class="seg" role="group" aria-label="對象"><button type="button" aria-pressed="' + (f.mode === "other") + '" data-act="f-mode" data-v="other">罰' + esc(nm(op)) + '</button><button type="button" aria-pressed="' + (f.mode === "self") + '" data-act="f-mode" data-v="self">我自首</button></div>' +
       '<div class="field"><span style="font-size:14px">違反哪一條？</span><div class="chips">' +
+        '<button type="button" class="chip chip-temp" aria-pressed="' + (f.ruleId === "__temp__") + '" data-act="f-rule" data-id="__temp__">臨時罰單</button>' +
         act.map(function (r) { return '<button type="button" class="chip" aria-pressed="' + (f.ruleId === r.id) + '" data-act="f-rule" data-id="' + esc(r.id) + '">' + esc(r.title) + ' · ' + money(r.amount) + '</button>'; }).join('') +
         '<button type="button" class="chip" style="border-style:dashed" data-act="sheet" data-sheet="rule">＋ 提議新規則</button></div>' +
-        (act.length ? '' : '<p class="note">還沒有生效的規則，要先提議並等對方同意。</p>') + '</div>' +
+        (act.length || f.ruleId === "__temp__" ? '' : '<p class="note">還沒有生效的規則。可以先開臨時罰單，或者提議新規則。</p>') + '</div>' +
+      (f.ruleId === "__temp__" ? '<div class="field"><label for="f-ttitle">罰單原因</label><input id="f-ttitle" class="input" maxlength="40" data-bind="ttitle" value="' + esc(f.ttitle || "") + '" placeholder="例如：說好不生氣結果生氣了"></div>' : '') +
       '<div class="card" style="display:flex;flex-direction:column;gap:14px">' +
         '<div class="stepper"><span>罰款</span><div style="display:flex;align-items:center;gap:8px"><button type="button" class="icon-btn" aria-label="減少五元" data-act="f-amt" data-v="-5">−</button><span class="amt-box"><span class="num">$</span><input id="f-amount" class="amt-input num" type="number" inputmode="decimal" min="0" max="100000" step="1" aria-label="罰款金額" data-bind-num="amount" value="' + esc(f.amount || 0) + '"></span><button type="button" class="icon-btn" aria-label="增加五元" data-act="f-amt" data-v="5">＋</button></div></div>' +
         '<div class="field"><label for="f-note">事發經過（可不填）</label><textarea id="f-note" class="input" rows="3" maxlength="200" data-bind="note" placeholder="例如：約了七點，七點半才到">' + esc(f.note || "") + '</textarea></div>' +
         '<div class="field"><span style="font-size:14px">存入哪個基金？</span><div class="seg" role="group" aria-label="基金"><button type="button" aria-pressed="' + (f.fund === "wedding") + '" data-act="f-fund" data-v="wedding">' + esc(S.goals.wedding.name) + '</button><button type="button" aria-pressed="' + (f.fund === "travel") + '" data-act="f-fund" data-v="travel">' + esc(S.goals.travel.name) + '</button></div></div>' +
-        (f.mode === "other" ? '<label class="switch" for="f-confirm"><span style="display:flex;flex-direction:column;gap:2px"><span>需要' + esc(nm(op)) + '確認才入帳</span><span class="small muted">對方可以認罰、使用賴貓卡或提出申訴</span></span><input id="f-confirm" type="checkbox" data-bind-check="confirm"' + (f.confirm ? ' checked' : '') + '></label>' : '<span class="note">自首會直接入帳。</span>') +
+        (f.mode === "other" && f.ruleId === "__temp__" ? '<span class="note">臨時罰單一定要' + esc(nm(op)) + '確認才入帳，對方可以認罰、使用賴貓卡或提出申訴。</span>' :
+         f.mode === "other" ? '<label class="switch" for="f-confirm"><span style="display:flex;flex-direction:column;gap:2px"><span>需要' + esc(nm(op)) + '確認才入帳</span><span class="small muted">對方可以認罰、使用賴貓卡或提出申訴</span></span><input id="f-confirm" type="checkbox" data-bind-check="confirm"' + (f.confirm ? ' checked' : '') + '></label>' : '<span class="note">自首會直接入帳。</span>') +
       '</div>' +
-      '<button type="button" class="btn primary block" style="min-height:56px;font-size:17px" data-act="submit-ticket"' + busyAttr(!!f.ruleId) + '>送出罰單</button>');
+      '<button type="button" class="btn primary block" style="min-height:56px;font-size:17px" data-act="submit-ticket"' + busyAttr(ticketReady(f)) + '>送出罰單</button>');
   }
 
   function sheetTicket() {
@@ -759,12 +765,15 @@ textarea.input { resize: none; line-height: 1.5; }
       case "open-ticket": openSheet("ticket", { id: id, appeal: "" }); break;
       case "f-mode": f.mode = v; renderLayer(); break;
       case "f-fund": f.fund = v; renderLayer(); break;
-      case "f-rule": var r = S.rules.filter(function (x) { return x.id === id; })[0]; f.ruleId = id; f.amount = r ? r.amount : 0; renderLayer(); break;
+      case "f-rule":
+        if (id === "__temp__") { f.ruleId = id; if (!f.amount) f.amount = 50; renderLayer(); break; }
+        var r = S.rules.filter(function (x) { return x.id === id; })[0]; f.ruleId = id; f.amount = r ? r.amount : 0; renderLayer(); break;
       case "f-amt": f.amount = Math.max(0, (Number(f.amount) || 0) + Number(v)); setAmt("f-amount", f.amount); break;
       case "r-amt": f.ramt = Math.max(0, (f.ramt == null ? 20 : Number(f.ramt) || 0) + Number(v)); setAmt("r-amount", f.ramt); break;
       case "submit-ticket":
-        send("createTicket", { ruleId: f.ruleId, mode: f.mode, amount: f.amount, note: f.note, fund: f.fund, confirm: !!f.confirm },
-          f.mode === "self" ? "已自首，" + money(f.amount) + " 存入基金" : (f.confirm ? "罰單已送出，等" + nm(other(S.me)) + "回應" : "罰單已入帳"));
+        var isTemp = f.ruleId === "__temp__";
+        send("createTicket", { temp: isTemp, title: f.ttitle, ruleId: isTemp ? "" : f.ruleId, mode: f.mode, amount: f.amount, note: f.note, fund: f.fund, confirm: isTemp || !!f.confirm },
+          f.mode === "self" ? "已自首，" + money(f.amount) + " 存入基金" : (isTemp || f.confirm ? "罰單已送出，等" + nm(other(S.me)) + "回應" : "罰單已入帳"));
         break;
       case "t-pay": send("payTicket", { id: id }, "已認罰，存入基金"); break;
       case "t-card": send("catTicket", { id: id }, "賴貓卡出動，這張罰單免除了"); break;
@@ -793,6 +802,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var k = el.getAttribute("data-bind");
     if (!k) return;
     UI.form[k] = el.value;
+    if (k === "ttitle") { var tb = document.querySelector('[data-act="submit-ticket"]'); if (tb) tb.disabled = UI.busy || !ticketReady(UI.form); }
     var need = { appeal: "t-appeal", rtitle: "submit-rule" }[k];
     if (need) { var b = document.querySelector('[data-act="' + need + '"]'); if (b) b.disabled = UI.busy || !el.value.trim(); }
     if (UI.sheet === "reward") {
