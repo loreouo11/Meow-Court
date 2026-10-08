@@ -227,6 +227,12 @@ button.stack { cursor: pointer; }
 textarea.input { resize: none; line-height: 1.5; }
 .stepper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .stepper .num { font-size: 34px; font-weight: 700; min-width: 90px; text-align: center; }
+.amt-box { display: inline-flex; align-items: baseline; gap: 2px; border-bottom: 2px dashed var(--muted); padding: 0 4px; }
+.amt-box .num { min-width: 0; font-size: 30px; }
+.amt-input { width: 3.6em; border: 0; background: transparent; color: var(--ink); text-align: center; font-size: 30px; font-weight: 700; padding: 0; -moz-appearance: textfield; appearance: textfield; }
+.amt-input::-webkit-outer-spin-button, .amt-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.amt-input:focus { outline: none; }
+.amt-box:focus-within { border-bottom-color: var(--accent); }
 .switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .switch input { width: 52px; height: 30px; appearance: none; border-radius: 999px; background: var(--surface-2); border: var(--bw) solid var(--line); position: relative; flex: none; cursor: pointer; }
 .switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); transition: left .15s; }
@@ -599,7 +605,7 @@ textarea.input { resize: none; line-height: 1.5; }
         '<button type="button" class="chip" style="border-style:dashed" data-act="sheet" data-sheet="rule">＋ 提議新規則</button></div>' +
         (act.length ? '' : '<p class="note">還沒有生效的規則，要先提議並等對方同意。</p>') + '</div>' +
       '<div class="card" style="display:flex;flex-direction:column;gap:14px">' +
-        '<div class="stepper"><span>罰款</span><div style="display:flex;align-items:center;gap:8px"><button type="button" class="icon-btn" aria-label="減少五元" data-act="f-amt" data-v="-5">−</button><span class="num">' + money(f.amount || 0) + '</span><button type="button" class="icon-btn" aria-label="增加五元" data-act="f-amt" data-v="5">＋</button></div></div>' +
+        '<div class="stepper"><span>罰款</span><div style="display:flex;align-items:center;gap:8px"><button type="button" class="icon-btn" aria-label="減少五元" data-act="f-amt" data-v="-5">−</button><span class="amt-box"><span class="num">$</span><input id="f-amount" class="amt-input num" type="number" inputmode="decimal" min="0" max="100000" step="1" aria-label="罰款金額" data-bind-num="amount" value="' + esc(f.amount || 0) + '"></span><button type="button" class="icon-btn" aria-label="增加五元" data-act="f-amt" data-v="5">＋</button></div></div>' +
         '<div class="field"><label for="f-note">事發經過（可不填）</label><textarea id="f-note" class="input" rows="3" maxlength="200" data-bind="note" placeholder="例如：約了七點，七點半才到">' + esc(f.note || "") + '</textarea></div>' +
         '<div class="field"><span style="font-size:14px">存入哪個基金？</span><div class="seg" role="group" aria-label="基金"><button type="button" aria-pressed="' + (f.fund === "wedding") + '" data-act="f-fund" data-v="wedding">' + esc(S.goals.wedding.name) + '</button><button type="button" aria-pressed="' + (f.fund === "travel") + '" data-act="f-fund" data-v="travel">' + esc(S.goals.travel.name) + '</button></div></div>' +
         (f.mode === "other" ? '<label class="switch" for="f-confirm"><span style="display:flex;flex-direction:column;gap:2px"><span>需要' + esc(nm(op)) + '確認才入帳</span><span class="small muted">對方可以認罰、使用賴貓卡或提出申訴</span></span><input id="f-confirm" type="checkbox" data-bind-check="confirm"' + (f.confirm ? ' checked' : '') + '></label>' : '<span class="note">自首會直接入帳。</span>') +
@@ -638,7 +644,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var f = UI.form;
     return sheetWrap("提議新規則",
       '<div class="field"><label for="r-title">規則內容</label><input id="r-title" class="input" maxlength="40" data-bind="rtitle" value="' + esc(f.rtitle || "") + '" placeholder="例如：吵架後先冷戰"></div>' +
-      '<div class="stepper card"><span>罰款</span><div style="display:flex;align-items:center;gap:8px"><button type="button" class="icon-btn" aria-label="減少五元" data-act="r-amt" data-v="-5">−</button><span class="num">' + money(f.ramt || 20) + '</span><button type="button" class="icon-btn" aria-label="增加五元" data-act="r-amt" data-v="5">＋</button></div></div>' +
+      '<div class="stepper card"><span>罰款</span><div style="display:flex;align-items:center;gap:8px"><button type="button" class="icon-btn" aria-label="減少五元" data-act="r-amt" data-v="-5">−</button><span class="amt-box"><span class="num">$</span><input id="r-amount" class="amt-input num" type="number" inputmode="decimal" min="0" max="100000" step="1" aria-label="罰款金額" data-bind-num="ramt" value="' + esc(f.ramt == null ? 20 : f.ramt) + '"></span><button type="button" class="icon-btn" aria-label="增加五元" data-act="r-amt" data-v="5">＋</button></div></div>' +
       '<p class="note">送出後要 ' + esc(nm(other(S.me))) + ' 同意才會生效。</p>' +
       '<button type="button" class="btn primary block" style="min-height:52px" data-act="submit-rule"' + busyAttr((f.rtitle || "").trim()) + '>送出提議</button>');
   }
@@ -754,8 +760,8 @@ textarea.input { resize: none; line-height: 1.5; }
       case "f-mode": f.mode = v; renderLayer(); break;
       case "f-fund": f.fund = v; renderLayer(); break;
       case "f-rule": var r = S.rules.filter(function (x) { return x.id === id; })[0]; f.ruleId = id; f.amount = r ? r.amount : 0; renderLayer(); break;
-      case "f-amt": f.amount = Math.max(0, (Number(f.amount) || 0) + Number(v)); renderLayer(); break;
-      case "r-amt": f.ramt = Math.max(5, (f.ramt || 20) + Number(v)); renderLayer(); break;
+      case "f-amt": f.amount = Math.max(0, (Number(f.amount) || 0) + Number(v)); setAmt("f-amount", f.amount); break;
+      case "r-amt": f.ramt = Math.max(0, (f.ramt == null ? 20 : Number(f.ramt) || 0) + Number(v)); setAmt("r-amount", f.ramt); break;
       case "submit-ticket":
         send("createTicket", { ruleId: f.ruleId, mode: f.mode, amount: f.amount, note: f.note, fund: f.fund, confirm: !!f.confirm },
           f.mode === "self" ? "已自首，" + money(f.amount) + " 存入基金" : (f.confirm ? "罰單已送出，等" + nm(other(S.me)) + "回應" : "罰單已入帳"));
@@ -764,7 +770,7 @@ textarea.input { resize: none; line-height: 1.5; }
       case "t-card": send("catTicket", { id: id }, "賴貓卡出動，這張罰單免除了"); break;
       case "t-appeal": send("appealTicket", { id: id, reason: f.appeal }, "申訴已送出，等對方裁決"); break;
       case "t-judge": send("judgeAppeal", { id: id, accept: v === "yes" }, v === "yes" ? "已接受申訴，這張免罰" : "已駁回申訴，罰雙倍"); break;
-      case "submit-rule": send("proposeRule", { title: f.rtitle, amount: f.ramt || 20 }, "提議已送出，等" + nm(other(S.me)) + "同意"); break;
+      case "submit-rule": send("proposeRule", { title: f.rtitle, amount: f.ramt == null ? 20 : f.ramt }, "提議已送出，等" + nm(other(S.me)) + "同意"); break;
       case "rule-yes": send("agreeRule", { id: id }, "規則已生效"); break;
       case "rule-no": send("removeRule", { id: id }, "已移除這個提議"); break;
       case "w-kind": f.kind = v; renderLayer(); break;
@@ -778,8 +784,11 @@ textarea.input { resize: none; line-height: 1.5; }
     }
   });
 
+  function setAmt(id, v) { var el = document.getElementById(id); if (el) el.value = v; }
   document.addEventListener("input", function (e) {
-    var el = e.target, lk = el.getAttribute("data-bind-login");
+    var el = e.target, nk = el.getAttribute("data-bind-num");
+    if (nk) { var n = Math.max(0, Math.min(100000, Number(el.value) || 0)); UI.form[nk] = Math.round(n * 100) / 100; return; }
+    var lk = el.getAttribute("data-bind-login");
     if (lk) { UI.login[lk] = el.value; return; }
     var k = el.getAttribute("data-bind");
     if (!k) return;
