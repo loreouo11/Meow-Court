@@ -273,6 +273,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function applyState(st) {
     var s = st.settings || {};
     S.names = { a: s.nameA || "我", b: s.nameB || "BB" };
+    S.discord = { a: s.discordA || "", b: s.discordB || "" };
     S.start = String(s.start || "").slice(0, 10);
     S.goals = {
       wedding: { name: s.weddingName || "結婚基金", target: Math.max(1, Number(s.weddingTarget) || 1) },
@@ -735,6 +736,7 @@ textarea.input { resize: none; line-height: 1.5; }
       '<div class="grid2"><div class="field"><label for="s-a">第一位</label><input id="s-a" class="input" maxlength="20" data-bind="nameA" value="' + esc(f.nameA) + '"></div><div class="field"><label for="s-b">第二位</label><input id="s-b" class="input" maxlength="20" data-bind="nameB" value="' + esc(f.nameB) + '"></div></div>' +
       '<div class="field"><label for="s-start">在一起的日子</label><input id="s-start" type="date" class="input" data-bind="start" value="' + esc(f.start) + '"></div>' +
       '<div class="grid2"><div class="field"><label for="s-gw">' + esc(S.goals.wedding.name) + '目標</label><input id="s-gw" type="number" inputmode="numeric" class="input" data-bind="weddingTarget" value="' + esc(f.weddingTarget) + '"></div><div class="field"><label for="s-gt">' + esc(S.goals.travel.name) + '目標</label><input id="s-gt" type="number" inputmode="numeric" class="input" data-bind="travelTarget" value="' + esc(f.travelTarget) + '"></div></div>' +
+      '<div class="field"><label for="s-dc">我的 Discord 用戶 ID（收通知用）</label><input id="s-dc" class="input" inputmode="numeric" maxlength="20" data-bind="discord" value="' + esc(f.discord || "") + '" placeholder="例如：123456789012345678"><span class="note">Discord：設定 → 進階 → 開啟開發者模式，再按自己的頭像 →「複製用戶 ID」。只會改你自己的。</span></div>' +
       '<button type="button" class="btn primary block" data-act="submit-settings"' + busyAttr(true) + '>儲存</button>' +
       '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span class="note">目前身分：' + esc(nm(S.me)) + '。資料儲存在你們的 Google 試算表。</span>' +
       '<button type="button" class="btn" data-act="logout">登出這部手機</button></div>');
@@ -762,7 +764,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function openSheet(name, extra) {
     var f = extra || {};
     if (name === "new") f = { mode: "other", confirm: true, fund: "wedding", amount: 0, ruleId: null, note: "" };
-    if (name === "settings") f = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target };
+    if (name === "settings") f = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target, discord: (S.discord || {})[S.me] || "" };
     if (name === "rule") {
       var er = extra && extra.ruleId ? S.rules.filter(function (x) { return x.id === extra.ruleId; })[0] : null;
       f = er ? { ruleId: er.id, rtitle: er.title, ramt: er.amount } : { rtitle: "", ramt: 20 };
@@ -847,7 +849,10 @@ textarea.input { resize: none; line-height: 1.5; }
       case "submit-reward": send("giveCard", { kind: f.kind, title: f.ctitle, desc: f.cdesc, color: f.color, icon: f.icon, reason: f.reason }, "已把卡放進" + nm(other(S.me)) + "的卡包"); break;
       case "use-card": openSheet("use", { id: id }); break;
       case "confirm-use": send("useCard", { id: id }, "已使用，記得找" + nm(other(S.me)) + "兌現"); break;
-      case "submit-settings": send("saveSettings", { nameA: f.nameA, nameB: f.nameB, start: f.start, weddingTarget: f.weddingTarget, travelTarget: f.travelTarget }, "已儲存"); break;
+      case "submit-settings":
+        var ss = { nameA: f.nameA, nameB: f.nameB, start: f.start, weddingTarget: f.weddingTarget, travelTarget: f.travelTarget };
+        ss[S.me === "a" ? "discordA" : "discordB"] = f.discord || "";
+        send("saveSettings", ss, "已儲存"); break;
       case "logout": logout(""); break;
     }
   });
