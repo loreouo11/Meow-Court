@@ -285,6 +285,8 @@ function flushDiscord() {
   box.forEach(function (m) {
     const hook = typeof m.kind === 'object' ? m.kind.hook : hookFor(props, m.to, m.kind);
     if (!hook) return;
+    const tab = { cards: 'cards', tickets: 'tickets', rules: 'rules' }[m.kind] || 'home';
+    const link = SITE_URL + '#' + tab;
     const id = setting(m.to === 'a' ? 'discordA' : 'discordB');
     const mention = /^\d{5,20}$/.test(id) ? '<@' + id + '>' : nm(m.to);
     try {
@@ -294,7 +296,7 @@ function flushDiscord() {
           username: '賴貓法庭',
           content: mention,
           allowed_mentions: { users: /^\d{5,20}$/.test(id) ? [id] : [] },
-          embeds: [{ title: m.title, description: m.desc, color: m.color, url: SITE_URL }]
+          embeds: [{ title: m.title, description: m.desc + '\n\n[打開賴貓法庭 →](' + link + ')', color: m.color, url: link }]
         })
       });
     } catch (err) {}

@@ -884,6 +884,14 @@ textarea.input { resize: none; line-height: 1.5; }
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
   setInterval(refresh, 30000);
 
+  function tabFromHash() {
+    var h = (location.hash || "").replace("#", "");
+    if (["home", "rules", "tickets", "cards", "me"].indexOf(h) >= 0) { UI.tab = h; UI.sheet = null; return true; }
+    return false;
+  }
+  tabFromHash();
+  window.addEventListener("hashchange", function () { if (tabFromHash()) { render(); window.scrollTo(0, 0); } });
+
   render();
   if (auth && API_URL) refresh();
 })();
