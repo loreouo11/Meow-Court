@@ -3,9 +3,10 @@
  * 1. 把下面的 PASSCODE 改成你們兩個人才知道的密碼。
  * 2. 在編輯器上方選擇函式「setup」，按「執行」一次，會自動建立四個工作表。
  * 3. 部署 → 新增部署作業 → 類型選「網頁應用程式」→ 執行身分「我」→ 存取權「所有人」。
- * 4.（選用）Discord 通知：專案設定 → 指令碼屬性，新增以下屬性，值貼上各頻道的 Webhook 網址：
- *    DISCORD_WEBHOOK（預設）、DISCORD_WEBHOOK_CARDS（卡片）、DISCORD_WEBHOOK_TICKETS（罰單）、DISCORD_WEBHOOK_RULES（規則）。
- *    沒有設定的分類會送到 DISCORD_WEBHOOK。
+ * 4.（選用）Discord 通知：專案設定 → 指令碼屬性，新增屬性，值貼上該頻道的 Webhook 網址。
+ *    名稱格式 DISCORD_WEBHOOK[_人][_分類]，人 = A（第一位）或 B（第二位），分類 = CARDS／TICKETS／RULES。
+ *    例：DISCORD_WEBHOOK_B_TICKETS = 第二位的罰單頻道；DISCORD_WEBHOOK_A = 第一位的所有通知。
+ *    找頻道的順序：人+分類 → 人 → 分類 → DISCORD_WEBHOOK（預設）。
  *    然後在上方函式選單選「testDiscord」按「執行」，授權一次並發出測試訊息。
  */
 const PASSCODE = '請改成你們的密碼';
@@ -269,19 +270,20 @@ function setting(key) {
 function nm(p) { return setting(p === 'a' ? 'nameA' : 'nameB') || (p === 'a' ? '我' : 'BB'); }
 function noteLine(n) { const s = text(n, 200); return s ? '\n「' + s + '」' : ''; }
 function ping(to, title, desc, color, kind) { OUTBOX.push({ to: to, title: title, desc: desc, color: color, kind: kind || 'default' }); }
+function hookFor(props, to, kind) {
+  const who = to === 'b' ? 'B' : 'A';
+  const k = kind && kind !== 'default' ? kind.toUpperCase() : '';
+  const names = k ? ['DISCORD_WEBHOOK_' + who + '_' + k, 'DISCORD_WEBHOOK_' + who, 'DISCORD_WEBHOOK_' + k, 'DISCORD_WEBHOOK']
+                  : ['DISCORD_WEBHOOK_' + who, 'DISCORD_WEBHOOK'];
+  for (let i = 0; i < names.length; i++) if (props[names[i]]) return props[names[i]];
+  return '';
+}
 function flushDiscord() {
   const box = OUTBOX; OUTBOX = [];
   if (!box.length) return;
-  const props = PropertiesService.getScriptProperties();
-  const base = props.getProperty('DISCORD_WEBHOOK');
-  const hooks = {
-    cards: props.getProperty('DISCORD_WEBHOOK_CARDS') || base,
-    tickets: props.getProperty('DISCORD_WEBHOOK_TICKETS') || base,
-    rules: props.getProperty('DISCORD_WEBHOOK_RULES') || base,
-    default: base
-  };
+  const props = PropertiesService.getScriptProperties().getProperties();
   box.forEach(function (m) {
-    const hook = hooks[m.kind] || base;
+    const hook = typeof m.kind === 'object' ? m.kind.hook : hookFor(props, m.to, m.kind);
     if (!hook) return;
     const id = setting(m.to === 'a' ? 'discordA' : 'discordB');
     const mention = /^\d{5,20}$/.test(id) ? '<@' + id + '>' : nm(m.to);
@@ -300,14 +302,22 @@ function flushDiscord() {
 }
 // 在編輯器手動執行一次：授權並發出測試訊息
 function testDiscord() {
-  const props = PropertiesService.getScriptProperties();
-  if (!props.getProperty('DISCORD_WEBHOOK') && !props.getProperty('DISCORD_WEBHOOK_CARDS') && !props.getProperty('DISCORD_WEBHOOK_TICKETS') && !props.getProperty('DISCORD_WEBHOOK_RULES')) {
+  const props = PropertiesService.getScriptProperties().getProperties();
+  if (!Object.keys(props).some(function (k) { return k.indexOf('DISCORD_WEBHOOK') === 0; })) {
     throw new Error('請先在「專案設定 → 指令碼屬性」新增 DISCORD_WEBHOOK');
   }
   OUTBOX = [];
-  ping('a', '🐱 賴貓法庭連線成功：卡片', '收到卡片和使用卡片會在這個頻道通知。', 0xFFD15C, 'cards');
-  ping('a', '🐱 賴貓法庭連線成功：罰單', '罰單、自首、申訴和刪除申請會在這個頻道通知。', 0xFF6064, 'tickets');
-  ping('a', '🐱 賴貓法庭連線成功：規則', '新規則和規則修改、刪除會在這個頻道通知。', 0xFFC56B, 'rules');
+  ['a', 'b'].forEach(function (p) {
+    const seen = {};
+    [['cards', '卡片', 0xFFD15C], ['tickets', '罰單', 0xFF6064], ['rules', '規則', 0xFFC56B]].forEach(function (c) {
+      const hook = hookFor(props, p, c[0]);
+      if (!hook) return;
+      seen[hook] = (seen[hook] || []).concat(c[1]);
+    });
+    Object.keys(seen).forEach(function (hook) {
+      ping(p, '🐱 賴貓法庭連線成功', nm(p) + ' 的「' + seen[hook].join('、') + '」通知會送到這個頻道。', 0x028678, { hook: hook });
+    });
+  });
   flushDiscord();
 }
 
