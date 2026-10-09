@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFF1EB">
+<meta name="color-scheme" content="light dark">
+<script>
+(function () {
+  var r = document.documentElement, st = null, md = null;
+  try { st = localStorage.getItem("fajin-style"); md = localStorage.getItem("fajin-mode"); } catch (e) {}
+  md = md || "auto";
+  var dark = md === "dark" || (md === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  r.setAttribute("data-style", st || "coral"); r.setAttribute("data-mode", dark ? "dark" : "light");
+})();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -63,13 +73,13 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html, body { background: var(--bg); }
+html { background: var(--bg); min-height: 100%; }
+body { margin: 0; min-height: 100vh; min-height: 100dvh; background: transparent; }
+/* background art sits on a fixed layer covering the whole screen (works on iPhone, where background-attachment: fixed is ignored) */
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--bg-art, var(--bg)); }
 body { color: var(--ink); font-family: var(--font); font-size: 15px; -webkit-font-smoothing: antialiased; }
-:root[data-style="neon"] body {
-  background: radial-gradient(circle at 15% 0%, rgba(255,92,138,.18), transparent 40%), radial-gradient(circle at 100% 30%, rgba(69,224,190,.14), transparent 45%), var(--bg);
-  background-attachment: fixed;
-}
-:root[data-style="coral"] body { background: linear-gradient(180deg, #FFE3DA 0%, #FFF1EB 35%, #E6F4F1 100%) fixed; }
+:root[data-style="neon"] { --bg-art: radial-gradient(circle at 15% 0%, rgba(255,92,138,.18), transparent 40%), radial-gradient(circle at 100% 30%, rgba(69,224,190,.14), transparent 45%), var(--bg); }
+:root[data-style="coral"] { --bg-art: linear-gradient(180deg, #FFE3DA 0%, #FFF1EB 35%, #E6F4F1 100%); }
 :root[data-style="coral"] .top { background: rgba(255,232,224,.9); backdrop-filter: blur(10px); }
 :root[data-style="coral"] .fund { background: linear-gradient(160deg, #028678 0%, #03655B 100%); color: #FFFFFF; border-color: transparent; }
 :root[data-style="coral"] .fund .big { color: #FFE4DB; }
@@ -81,7 +91,7 @@ body { color: var(--ink); font-family: var(--font); font-size: 15px; -webkit-fon
 :root[data-style="coral"] .ava.b, :root[data-style="coral"] .btn.mint { color: #FFFFFF; }
 :root[data-style="coral"] .tabbar { background: rgba(255,255,255,.92); backdrop-filter: blur(10px); }
 :root[data-style="coral"] .ticket-head { background: linear-gradient(90deg, #FB6A52, #FF6064); }
-:root[data-style="crystal"] body { background: linear-gradient(160deg, #F8E7DF 0%, #FBD9F7 35%, #E4D6FA 65%, #D4ECFE 100%) fixed; }
+:root[data-style="crystal"] { --bg-art: linear-gradient(160deg, #F8E7DF 0%, #FBD9F7 35%, #E4D6FA 65%, #D4ECFE 100%); }
 :root[data-style="crystal"] .top { background: rgba(250,232,244,.7); backdrop-filter: blur(14px); }
 :root[data-style="crystal"] .card, :root[data-style="crystal"] .row, :root[data-style="crystal"] .mini, :root[data-style="crystal"] .styles, :root[data-style="crystal"] .icon-btn { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 :root[data-style="crystal"] .big { background: linear-gradient(90deg, #8A63D2, #E07BE0 50%, #5AA8E8); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -94,6 +104,44 @@ body { color: var(--ink); font-family: var(--font); font-size: 15px; -webkit-fon
 :root[data-style="coral"] .gcard, :root[data-style="crystal"] .gcard { border-color: var(--line); box-shadow: var(--shadow); }
 :root[data-style="coral"] .gcard-cover { border-bottom-color: rgba(2,134,120,.35); }
 :root[data-style="crystal"] .gcard-cover { border-bottom-color: rgba(138,99,210,.35); }
+/* ===== 深色模式：data-mode="dark"（跟隨系統或手動選擇）。夜光本身就是深色，不用另外設定 ===== */
+:root[data-mode="dark"]:not([data-style="neon"]) { color-scheme: dark; --overlay: rgba(0,0,0,.6); }
+:root[data-mode="dark"][data-style="sticker"], :root[data-mode="dark"]:not([data-style]) {
+  --bg: #221820; --surface: #33242D; --surface-2: #3D2B36; --ink: #FBEFF3; --muted: #C4A6B3;
+  --line: #EBCFDA; --accent: #FF6F88; --on-accent: #FFFFFF;
+  --soft-accent: rgba(255,111,136,.20); --soft-gold: rgba(255,209,92,.18); --soft-mint: rgba(143,214,180,.18);
+  --shadow: 4px 4px 0 #0B0609; --shadow-sm: 2px 2px 0 #0B0609;
+}
+:root[data-mode="dark"][data-style="clay"] {
+  --bg: #252A37; --surface: #2C3242; --surface-2: #313848; --ink: #E6EAF5; --muted: #9AA3BD;
+  --soft-accent: rgba(242,114,127,.20); --soft-gold: rgba(255,197,107,.18); --soft-mint: rgba(111,211,190,.18);
+  --shadow: 9px 9px 20px rgba(0,0,0,.45), -6px -6px 14px rgba(255,255,255,.05), inset 1px 1px 0 rgba(255,255,255,.06);
+  --shadow-sm: 4px 4px 10px rgba(0,0,0,.4), -3px -3px 8px rgba(255,255,255,.04);
+}
+:root[data-mode="dark"][data-style="clay"] .bar, :root[data-mode="dark"][data-style="clay"] .input { box-shadow: inset 3px 3px 6px rgba(0,0,0,.4), inset -3px -3px 6px rgba(255,255,255,.04); }
+:root[data-mode="dark"][data-style="clay"] .tabbar { box-shadow: 0 -8px 20px rgba(0,0,0,.35); }
+:root[data-mode="dark"][data-style="coral"] {
+  --bg: #0C2424; --surface: #12302F; --surface-2: #173937; --ink: #E8F4F2; --muted: #8FB3AE;
+  --line: rgba(95,210,195,.26); --accent: #FF6A6F; --gold: #FE9581; --mint: #3CC7B4;
+  --soft-accent: rgba(255,106,111,.18); --soft-gold: rgba(254,149,129,.18); --soft-mint: rgba(60,199,180,.18);
+  --shadow: 0 14px 30px rgba(0,0,0,.45); --shadow-sm: 0 6px 14px rgba(0,0,0,.35);
+  --bg-art: linear-gradient(180deg, #2A1C1E 0%, #0C2424 40%, #082A28 100%);
+}
+:root[data-mode="dark"][data-style="coral"] .top { background: rgba(14,36,36,.85); }
+:root[data-mode="dark"][data-style="coral"] .tabbar { background: rgba(18,48,47,.92); }
+:root[data-mode="dark"][data-style="crystal"] {
+  --bg: #1B1530; --surface: rgba(255,255,255,.08); --surface-2: rgba(255,255,255,.06); --ink: #EEE8FF; --muted: #B1A6D6;
+  --line: rgba(255,255,255,.16); --accent: #A57EF2;
+  --soft-accent: rgba(180,145,237,.22); --soft-gold: rgba(249,170,249,.18); --soft-mint: rgba(175,224,254,.16);
+  --shadow: 0 14px 34px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08); --shadow-sm: 0 6px 16px rgba(0,0,0,.35);
+  --bg-art: linear-gradient(160deg, #2A1A30 0%, #241A3E 40%, #1B1836 70%, #142236 100%);
+}
+:root[data-mode="dark"][data-style="crystal"] .top { background: rgba(30,22,52,.75); }
+:root[data-mode="dark"][data-style="crystal"] .tabbar { background: rgba(36,28,62,.85); }
+:root[data-mode="dark"][data-style="crystal"] .sheet { background: linear-gradient(180deg, #2A2040, #1D1A36); }
+:root[data-mode="dark"][data-style="crystal"] .big { background: linear-gradient(90deg, #C9A8FF, #F2A0F2 50%, #9FD0FF); -webkit-background-clip: text; background-clip: text; }
+:root[data-mode="dark"] .gcard, :root[data-mode="dark"] .swatches button { border-color: var(--line); }
+:root[data-mode="dark"] .gcard-cover { border-bottom-color: rgba(0,0,0,.35); }
 button, input, textarea, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
@@ -254,7 +302,8 @@ textarea.input { resize: none; line-height: 1.5; }
   var API_URL = "https://script.google.com/macros/s/AKfycbyT5opMiOjwc14BWKjuBD_Ee3G6ZjQC9PbOHvjQZhg2HFYh7OvSi5lyk8dvhH5XB8bO/exec";
   /* ================================================================ */
 
-  var AUTH_KEY = "fajin-auth", STYLE_KEY = "fajin-style";
+  var AUTH_KEY = "fajin-auth", STYLE_KEY = "fajin-style", MODE_KEY = "fajin-mode";
+  var MODES = [["auto", "跟隨系統"], ["light", "淺色"], ["dark", "深色"]];
   var STYLES = [["coral", "珊瑚海"], ["crystal", "粉晶"], ["sticker", "貼紙"], ["clay", "果凍"], ["neon", "夜光"]];
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -264,7 +313,7 @@ textarea.input { resize: none; line-height: 1.5; }
   try { auth = JSON.parse(lsGet(AUTH_KEY) || "null"); } catch (e) { auth = null; }
 
   var S = {
-    style: lsGet(STYLE_KEY) || "coral", me: auth && auth.me || null, loaded: false,
+    style: lsGet(STYLE_KEY) || "coral", mode: lsGet(MODE_KEY) || "auto", me: auth && auth.me || null, loaded: false,
     names: { a: "", b: "" }, start: "", goals: { wedding: { name: "結婚基金", target: 1 }, travel: { name: "旅行基金", target: 1 } },
     rules: [], tickets: [], cards: []
   };
@@ -358,7 +407,7 @@ textarea.input { resize: none; line-height: 1.5; }
     '<path d="M14 58h-10M15 64l-9 3M86 58h10M85 64l9 3" stroke="#3B2A33" stroke-width="1.6" stroke-linecap="round"/>' +
     '<ellipse cx="36" cy="84" rx="11" ry="7" fill="#F6B26B" stroke="#3B2A33" stroke-width="2.5"/><ellipse cx="62" cy="84" rx="11" ry="7" fill="#F6B26B" stroke="#3B2A33" stroke-width="2.5"/>' +
     '<path d="M33 82v4M39 82v4M59 82v4M65 82v4" stroke="#3B2A33" stroke-width="1.6" stroke-linecap="round"/>' +
-    '<text x="104" y="24" font-size="13" fill="#3B2A33" font-family="Fredoka, sans-serif" font-weight="700">z</text><text x="114" y="13" font-size="10" fill="#3B2A33" font-family="Fredoka, sans-serif" font-weight="700">z</text>' +
+    '<text x="104" y="24" font-size="13" style="fill:var(--ink)" font-family="Fredoka, sans-serif" font-weight="700">z</text><text x="114" y="13" font-size="10" style="fill:var(--ink)" font-family="Fredoka, sans-serif" font-weight="700">z</text>' +
     '</svg>';
   var STAR = '<svg class="cat" viewBox="0 0 132 96" aria-hidden="true"><path d="M66 14l12 26 28 3-21 19 6 28-25-14-25 14 6-28-21-19 28-3z" fill="#FFFFFF" stroke="#3B2A33" stroke-width="2.5" stroke-linejoin="round"/><circle cx="58" cy="52" r="2.6" fill="#3B2A33"/><circle cx="74" cy="52" r="2.6" fill="#3B2A33"/><path d="M61 60q5 4 10 0" fill="none" stroke="#3B2A33" stroke-width="2.2" stroke-linecap="round"/></svg>';
   var K = 'stroke="#3B2A33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"';
@@ -583,8 +632,21 @@ textarea.input { resize: none; line-height: 1.5; }
     return '<div style="min-height:80vh;display:flex;align-items:center"><div class="card" style="width:100%;display:flex;flex-direction:column;gap:16px">' + inner + '</div></div>';
   }
 
+  var darkMQ = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function applyLook() {
+    var r = document.documentElement;
+    var dark = S.mode === "dark" || (S.mode === "auto" && darkMQ && darkMQ.matches);
+    r.setAttribute("data-style", S.style); r.setAttribute("data-mode", dark ? "dark" : "light");
+    var bg = getComputedStyle(r).getPropertyValue("--bg").trim(), m = document.querySelector('meta[name="theme-color"]');
+    if (m && bg) m.setAttribute("content", bg);
+  }
+  if (darkMQ) {
+    var onScheme = function () { if (S.mode === "auto") applyLook(); };
+    if (darkMQ.addEventListener) darkMQ.addEventListener("change", onScheme); else if (darkMQ.addListener) darkMQ.addListener(onScheme);
+  }
+
   function render(keepLayer) {
-    document.documentElement.setAttribute("data-style", S.style);
+    applyLook();
     var app = document.getElementById("app");
     if (!auth || !API_URL) { app.innerHTML = viewLogin(); renderLayer(); return; }
     if (!S.loaded) { app.innerHTML = '<div style="min-height:80vh;display:grid;place-items:center" class="muted">載入中…</div>'; renderLayer(); return; }
@@ -733,6 +795,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var f = UI.form;
     return sheetWrap("設定",
       '<div class="field"><span style="font-size:14px">介面風格</span><div class="styles" role="group" aria-label="介面風格">' + STYLES.map(function (s) { return '<button type="button" aria-pressed="' + (S.style === s[0]) + '" data-act="style" data-style="' + s[0] + '">' + s[1] + '</button>'; }).join('') + '</div><span class="note">風格只會套用在這部手機。</span></div>' +
+      '<div class="field"><span style="font-size:14px">明暗模式</span><div class="styles" role="group" aria-label="明暗模式">' + MODES.map(function (m) { return '<button type="button" aria-pressed="' + (S.mode === m[0]) + '" data-act="look-mode" data-v="' + m[0] + '">' + m[1] + '</button>'; }).join('') + '</div><span class="note">「跟隨系統」會跟著手機的淺色／深色設定自動切換；夜光風格一律是深色。</span></div>' +
       '<div class="grid2"><div class="field"><label for="s-a">第一位</label><input id="s-a" class="input" maxlength="20" data-bind="nameA" value="' + esc(f.nameA) + '"></div><div class="field"><label for="s-b">第二位</label><input id="s-b" class="input" maxlength="20" data-bind="nameB" value="' + esc(f.nameB) + '"></div></div>' +
       '<div class="field"><label for="s-start">在一起的日子</label><input id="s-start" type="date" class="input" data-bind="start" value="' + esc(f.start) + '"></div>' +
       '<div class="grid2"><div class="field"><label for="s-gw">' + esc(S.goals.wedding.name) + '目標</label><input id="s-gw" type="number" inputmode="numeric" class="input" data-bind="weddingTarget" value="' + esc(f.weddingTarget) + '"></div><div class="field"><label for="s-gt">' + esc(S.goals.travel.name) + '目標</label><input id="s-gt" type="number" inputmode="numeric" class="input" data-bind="travelTarget" value="' + esc(f.travelTarget) + '"></div></div>' +
@@ -803,7 +866,8 @@ textarea.input { resize: none; line-height: 1.5; }
         S.me = v; auth = { pass: UI.login.pass, me: v }; lsSet(AUTH_KEY, JSON.stringify(auth));
         UI.login = { pass: "", step: "done", error: "" }; render(); break;
       case "tab": UI.tab = el.getAttribute("data-tab"); render(); window.scrollTo(0, 0); break;
-      case "style": S.style = el.getAttribute("data-style"); lsSet(STYLE_KEY, S.style); document.documentElement.setAttribute("data-style", S.style); renderLayer(); break;
+      case "style": S.style = el.getAttribute("data-style"); lsSet(STYLE_KEY, S.style); applyLook(); renderLayer(); break;
+      case "look-mode": S.mode = v; lsSet(MODE_KEY, S.mode); applyLook(); renderLayer(); break;
       case "sheet": openSheet(el.getAttribute("data-sheet")); break;
       case "close": case "close-bg": closeSheet(); break;
       case "open-ticket": openSheet("ticket", { id: id, appeal: "" }); break;
