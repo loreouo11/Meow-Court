@@ -324,6 +324,26 @@ function testDiscord() {
   flushDiscord();
 }
 
+// 在編輯器執行：查看兩個人的名字和 Discord 設定（不會顯示 Webhook 網址）
+function showDiscordSetup() {
+  const props = PropertiesService.getScriptProperties().getProperties();
+  ['a', 'b'].forEach(function (p) {
+    const id = setting(p === 'a' ? 'discordA' : 'discordB');
+    const hook = hookFor(props, p, 'default');
+    const name = Object.keys(props).filter(function (k) { return props[k] === hook; })[0] || '（沒有）';
+    Logger.log((p === 'a' ? '第一位' : '第二位') + '：' + nm(p) + '｜Discord ID：' + (/^\d{5,20}$/.test(id) ? id : '（未填或格式不對：' + id + '）') + '｜通知頻道：' + name);
+  });
+}
+// 在編輯器執行：只發一條測試通知給第一位／第二位
+function testA() { testOne('a'); }
+function testB() { testOne('b'); }
+function testOne(p) {
+  OUTBOX = [];
+  ping(p, '🔔 測試通知', '這是 ' + nm(p) + ' 的專屬頻道。如果上面顯示藍色的 @' + nm(p) + '，代表標記成功。', 0x028678, 'default');
+  flushDiscord();
+  Logger.log('已發送測試通知給 ' + nm(p));
+}
+
 /* ---------- 讀取 ---------- */
 function getState() {
   const settings = {};
