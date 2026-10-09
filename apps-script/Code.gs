@@ -294,6 +294,7 @@ function flushDiscord() {
         method: 'post', contentType: 'application/json', muteHttpExceptions: true,
         payload: JSON.stringify({
           username: '賴貓法庭',
+          avatar_url: SITE_URL + 'icon-192.png',
           content: mention,
           allowed_mentions: { users: /^\d{5,20}$/.test(id) ? [id] : [] },
           embeds: [{ title: m.title, description: m.desc + '\n\n[打開賴貓法庭 →](' + link + ')', color: m.color, url: link }]
