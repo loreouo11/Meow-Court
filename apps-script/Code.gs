@@ -280,17 +280,18 @@ function hookFor(props, to, kind) {
 }
 function flushDiscord() {
   const box = OUTBOX; OUTBOX = [];
-  if (!box.length) return;
+  const results = [];
+  if (!box.length) return results;
   const props = PropertiesService.getScriptProperties().getProperties();
   box.forEach(function (m) {
     const hook = typeof m.kind === 'object' ? m.kind.hook : hookFor(props, m.to, m.kind);
-    if (!hook) return;
+    if (!hook) { results.push('沒有設定 Webhook，略過 ' + nm(m.to)); return; }
     const tab = { cards: 'cards', tickets: 'tickets', rules: 'rules' }[m.kind] || 'home';
     const link = SITE_URL + '#' + tab;
     const id = setting(m.to === 'a' ? 'discordA' : 'discordB');
     const mention = /^\d{5,20}$/.test(id) ? '<@' + id + '>' : nm(m.to);
     try {
-      UrlFetchApp.fetch(hook, {
+      const res = UrlFetchApp.fetch(hook + (hook.indexOf('?') < 0 ? '?wait=true' : '&wait=true'), {
         method: 'post', contentType: 'application/json', muteHttpExceptions: true,
         payload: JSON.stringify({
           username: '賴貓法庭',
@@ -300,8 +301,16 @@ function flushDiscord() {
           embeds: [{ title: m.title, description: m.desc + '\n\n[打開賴貓法庭 →](' + link + ')', color: m.color, url: link }]
         })
       });
-    } catch (err) {}
+      const code = res.getResponseCode();
+      const msg = code < 300 ? 'Discord 回覆 ' + code + '（成功）' : 'Discord 回覆 ' + code + '：' + res.getContentText().slice(0, 300);
+      results.push(msg);
+      if (code >= 300) console.warn(msg);
+    } catch (err) {
+      results.push('連線失敗：' + err);
+      console.warn('連線失敗：' + err);
+    }
   });
+  return results;
 }
 // 在編輯器手動執行一次：授權並發出測試訊息
 function testDiscord() {
@@ -340,8 +349,8 @@ function testB() { testOne('b'); }
 function testOne(p) {
   OUTBOX = [];
   ping(p, '🔔 測試通知', '這是 ' + nm(p) + ' 的專屬頻道。如果上面顯示藍色的 @' + nm(p) + '，代表標記成功。', 0x028678, 'default');
-  flushDiscord();
-  Logger.log('已發送測試通知給 ' + nm(p));
+  const r = flushDiscord();
+  Logger.log('測試通知給 ' + nm(p) + '：' + (r.join('；') || '沒有發送'));
 }
 
 /* ---------- 讀取 ---------- */
