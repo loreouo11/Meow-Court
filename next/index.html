@@ -713,6 +713,36 @@ textarea.input { resize: none; line-height: 1.5; }
     return '<div class="overlay" data-act="close-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(title) + '">' +
       '<div class="sheet-head"><h3>' + esc(title) + '</h3><button type="button" class="icon-btn" aria-label="關閉" data-act="close">' + I.close + '</button></div>' + inner + '</div></div>';
   }
+  function myEmail() { return auth && auth.user && auth.user.email || ""; }
+  function sheetEmail() {
+    var f = UI.form, inner;
+    if (f.step === "code") {
+      inner = '<form id="email-change-code" style="display:flex;flex-direction:column;gap:12px">' +
+        '<div class="field"><label for="e-code">輸入寄到 ' + esc(f.newEmail) + ' 的驗證碼</label><input id="e-code" class="input num" style="font-size:24px;letter-spacing:6px;text-align:center" inputmode="numeric" autocomplete="one-time-code" maxlength="10" data-bind="code" value="' + esc(f.code || "") + '"></div>' +
+        errLine(f.error) +
+        '<button type="submit" class="btn primary block"' + busyAttr(true) + '>' + (UI.busy ? '確認中…' : '確認更換') + '</button>' +
+        '<button type="button" class="btn block" data-act="email-back">改填另一個 Email</button></form>';
+    } else {
+      inner = '<form id="email-change" style="display:flex;flex-direction:column;gap:12px">' +
+        '<p class="note" style="margin:0">目前是 ' + esc(myEmail()) + '。換成新的 Email 之後，所有紀錄都會保留，以後用新 Email 收驗證碼登入。</p>' +
+        '<div class="field"><label for="e-new">新的 Email</label><input id="e-new" class="input" type="email" inputmode="email" autocomplete="email" data-bind="newEmail" value="' + esc(f.newEmail || "") + '"></div>' +
+        errLine(f.error) +
+        '<button type="submit" class="btn primary block"' + busyAttr(true) + '>' + (UI.busy ? '寄送中…' : '寄驗證碼到新 Email') + '</button></form>';
+    }
+    return sheetWrap("更換 Email", inner);
+  }
+  function sheetLeave() {
+    var op = nm(other(S.me));
+    return sheetWrap("離開情侶空間",
+      '<div class="quote" style="font-size:14px">離開之後，你就看不到這裡的規則、罰單和卡片了。<br><br>' +
+      '紀錄會留給 ' + esc(op) + '，' + esc(op) + ' 會拿到新的邀請碼，可以再邀請別人加入。' +
+      '<br><br>如果 ' + esc(op) + ' 之前已經離開，或之後也離開，<b>這個空間的所有紀錄都會永久刪除</b>，沒辦法復原。</div>' +
+      '<p class="note" style="margin:0">確定要離開的話，請在下面輸入「離開」。</p>' +
+      '<input class="input" maxlength="4" autocomplete="off" data-bind="confirmText" value="' + esc(UI.form.confirmText || "") + '">' +
+      errLine(UI.form.error) +
+      '<button type="button" class="btn primary block" data-act="leave-confirm"' + busyAttr(true) + '>' + (UI.busy ? '處理中…' : '確定離開') + '</button>' +
+      '<button type="button" class="btn block" data-act="close">取消</button>');
+  }
   function busyAttr(ok) { return ok && !UI.busy ? '' : ' disabled'; }
 
   function ticketReady(f) { return f.ruleId === "__temp__" ? !!(f.ttitle || "").trim() : !!f.ruleId; }
@@ -840,7 +870,9 @@ textarea.input { resize: none; line-height: 1.5; }
       '<div class="grid2"><div class="field"><label for="s-gw">' + esc(S.goals.wedding.name) + '目標</label><input id="s-gw" type="number" inputmode="numeric" class="input" data-bind="weddingTarget" value="' + esc(f.weddingTarget) + '"></div><div class="field"><label for="s-gt">' + esc(S.goals.travel.name) + '目標</label><input id="s-gt" type="number" inputmode="numeric" class="input" data-bind="travelTarget" value="' + esc(f.travelTarget) + '"></div></div>' +
       '<div class="field"><label for="s-dc">我的 Discord 用戶 ID（收通知用）</label><input id="s-dc" class="input" inputmode="numeric" maxlength="20" data-bind="discord" value="' + esc(f.discord || "") + '" placeholder="例如：123456789012345678"><span class="note">Discord：設定 → 進階 → 開啟開發者模式，再按自己的頭像 →「複製用戶 ID」。只會改你自己的。</span></div>' +
       '<button type="button" class="btn primary block" data-act="submit-settings"' + busyAttr(true) + '>儲存</button>' +
-      '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span class="note">目前身分：' + esc(nm(S.me)) + '。登入帳號：' + esc(auth && auth.user && auth.user.email || "") + '。資料只有你們兩個看得到。</span>' +
+      '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:14px">帳號</span><span class="note">目前身分：' + esc(nm(S.me)) + '<br>登入 Email：' + esc(myEmail()) + '<br>資料只有你們兩個看得到。</span>' +
+      '<button type="button" class="btn" data-act="sheet" data-sheet="email">更換 Email</button>' +
+      '<button type="button" class="btn" data-act="sheet" data-sheet="leave">離開情侶空間</button>' +
       '<button type="button" class="btn" data-act="logout">登出這部手機</button></div>');
   }
 
@@ -852,7 +884,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var s = UI.sheet, html = "";
     if (auth && S.loaded && S.paired) {
       if (s === "new") html = sheetNew(); else if (s === "ticket") html = sheetTicket(); else if (s === "rule") html = sheetRule();
-      else if (s === "reward") html = sheetReward(); else if (s === "settings") html = sheetSettings(); else if (s === "use") html = sheetUse();
+      else if (s === "reward") html = sheetReward(); else if (s === "settings") html = sheetSettings(); else if (s === "use") html = sheetUse(); else if (s === "email") html = sheetEmail(); else if (s === "leave") html = sheetLeave();
     }
     document.getElementById("layer").innerHTML = html;
     renderToast();
@@ -871,6 +903,8 @@ textarea.input { resize: none; line-height: 1.5; }
       var er = extra && extra.ruleId ? S.rules.filter(function (x) { return x.id === extra.ruleId; })[0] : null;
       f = er ? { ruleId: er.id, rtitle: er.title, ramt: er.amount } : { rtitle: "", ramt: 20 };
     }
+    if (name === "email") f = { step: "email", newEmail: "", code: "", error: "" };
+    if (name === "leave") f = { confirmText: "", error: "" };
     if (name === "reward") f = { kind: "cat", reason: "", ctitle: "", cdesc: "", color: "pink", icon: "heart" };
     UI.sheet = name; UI.form = f; renderLayer();
   }
@@ -911,8 +945,42 @@ textarea.input { resize: none; line-height: 1.5; }
     });
   }
 
+  function startEmailChange() {
+    var f = UI.form, email = (f.newEmail || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { f.error = "請輸入正確的 Email"; renderLayer(); return; }
+    if (email === myEmail().toLowerCase()) { f.error = "這就是你現在的 Email"; renderLayer(); return; }
+    UI.busy = true; f.error = ""; renderLayer();
+    sb.auth.updateUser({ email: email }).then(function (r) {
+      UI.busy = false;
+      if (r.error) {
+        var m = r.error.message || "";
+        f.error = /already|registered|exists/i.test(m) ? "這個 Email 已經被其他帳號使用了" : /rate|seconds/i.test(m) ? "寄太多次了，請過一會兒再試" : (m || "寄送失敗");
+        renderLayer(); return;
+      }
+      f.newEmail = email; f.step = "code"; f.code = ""; renderLayer();
+      var c = document.getElementById("e-code"); if (c) c.focus();
+    });
+  }
+  function finishEmailChange() {
+    var f = UI.form, code = (f.code || "").replace(/\D/g, "");
+    if (code.length < 6) { f.error = "請輸入完整的驗證碼"; renderLayer(); return; }
+    UI.busy = true; f.error = ""; renderLayer();
+    sb.auth.verifyOtp({ email: f.newEmail, token: code, type: "email_change" }).then(function (r) {
+      UI.busy = false;
+      if (r.error) { f.error = "驗證碼不正確或已過期"; renderLayer(); return; }
+      return sb.auth.getSession().then(function (g) {
+        if (g.data && g.data.session) auth = g.data.session;
+        if (r.data && r.data.user && auth) auth.user = r.data.user;
+        lsSet("meow-email", f.newEmail); UI.login.email = f.newEmail;
+        UI.sheet = null; UI.form = {}; toast("已換成新的 Email"); render();
+      });
+    });
+  }
+
   document.addEventListener("submit", function (e) {
     var id = e.target && e.target.id;
+    if (id === "email-change") { e.preventDefault(); startEmailChange(); return; }
+    if (id === "email-change-code") { e.preventDefault(); finishEmailChange(); return; }
     if (id === "email-form") { e.preventDefault(); sendCode(); }
     else if (id === "code-form") { e.preventDefault(); checkCode(); }
     else if (id === "join-form") {
@@ -932,6 +1000,17 @@ textarea.input { resize: none; line-height: 1.5; }
     switch (act) {
       case "login-back": UI.login.step = "email"; UI.login.code = ""; UI.login.error = ""; render(); break;
       case "pair-create": pairCall("create_couple"); break;
+      case "email-back": f.step = "email"; f.error = ""; renderLayer(); break;
+      case "leave-confirm":
+        if ((f.confirmText || "").trim() !== "離開") { f.error = "請輸入「離開」兩個字"; renderLayer(); break; }
+        UI.busy = true; f.error = ""; renderLayer();
+        sb.rpc("leave_couple").then(function (r) {
+          UI.busy = false;
+          var bad = rpcResult(r);
+          if (bad) { if (bad.code === "auth") { logout(bad.error); return; } f.error = bad.error; renderLayer(); return; }
+          UI.sheet = null; UI.form = {}; UI.tab = "home"; applyState(r.data); toast("已離開情侶空間"); render();
+        });
+        break;
       case "pair-refresh": refresh(); break;
       case "copy-code":
         try { navigator.clipboard.writeText(S.invite).then(function () { toast("已複製"); }); } catch (err) { toast(S.invite); }
