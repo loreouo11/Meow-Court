@@ -152,6 +152,13 @@ function act(action, who, d) {
       update('Tickets', t.id, { voidBy: who, updatedAt: now });
       ping(op, '🗑️ ' + nm(who) + ' 申請刪除一張罰單', t.title + ' · $' + t.final + '\n請到網站同意或不同意。', 0xFE9581, 'tickets');
       return '';
+    case 'vetoSelf':
+      t = getById('Tickets', d.id);
+      if (!t || t.status !== 'paid' || !bool(t.self)) return '只有自首可以否決';
+      if (t.to === who) return '要由對方否決';
+      update('Tickets', t.id, { status: 'vetoed', voidBy: '', updatedAt: now });
+      ping(t.to, '🙅 ' + nm(who) + ' 否決了你的自首', t.title + ' · $' + t.final + '，這次不算，已從基金扣除。', 0x8FD6B4, 'tickets');
+      return '';
     case 'answerVoid':
       t = getById('Tickets', d.id);
       if (!t || t.status !== 'paid' || !t.voidBy) return '沒有刪除申請';

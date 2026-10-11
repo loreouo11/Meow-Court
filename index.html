@@ -468,6 +468,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (t.status === "pending") return ['p', '等待' + nm(t.to) + '回應'];
     if (t.status === "appeal") return ['p', '申訴中，等' + nm(t.from) + '裁決'];
     if (t.status === "waived") return ['ok', t.card ? '用了賴貓卡，免罰' : '申訴成功，免罰'];
+    if (t.status === "vetoed") return ['x', nm(other(t.to)) + '否決了這次自首，不入帳'];
     if (t.voidBy) return ['x', nm(t.voidBy) + '申請刪除，等' + nm(other(t.voidBy)) + '同意'];
     var s = '已入帳';
     if (t.self) s = '自首，已入帳';
@@ -478,7 +479,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function ticketRow(t) {
     var st = ticketStatus(t);
     var who = (t.ruleId ? '' : '臨時 · ') + (t.self ? nm(t.to) + ' 自首' : nm(t.from) + ' → ' + nm(t.to));
-    var shown = paid(t) ? t.final : (t.status === "waived" ? 0 : t.amount);
+    var shown = paid(t) ? t.final : (t.status === "waived" || t.status === "vetoed" ? 0 : t.amount);
     return '<button type="button" class="row" style="text-align:left;width:100%" data-act="open-ticket" data-id="' + esc(t.id) + '">' +
       '<span class="dot ' + st[0] + '">' + I.clock + '</span>' +
       '<span class="body"><span class="t">' + esc(t.title) + '</span><span class="small muted">' + esc(who) + ' · ' + dateLabel(t.ts) + '</span></span>' +
@@ -727,6 +728,10 @@ textarea.input { resize: none; line-height: 1.5; }
     } else if (paid(t) && t.voidBy) {
       acts = '<p class="note">' + esc(nm(t.voidBy)) + ' 申請刪除這張罰單。同意後 ' + money(t.final) + ' 會從基金扣除。</p>' +
         '<div class="grid2"><button type="button" class="btn" data-act="void-no" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>不同意</button><button type="button" class="btn" style="background:var(--accent);color:var(--on-accent)" data-act="void-yes" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>同意刪除</button></div>';
+    } else if (paid(t) && t.self && t.to !== S.me) {
+      acts = UI.form.confirmVeto
+        ? '<p class="note">否決後這次自首不算數，' + money(t.final) + ' 會從基金扣除，不用 ' + esc(nm(t.to)) + ' 同意。</p><div class="grid2"><button type="button" class="btn" data-act="veto-cancel">取消</button><button type="button" class="btn" style="background:var(--accent);color:var(--on-accent)" data-act="veto-yes" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>確定否決</button></div>'
+        : '<button type="button" class="btn block" style="color:var(--accent)" data-act="veto-confirm">否決這次自首</button><p class="note">覺得不用罰？可以直接否決，錢會退出基金。</p>';
     } else if (paid(t)) {
       acts = UI.form.confirmVoid
         ? '<p class="note">送出後要 ' + esc(nm(other(S.me))) + ' 同意才會刪除，金額會從基金扣除。</p><div class="grid2"><button type="button" class="btn" data-act="void-cancel">取消</button><button type="button" class="btn" style="background:var(--accent);color:var(--on-accent)" data-act="void-ask" data-id="' + esc(t.id) + '"' + busyAttr(true) + '>確定申請刪除</button></div>'
@@ -888,6 +893,9 @@ textarea.input { resize: none; line-height: 1.5; }
       case "t-appeal": send("appealTicket", { id: id, reason: f.appeal }, "申訴已送出，等對方裁決"); break;
       case "void-confirm": f.confirmVoid = true; renderLayer(); break;
       case "void-cancel": f.confirmVoid = false; renderLayer(); break;
+      case "veto-confirm": f.confirmVeto = true; renderLayer(); break;
+      case "veto-cancel": f.confirmVeto = false; renderLayer(); break;
+      case "veto-yes": send("vetoSelf", { id: id }, "已否決這次自首"); break;
       case "void-ask": send("requestVoid", { id: id }, "刪除申請已送出，等" + nm(other(S.me)) + "同意"); break;
       case "void-yes": send("answerVoid", { id: id, accept: true }, "罰單已刪除"); break;
       case "void-no": send("answerVoid", { id: id, accept: false }, "已取消刪除申請"); break;
