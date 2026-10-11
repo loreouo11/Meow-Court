@@ -1,0 +1,3 @@
+# 匯入用的 SQL 含私人資料
+supabase/import*.sql
+*.xlsx
