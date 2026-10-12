@@ -60,7 +60,7 @@ create table if not exists public.tickets (
   amount      numeric(12,2) not null,
   note        text not null default '',
   fund        text not null default 'wedding' check (fund in ('wedding','travel')),
-  status      text not null check (status in ('pending','paid','waived','appeal','voided')),
+  status      text not null check (status in ('pending','paid','waived','appeal','voided','vetoed')),
   final       numeric(12,2),
   is_self     boolean not null default false,
   used_card   boolean not null default false,
@@ -367,6 +367,15 @@ begin
       update public.tickets set void_by = who, updated_at = now() where id = t.id;
       perform public._ping(c.id, op, '🗑️ ' || public._name(c, who) || ' 申請刪除一張罰單',
         t.title || ' · $' || public._amt(t.final) || E'\n請到網站同意或不同意。', x'FE9581'::int, 'tickets');
+
+    when 'vetoSelf' then
+      -- 對方可以單方面否決自首：不入帳，但紀錄保留
+      select * into t from public.tickets where id = public._uuid(d->'id') and couple_id = c.id;
+      if not found or t.status <> 'paid' or not t.is_self then raise exception '只有自首可以否決'; end if;
+      if t.to_slot = who then raise exception '要由對方否決'; end if;
+      update public.tickets set status = 'vetoed', void_by = '', updated_at = now() where id = t.id;
+      perform public._ping(c.id, t.to_slot, '🙅 ' || public._name(c, who) || ' 否決了你的自首',
+        t.title || ' · $' || public._amt(t.final) || '，這次不算，已從基金扣除。', x'8FD6B4'::int, 'tickets');
 
     when 'answerVoid' then
       select * into t from public.tickets where id = public._uuid(d->'id') and couple_id = c.id;
