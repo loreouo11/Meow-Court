@@ -304,7 +304,11 @@ textarea.input { resize: none; line-height: 1.5; }
   var SB_KEY = "sb_publishable_fwRsxGqS7zFqDBv8NGy10A_MH2eZmkH";
   /* ====================================================================== */
   var API_URL = SB_URL;
-  var sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "meow-sb" } });
+  /* TEST-LOGIN start：?test=1、?test=2 各自記住一個登入，同一部手機可以同時測兩個帳號 */
+  var TEST_MODE = /[?&]test(=|&|$)/.test(location.search);
+  var TEST_SLOT = TEST_MODE ? ((location.search.match(/[?&]test=([\w-]+)/) || [])[1] || "1") : "";
+  /* TEST-LOGIN end */
+  var sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: TEST_SLOT ? "meow-sb-test-" + TEST_SLOT : "meow-sb" } }); /* TEST-LOGIN：測完改回 storageKey: "meow-sb" */
 
   var AUTH_KEY = "fajin-auth", STYLE_KEY = "fajin-style", MODE_KEY = "fajin-mode";
   var MODES = [["auto", "跟隨系統"], ["light", "淺色"], ["dark", "深色"]];
@@ -314,7 +318,6 @@ textarea.input { resize: none; line-height: 1.5; }
   function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
 
   var auth = null;  // Supabase 登入狀態（session）
-  var TEST_MODE = /[?&]test(=|&|$)/.test(location.search); /* TEST-LOGIN */
   var booting = true;
 
   var S = {
@@ -650,7 +653,7 @@ textarea.input { resize: none; line-height: 1.5; }
         '<span class="note">第一次使用會自動建立帳號。不需要密碼，每次登入都會寄一組新的驗證碼。</span></form>';
       /* TEST-LOGIN start：只有網址加 ?test 才會出現，測試完整段刪除 */
       if (TEST_MODE) inner += '<form id="test-login-form" class="card" style="display:flex;flex-direction:column;gap:10px;border-style:dashed">' +
-        '<label for="l-tpw" style="font-size:14px">測試登入（不用收信）</label>' +
+        '<label for="l-tpw" style="font-size:14px">測試登入 · 第 ' + esc(TEST_SLOT) + ' 位（不用收信）</label>' +
         '<input id="l-tpw" class="input" type="password" autocomplete="current-password" placeholder="測試密碼" data-bind-login="tpw">' +
         '<button type="submit" class="btn block"' + (UI.busy ? ' disabled' : '') + '>用上面的 Email ＋ 測試密碼登入</button></form>';
       /* TEST-LOGIN end */
