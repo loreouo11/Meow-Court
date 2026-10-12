@@ -11,7 +11,7 @@
  * 5.（選用）手機推播：指令碼屬性新增 PUSH_URL（Supabase push function 網址）和 PUSH_SECRET（與 Supabase 相同）。
  *    每部手機在網站設定按「開啟通知」後，訂閱會存在「Push」工作表。
  */
-const PASSCODE = '請改成你們的密碼';
+const PASSCODE = '0429';
 const TZ = 'Asia/Hong_Kong';
 const SITE_URL = 'https://loreouo11.github.io/Meow-Court/';
 let OUTBOX = [];
