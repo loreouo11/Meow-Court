@@ -314,6 +314,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
 
   var auth = null;  // Supabase 登入狀態（session）
+  var TEST_MODE = /[?&]test(=|&|$)/.test(location.search); /* TEST-LOGIN */
   var booting = true;
 
   var S = {
@@ -647,6 +648,12 @@ textarea.input { resize: none; line-height: 1.5; }
         errLine(L.error) +
         '<button type="submit" class="btn primary block" style="min-height:52px"' + (UI.busy ? ' disabled' : '') + '>' + (UI.busy ? '寄送中…' : '寄驗證碼給我') + '</button>' +
         '<span class="note">第一次使用會自動建立帳號。不需要密碼，每次登入都會寄一組新的驗證碼。</span></form>';
+      /* TEST-LOGIN start：只有網址加 ?test 才會出現，測試完整段刪除 */
+      if (TEST_MODE) inner += '<form id="test-login-form" class="card" style="display:flex;flex-direction:column;gap:10px;border-style:dashed">' +
+        '<label for="l-tpw" style="font-size:14px">測試登入（不用收信）</label>' +
+        '<input id="l-tpw" class="input" type="password" autocomplete="current-password" placeholder="測試密碼" data-bind-login="tpw">' +
+        '<button type="submit" class="btn block"' + (UI.busy ? ' disabled' : '') + '>用上面的 Email ＋ 測試密碼登入</button></form>';
+      /* TEST-LOGIN end */
     }
     return loginCard(inner);
   }
@@ -878,7 +885,13 @@ textarea.input { resize: none; line-height: 1.5; }
       '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:14px">帳號</span><span class="note">目前身分：' + esc(nm(S.me)) + '<br>登入 Email：' + esc(myEmail()) + '<br>資料只有你們兩個看得到。</span>' +
       '<button type="button" class="btn" data-act="sheet" data-sheet="email">更換 Email</button>' +
       '<button type="button" class="btn" data-act="sheet" data-sheet="leave">離開情侶空間</button>' +
-      '<button type="button" class="btn" data-act="logout">登出這部手機</button></div>');
+      '<button type="button" class="btn" data-act="logout">登出這部手機</button></div>' +
+      /* TEST-LOGIN start */
+      (TEST_MODE ? '<div class="card" style="display:flex;flex-direction:column;gap:10px;border-style:dashed"><label for="s-tpw" style="font-size:14px">設定測試密碼（測試完記得刪）</label>' +
+        '<input id="s-tpw" class="input" type="password" autocomplete="new-password" placeholder="至少 8 個字" data-bind="tpw">' +
+        '<button type="button" class="btn" data-act="set-test-pw"' + busyAttr(true) + '>設定</button></div>' : '')
+      /* TEST-LOGIN end */
+      );
   }
 
   function renderToast() {
@@ -940,6 +953,28 @@ textarea.input { resize: none; line-height: 1.5; }
       auth = r.data.session; S.loaded = false; render(); refresh();
     });
   }
+  /* TEST-LOGIN start */
+  function testLogin() {
+    var email = (UI.login.email || "").trim().toLowerCase(), pw = UI.login.tpw || "";
+    if (!email || !pw) { UI.login.error = "請先填 Email 和測試密碼"; render(); return; }
+    UI.busy = true; UI.login.error = ""; render();
+    sb.auth.signInWithPassword({ email: email, password: pw }).then(function (r) {
+      UI.busy = false;
+      if (r.error || !r.data.session) { UI.login.error = "測試密碼不正確（或這個帳號還沒設定測試密碼）"; render(); return; }
+      lsSet("meow-email", email); UI.login.tpw = "";
+      auth = r.data.session; S.loaded = false; render(); refresh();
+    });
+  }
+  function setTestPassword() {
+    var pw = UI.form.tpw || "";
+    if (pw.length < 8) { toast("測試密碼至少 8 個字"); return; }
+    UI.busy = true; renderLayer();
+    sb.auth.updateUser({ password: pw }).then(function (r) {
+      UI.busy = false; UI.form.tpw = ""; renderLayer();
+      toast(r.error ? ("設定失敗：" + r.error.message) : "測試密碼已設定");
+    });
+  }
+  /* TEST-LOGIN end */
   function pairCall(fn, args) {
     UI.busy = true; UI.pair.error = ""; render();
     sb.rpc(fn, args || {}).then(function (r) {
@@ -988,6 +1023,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (id === "email-change-code") { e.preventDefault(); finishEmailChange(); return; }
     if (id === "email-form") { e.preventDefault(); sendCode(); }
     else if (id === "code-form") { e.preventDefault(); checkCode(); }
+    else if (id === "test-login-form") { e.preventDefault(); testLogin(); } /* TEST-LOGIN */
     else if (id === "join-form") {
       e.preventDefault();
       var code = (UI.pair.code || "").trim().toUpperCase();
@@ -1003,6 +1039,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (act === "close-bg" && e.target !== el) return;
     var id = el.getAttribute("data-id"), v = el.getAttribute("data-v"), f = UI.form;
     switch (act) {
+      case "set-test-pw": setTestPassword(); break; /* TEST-LOGIN */
       case "login-back": UI.login.step = "email"; UI.login.code = ""; UI.login.error = ""; render(); break;
       case "pair-create": pairCall("create_couple"); break;
       case "email-back": f.step = "email"; f.error = ""; renderLayer(); break;
