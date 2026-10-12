@@ -7,6 +7,8 @@
 
 - `index.html`：網站本體
 - `apps-script/Code.gs`：貼到 Google 試算表 Apps Script 的後台程式
+- `sw.js`：接收手機推播通知
+- `supabase/functions/push`：發送推播的 Supabase Edge Function
 
 ## 設定 Google 試算表後台
 
@@ -26,3 +28,11 @@
 ## 之後修改 Code.gs
 
 改完要「部署」→「管理部署作業」→ 鉛筆圖示 →「版本」選「新版本」→「部署」，網址不會變。
+
+## 手機推播通知
+
+1. Supabase → Edge Functions 部署 `supabase/functions/push`，並關閉「Verify JWT」。
+2. Edge Functions → Secrets 新增 `VAPID_PUBLIC_KEY`、`VAPID_PRIVATE_KEY`、`PUSH_SECRET`。
+   公開金鑰要和 `index.html` 的 `VAPID_PUBLIC` 一樣；私密金鑰不要放進 GitHub。
+3. Apps Script 指令碼屬性新增 `PUSH_URL`（function 網址）和 `PUSH_SECRET`（同上）。
+4. 每部手機從主畫面打開網站 → 設定 →「開啟通知」。

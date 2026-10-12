@@ -301,6 +301,8 @@ textarea.input { resize: none; line-height: 1.5; }
   /* ====== 把 Apps Script 部署後的「網頁應用程式網址」貼在這裡 ====== */
   var API_URL = "https://script.google.com/macros/s/AKfycbyT5opMiOjwc14BWKjuBD_Ee3G6ZjQC9PbOHvjQZhg2HFYh7OvSi5lyk8dvhH5XB8bO/exec";
   /* ================================================================ */
+  /* 手機推播的公開金鑰（公開的，可以放在這裡） */
+  var VAPID_PUBLIC = "BK4MEeZSZZfmjhrpLzUSJYd1pIK8-o-yu7YV1fD7WXs6ecW3QGK7Z7a6RjgV6wuW4dkUOFZtXUXC-CL76NGLG5w";
 
   var AUTH_KEY = "fajin-auth", STYLE_KEY = "fajin-style", MODE_KEY = "fajin-mode";
   var MODES = [["auto", "跟隨系統"], ["light", "淺色"], ["dark", "深色"]];
@@ -372,7 +374,79 @@ textarea.input { resize: none; line-height: 1.5; }
     });
   }
 
+  /* ---------- 手機推播 ---------- */
+  var swReg = null;
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js", { scope: "./" }).then(function (r) { swReg = r; }).catch(function () {});
+  }
+  function isIOS() { return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
+  function isStandalone() { return window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches); }
+  function pushSupported() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function deviceName() {
+    var u = navigator.userAgent;
+    return /iPhone/.test(u) ? "iPhone" : /iPad/.test(u) ? "iPad" : /Android/.test(u) ? "Android" : /Mac/.test(u) ? "Mac" : /Windows/.test(u) ? "Windows" : "瀏覽器";
+  }
+  function getReg() { return swReg ? Promise.resolve(swReg) : navigator.serviceWorker.ready; }
+  function b64ToBytes(b) {
+    var pad = "=".repeat((4 - b.length % 4) % 4), raw = atob((b + pad).replace(/-/g, "+").replace(/_/g, "/"));
+    var out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out;
+  }
+  // 狀態：ios-home（要先加入主畫面）、unsupported、denied、on、off
+  function checkPush() {
+    if (!pushSupported()) { UI.push = isIOS() && !isStandalone() ? "ios-home" : "unsupported"; return Promise.resolve(); }
+    if (Notification.permission === "denied") { UI.push = "denied"; return Promise.resolve(); }
+    return getReg().then(function (r) { return r.pushManager.getSubscription(); })
+      .then(function (sub) { UI.push = sub && Notification.permission === "granted" ? "on" : "off"; })
+      .catch(function () { UI.push = "off"; });
+  }
+  function pushOn() {
+    if (UI.busy) return;
+    UI.busy = true; toast("開啟中…", true); renderLayer();
+    Notification.requestPermission().then(function (perm) {
+      if (perm !== "granted") throw new Error(perm === "denied" ? "denied" : "dismissed");
+      return getReg();
+    }).then(function (r) {
+      return r.pushManager.getSubscription().then(function (old) {
+        return old || r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) });
+      });
+    }).then(function (sub) {
+      return api("savePush", { sub: sub.toJSON(), device: deviceName() });
+    }).then(function (res) {
+      UI.busy = false;
+      if (!res.ok) { toast(res.error || "開啟失敗，請再試一次"); return checkPush().then(renderLayer); }
+      UI.push = "on"; toast("已開啟通知，可以按「發送測試」試試看"); renderLayer();
+    }).catch(function (err) {
+      UI.busy = false;
+      var m = String(err && err.message || err);
+      toast(m === "denied" ? "通知被封鎖了，請到手機設定開啟" : m === "dismissed" ? "要按「允許」才能收到通知" : "開啟失敗，請再試一次");
+      checkPush().then(renderLayer);
+    });
+  }
+  function pushOff(silent) {
+    if (!pushSupported()) return Promise.resolve();
+    return getReg().then(function (r) { return r.pushManager.getSubscription(); }).then(function (sub) {
+      if (!sub) return;
+      var ep = sub.endpoint;
+      return sub.unsubscribe().then(function () { if (auth) return api("removePush", { endpoint: ep }).catch(function () {}); });
+    }).then(function () {
+      UI.push = "off"; if (!silent) { toast("這部手機已關閉通知"); renderLayer(); }
+    }).catch(function () { if (!silent) toast("關閉失敗，請再試一次"); });
+  }
+  function pushBlock() {
+    var st = UI.push, body;
+    if (st === "on") body = '<span class="note">這部手機已開啟通知。有新罰單、卡片或規則時會直接彈出。</span>' +
+      '<div class="grid2"><button type="button" class="btn" data-act="push-off"' + busyAttr(true) + '>關閉</button><button type="button" class="btn mint" data-act="push-test"' + busyAttr(true) + '>發送測試</button></div>';
+    else if (st === "off") body = '<span class="note">開啟後，這部手機會收到通知。每部手機要各自開啟一次。</span>' +
+      '<button type="button" class="btn primary block" data-act="push-on"' + busyAttr(true) + '>開啟通知</button>';
+    else if (st === "ios-home") body = '<span class="note">iPhone 要先把網站加入主畫面：在 Safari 按「分享」→「加入主畫面」，再從主畫面的賴貓法庭 icon 打開，回來這裡開啟。需要 iOS 16.4 或以上。</span>';
+    else if (st === "denied") body = '<span class="note">通知被封鎖了。iPhone：設定 → 通知 → 賴貓法庭 → 允許通知。其他瀏覽器：在網址列的網站設定裡允許通知。</span>';
+    else if (st === "unsupported") body = '<span class="note">這個瀏覽器不支援網頁通知。</span>';
+    else body = '<span class="note">檢查中…</span>';
+    return '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:14px">手機通知</span>' + body + '</div>';
+  }
+
   function logout(msg) {
+    pushOff(true);
     auth = null; S.me = null; S.loaded = false; lsSet(AUTH_KEY, null);
     UI.login = { pass: "", step: "pass", error: msg || "" }; UI.sheet = null; render();
   }
@@ -804,6 +878,7 @@ textarea.input { resize: none; line-height: 1.5; }
       '<div class="grid2"><div class="field"><label for="s-a">第一位</label><input id="s-a" class="input" maxlength="20" data-bind="nameA" value="' + esc(f.nameA) + '"></div><div class="field"><label for="s-b">第二位</label><input id="s-b" class="input" maxlength="20" data-bind="nameB" value="' + esc(f.nameB) + '"></div></div>' +
       '<div class="field"><label for="s-start">在一起的日子</label><input id="s-start" type="date" class="input" data-bind="start" value="' + esc(f.start) + '"></div>' +
       '<div class="grid2"><div class="field"><label for="s-gw">' + esc(S.goals.wedding.name) + '目標</label><input id="s-gw" type="number" inputmode="numeric" class="input" data-bind="weddingTarget" value="' + esc(f.weddingTarget) + '"></div><div class="field"><label for="s-gt">' + esc(S.goals.travel.name) + '目標</label><input id="s-gt" type="number" inputmode="numeric" class="input" data-bind="travelTarget" value="' + esc(f.travelTarget) + '"></div></div>' +
+      pushBlock() +
       '<div class="field"><label for="s-dc">我的 Discord 用戶 ID（收通知用）</label><input id="s-dc" class="input" inputmode="numeric" maxlength="20" data-bind="discord" value="' + esc(f.discord || "") + '" placeholder="例如：123456789012345678"><span class="note">Discord：設定 → 進階 → 開啟開發者模式，再按自己的頭像 →「複製用戶 ID」。只會改你自己的。</span></div>' +
       '<button type="button" class="btn primary block" data-act="submit-settings"' + busyAttr(true) + '>儲存</button>' +
       '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span class="note">目前身分：' + esc(nm(S.me)) + '。資料儲存在你們的 Google 試算表。</span>' +
@@ -832,6 +907,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function openSheet(name, extra) {
     var f = extra || {};
     if (name === "new") f = { mode: "other", confirm: true, fund: "wedding", amount: 0, ruleId: null, note: "" };
+    if (name === "settings") { UI.push = UI.push || "checking"; checkPush().then(function () { if (UI.sheet === "settings") renderLayer(); }); }
     if (name === "settings") f = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target, discord: (S.discord || {})[S.me] || "" };
     if (name === "rule") {
       var er = extra && extra.ruleId ? S.rules.filter(function (x) { return x.id === extra.ruleId; })[0] : null;
@@ -925,6 +1001,15 @@ textarea.input { resize: none; line-height: 1.5; }
         var ss = { nameA: f.nameA, nameB: f.nameB, start: f.start, weddingTarget: f.weddingTarget, travelTarget: f.travelTarget };
         ss[S.me === "a" ? "discordA" : "discordB"] = f.discord || "";
         send("saveSettings", ss, "已儲存"); break;
+      case "push-on": pushOn(); break;
+      case "push-off": pushOff(false); break;
+      case "push-test":
+        if (UI.busy) break;
+        UI.busy = true; toast("發送中…", true);
+        api("testPush").then(function (res) {
+          UI.busy = false; toast(res.ok ? "已發送，幾秒內應該會收到" : (res.error || "發送失敗")); renderLayer();
+        }).catch(function () { UI.busy = false; toast("連線失敗，請再試一次"); renderLayer(); });
+        break;
       case "logout": logout(""); break;
     }
   });

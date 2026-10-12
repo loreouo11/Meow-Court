@@ -8,6 +8,8 @@
  *    例：DISCORD_WEBHOOK_B_TICKETS = 第二位的罰單頻道；DISCORD_WEBHOOK_A = 第一位的所有通知。
  *    找頻道的順序：人+分類 → 人 → 分類 → DISCORD_WEBHOOK（預設）。
  *    然後在上方函式選單選「testDiscord」按「執行」，授權一次並發出測試訊息。
+ * 5.（選用）手機推播：指令碼屬性新增 PUSH_URL（Supabase push function 網址）和 PUSH_SECRET（與 Supabase 相同）。
+ *    每部手機在網站設定按「開啟通知」後，訂閱會存在「Push」工作表。
  */
 const PASSCODE = '請改成你們的密碼';
 const TZ = 'Asia/Hong_Kong';
@@ -249,6 +251,26 @@ function act(action, who, d) {
       update('Cards', c.id, { used: true, usedTs: now });
       ping(c.from, '✨ ' + nm(who) + ' 使用了「' + c.title + '」', (c.desc || '') + '\n記得兌現喔！', 0xFFD15C, 'cards');
       return '';
+    case 'savePush': {
+      const sub = d.sub || {};
+      const ep = text(sub.endpoint, 1000);
+      if (ep.indexOf('https://') !== 0 || !sub.keys || !sub.keys.p256dh || !sub.keys.auth) return '通知訂閱資料不正確';
+      const clean = JSON.stringify({ endpoint: ep, keys: { p256dh: text(sub.keys.p256dh, 200), auth: text(sub.keys.auth, 100) } });
+      const sh = pushSheet();
+      const rows = sh.getDataRange().getValues();
+      for (let i = rows.length - 1; i >= 1; i--) if (rows[i][1] === ep) sh.deleteRow(i + 1);
+      sh.appendRow([who, ep, clean, text(d.device, 60), now]);
+      return '';
+    }
+    case 'removePush':
+      removePushEndpoints([text(d.endpoint, 1000)]);
+      return '';
+    case 'testPush': {
+      const r = sendPush([{ to: who, title: '🔔 測試通知', desc: '收到這條，代表 ' + nm(who) + ' 這部手機的通知已經開好了。', kind: 'home' }]);
+      if (r.error) return r.error;
+      if (!r.sent) return '找不到這部手機的通知訂閱，請重新開啟通知';
+      return '';
+    }
     case 'saveSettings': {
       const keys = ['nameA', 'nameB', 'start', 'weddingTarget', 'travelTarget', 'discordA', 'discordB'];
       const sh = sheet('Settings');
@@ -277,6 +299,7 @@ function setting(key) {
 function nm(p) { return setting(p === 'a' ? 'nameA' : 'nameB') || (p === 'a' ? '我' : 'BB'); }
 function noteLine(n) { const s = text(n, 200); return s ? '\n「' + s + '」' : ''; }
 function ping(to, title, desc, color, kind) { OUTBOX.push({ to: to, title: title, desc: desc, color: color, kind: kind || 'default' }); }
+function discordOnly() { OUTBOX.forEach(function (m) { m.via = 'discord'; }); }
 function hookFor(props, to, kind) {
   const who = to === 'b' ? 'B' : 'A';
   const k = kind && kind !== 'default' ? kind.toUpperCase() : '';
@@ -289,6 +312,7 @@ function flushDiscord() {
   const box = OUTBOX; OUTBOX = [];
   const results = [];
   if (!box.length) return results;
+  try { sendPush(box.filter(function (m) { return m.via !== 'discord'; })); } catch (err) { console.warn('推播失敗：' + err); }
   const props = PropertiesService.getScriptProperties().getProperties();
   box.forEach(function (m) {
     const hook = typeof m.kind === 'object' ? m.kind.hook : hookFor(props, m.to, m.kind);
@@ -337,6 +361,7 @@ function testDiscord() {
       ping(p, '🐱 賴貓法庭連線成功', nm(p) + ' 的「' + seen[hook].join('、') + '」通知會送到這個頻道。', 0x028678, { hook: hook });
     });
   });
+  discordOnly();
   flushDiscord();
 }
 
@@ -356,8 +381,58 @@ function testB() { testOne('b'); }
 function testOne(p) {
   OUTBOX = [];
   ping(p, '🔔 測試通知', '這是 ' + nm(p) + ' 的專屬頻道。如果上面顯示藍色的 @' + nm(p) + '，代表標記成功。', 0x028678, 'default');
+  discordOnly();
   const r = flushDiscord();
   Logger.log('測試通知給 ' + nm(p) + '：' + (r.join('；') || '沒有發送'));
+}
+
+/* ---------- 手機推播 ---------- */
+// 欄位：who、endpoint、sub（JSON）、device、ts。不會出現在網站讀取的資料裡。
+function pushSheet() {
+  const ss = SpreadsheetApp.getActive();
+  let sh = ss.getSheetByName('Push');
+  if (!sh) {
+    sh = ss.insertSheet('Push');
+    sh.appendRow(['who', 'endpoint', 'sub', 'device', 'ts']);
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, 5).setFontWeight('bold');
+  }
+  return sh;
+}
+function removePushEndpoints(list) {
+  if (!list.length) return;
+  const sh = pushSheet();
+  const rows = sh.getDataRange().getValues();
+  for (let i = rows.length - 1; i >= 1; i--) if (list.indexOf(String(rows[i][1])) >= 0) sh.deleteRow(i + 1);
+}
+// box：[{ to, title, desc, kind }]，回傳 { sent, error }
+function sendPush(box) {
+  if (!box.length) return { sent: 0 };
+  const props = PropertiesService.getScriptProperties().getProperties();
+  if (!props.PUSH_URL || !props.PUSH_SECRET) return { sent: 0, error: '後台還沒設定 PUSH_URL／PUSH_SECRET' };
+  const subs = { a: [], b: [] };
+  pushSheet().getDataRange().getValues().slice(1).forEach(function (r) {
+    if (subs[r[0]]) { try { subs[r[0]].push(JSON.parse(r[2])); } catch (e) {} }
+  });
+  const messages = box.filter(function (m) { return subs[m.to] && subs[m.to].length; }).map(function (m) {
+    const tab = { cards: 'cards', tickets: 'tickets', rules: 'rules' }[m.kind] || 'home';
+    return { subs: subs[m.to], title: String(m.title).replace(/\*\*/g, ''), body: String(m.desc || '').replace(/\*\*/g, ''), url: SITE_URL + '#' + tab };
+  });
+  if (!messages.length) return { sent: 0 };
+  const res = UrlFetchApp.fetch(props.PUSH_URL, {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    payload: JSON.stringify({ secret: props.PUSH_SECRET, messages: messages })
+  });
+  let data = {};
+  try { data = JSON.parse(res.getContentText()); } catch (e) {}
+  if (res.getResponseCode() >= 300 || !data.ok) {
+    const msg = '推播服務回覆 ' + res.getResponseCode() + '：' + res.getContentText().slice(0, 200);
+    console.warn(msg);
+    return { sent: 0, error: msg };
+  }
+  if (data.gone && data.gone.length) removePushEndpoints(data.gone);
+  if (data.errors && data.errors.length) console.warn('推播錯誤：' + data.errors.join('；'));
+  return { sent: data.sent || 0, error: data.sent ? '' : (data.errors && data.errors[0]) || '' };
 }
 
 /* ---------- 讀取 ---------- */
