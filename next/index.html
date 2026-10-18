@@ -667,7 +667,8 @@ textarea.input { resize: none; line-height: 1.5; }
         '<p class="note" style="font-size:14px">請另一半也用自己的 Email 登入，選「我有邀請碼」，輸入下面這組：</p>' +
         '<div class="num" style="font-size:40px;font-weight:700;letter-spacing:8px;text-align:center;padding:12px;border:2px dashed var(--accent);border-radius:18px">' + esc(S.invite) + '</div>' +
         '<button type="button" class="btn block" data-act="copy-code">複製邀請碼</button>' +
-        '<button type="button" class="btn primary block" data-act="pair-refresh">對方加入了，重新整理</button>';
+        '<button type="button" class="btn primary block" data-act="pair-refresh">對方加入了，重新整理</button>' +
+        '<button type="button" class="btn block" data-act="pair-cancel"' + (UI.busy ? ' disabled' : '') + '>其實對方已經有邀請碼？取消，改用邀請碼加入</button>';
     } else {
       inner = '<h1 style="margin:0;font-size:24px;font-weight:400">建立你們的情侶空間</h1>' +
         '<p class="note" style="font-size:14px">一個人先建立，另一個人用邀請碼加入。</p>' +
@@ -1057,6 +1058,16 @@ textarea.input { resize: none; line-height: 1.5; }
         });
         break;
       case "pair-refresh": refresh(); break;
+      case "pair-cancel":
+        /* 先確認對方還沒加入，才取消這個還沒有人加入的空間（空間裡沒有任何紀錄） */
+        UI.busy = true; UI.pair.error = ""; render();
+        sb.rpc("get_state").then(function (r) {
+          var bad = rpcResult(r);
+          if (bad) { UI.busy = false; if (bad.code === "auth") { logout(bad.error); return; } UI.pair.error = bad.error; render(); return; }
+          if (r.data && r.data.paired) { UI.busy = false; applyState(r.data); render(); toast("對方已經加入了"); return; }
+          pairCall("leave_couple");
+        });
+        break;
       case "copy-code":
         try { navigator.clipboard.writeText(S.invite).then(function () { toast("已複製"); }); } catch (err) { toast(S.invite); }
         break;
