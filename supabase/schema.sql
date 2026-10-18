@@ -1,5 +1,5 @@
 -- =====================================================================
--- 賴貓法庭 Meow Court — Supabase 資料庫設定（第 1 版）
+-- 賴貓法庭 Meow Court — Supabase 資料庫設定（含第 4 版：申請書、基金改名）
 -- 用法：Supabase 後台 → SQL Editor → New query → 整份貼上 → Run。
 --
 -- 安全設計：
@@ -88,6 +88,25 @@ create table if not exists public.cards (
 );
 create index if not exists cards_couple on public.cards(couple_id);
 
+-- 申請書：抱抱、錫錫、想食雪糕……跟錢和賴貓卡完全無關。
+-- 狀態：pending 待回覆 → approved 批准 / declined 婉拒 → done 已實現（只有批准的會變已實現）
+-- 婉拒的只有申請人自己看得到，對方的紀錄裡不會出現。
+create table if not exists public.requests (
+  id           uuid primary key default gen_random_uuid(),
+  couple_id    uuid not null references public.couples(id) on delete cascade,
+  from_slot    text not null check (from_slot in ('a','b')),
+  to_slot      text not null check (to_slot in ('a','b')),
+  title        text not null,
+  icon         text not null default '',
+  note         text not null default '',
+  reply        text not null default '',
+  status       text not null default 'pending' check (status in ('pending','approved','declined','done')),
+  created_at   timestamptz not null default now(),
+  answered_at  timestamptz,
+  done_at      timestamptz
+);
+create index if not exists requests_couple on public.requests(couple_id);
+
 -- 通知紀錄（網頁讀不到，只給資料庫自己發 Discord 用）
 create table if not exists public.notifications (
   id          bigint generated always as identity primary key,
@@ -104,7 +123,7 @@ create table if not exists public.notifications (
 create table if not exists public.discord_hooks (
   couple_id  uuid not null references public.couples(id) on delete cascade,
   slot       text not null check (slot in ('a','b','*')),
-  kind       text not null check (kind in ('cards','tickets','rules','*')),
+  kind       text not null check (kind in ('cards','tickets','rules','requests','*')),
   url        text not null,
   primary key (couple_id, slot, kind)
 );
@@ -114,6 +133,7 @@ alter table public.members       enable row level security;
 alter table public.rules         enable row level security;
 alter table public.tickets       enable row level security;
 alter table public.cards         enable row level security;
+alter table public.requests      enable row level security;
 alter table public.notifications enable row level security;
 alter table public.discord_hooks enable row level security;
 
@@ -222,7 +242,12 @@ begin
         'id', k.id, 'kind', k.kind, 'title', k.title, 'desc', k.descr, 'color', k.color, 'icon', k.icon,
         'owner', k.owner_slot, 'from', k.from_slot, 'reason', k.reason, 'ts', public._ts(k.created_at),
         'used', k.used, 'usedTs', coalesce(public._ts(k.used_at), '')) order by k.created_at)
-      from public.cards k where k.couple_id = c.id), '[]'::jsonb)
+      from public.cards k where k.couple_id = c.id), '[]'::jsonb),
+    'requests', coalesce((select jsonb_agg(jsonb_build_object(
+        'id', q.id, 'from', q.from_slot, 'to', q.to_slot, 'title', q.title, 'icon', q.icon,
+        'note', q.note, 'reply', q.reply, 'status', q.status, 'ts', public._ts(q.created_at),
+        'answeredTs', coalesce(public._ts(q.answered_at), ''), 'doneTs', coalesce(public._ts(q.done_at), '')) order by q.created_at)
+      from public.requests q where q.couple_id = c.id and (q.status <> 'declined' or q.from_slot = me.slot)), '[]'::jsonb)
   );
 end $$;
 
@@ -278,7 +303,7 @@ create or replace function public.act(action text, d jsonb default '{}'::jsonb) 
 language plpgsql volatile security definer set search_path = '' as $$
 declare
   me public.members; c public.couples; who text; op text;
-  t public.tickets; r public.rules; k public.cards;
+  t public.tickets; r public.rules; k public.cards; q public.requests;
   v_title text; v_amount numeric; v_temp boolean; v_self boolean; v_paid boolean;
   v_reason text; v_cat boolean; v_desc text; v_date date;
 begin
@@ -468,6 +493,46 @@ begin
       perform public._ping(c.id, k.from_slot, '✨ ' || public._name(c, who) || ' 使用了「' || k.title || '」',
         k.descr || E'\n記得兌現喔！', x'FFD15C'::int, 'cards');
 
+    when 'createRequest' then
+      v_title := public._txt(d->'title', 20);
+      v_desc := public._txt(d->'note', 100);
+      if v_title = '' then raise exception '請填寫想申請什麼'; end if;
+      if (select count(*) from public.requests where couple_id = c.id and from_slot = who and status = 'pending') >= 10 then
+        raise exception '你已經有 10 張申請在等回覆了，先等等吧';
+      end if;
+      insert into public.requests (couple_id, from_slot, to_slot, title, icon, note)
+      values (c.id, who, op, v_title,
+              case when d->>'icon' in ('hug','kiss','icecream','walk','movie','heart','food','coffee','plane','moon','gift','flower','game','music','star') then d->>'icon' else 'heart' end,
+              v_desc);
+      perform public._ping(c.id, op, '💌 ' || public._name(c, who) || ' 遞上一份申請書',
+        v_title || case when v_desc <> '' then E'\n「' || v_desc || '」' else '' end || E'\n請到網站批准或婉拒。', x'F7A1B5'::int, 'requests');
+
+    when 'answerRequest' then
+      select * into q from public.requests where id = public._uuid(d->'id') and couple_id = c.id;
+      if not found or q.status <> 'pending' or q.to_slot <> who then raise exception '這份申請不能這樣處理'; end if;
+      v_reason := public._txt(d->'reply', 60);
+      if public._bool(d->'accept') then
+        update public.requests set status = 'approved', reply = v_reason, answered_at = now() where id = q.id;
+        perform public._ping(c.id, q.from_slot, '🐾 准！' || public._name(c, who) || ' 批准了你的申請',
+          q.title || case when v_reason <> '' then E'\n「' || v_reason || '」' else '' end, x'8FD6B4'::int, 'requests');
+      else
+        update public.requests set status = 'declined', reply = v_reason, answered_at = now() where id = q.id;
+        perform public._ping(c.id, q.from_slot, '🌙 這次先不要喔',
+          q.title || case when v_reason <> '' then E'\n「' || v_reason || '」' else '' end, x'C7B2F0'::int, 'requests');
+      end if;
+
+    when 'doneRequest' then
+      -- 批准之後，兩個人都可以按「已實現」
+      select * into q from public.requests where id = public._uuid(d->'id') and couple_id = c.id;
+      if not found or q.status <> 'approved' then raise exception '只有批准了的申請可以標記為已實現'; end if;
+      update public.requests set status = 'done', done_at = now() where id = q.id;
+
+    when 'removeRequest' then
+      -- 申請人可以收回還沒回覆的申請，或收起被婉拒的申請（直接刪除，不留紀錄）
+      select * into q from public.requests where id = public._uuid(d->'id') and couple_id = c.id;
+      if not found or q.from_slot <> who or q.status not in ('pending','declined') then raise exception '這份申請不能收回'; end if;
+      delete from public.requests where id = q.id;
+
     when 'saveSettings' then
       if public._txt(d->'nameA', 20) <> '' then update public.couples set name_a = public._txt(d->'nameA', 20) where id = c.id; end if;
       if public._txt(d->'nameB', 20) <> '' then update public.couples set name_b = public._txt(d->'nameB', 20) where id = c.id; end if;
@@ -479,6 +544,8 @@ begin
       end if;
       if public._money(d->'weddingTarget') is not null then update public.couples set wedding_target = public._money(d->'weddingTarget') where id = c.id; end if;
       if public._money(d->'travelTarget') is not null then update public.couples set travel_target = public._money(d->'travelTarget') where id = c.id; end if;
+      if public._txt(d->'weddingName', 12) <> '' then update public.couples set wedding_name = public._txt(d->'weddingName', 12) where id = c.id; end if;
+      if public._txt(d->'travelName', 12) <> '' then update public.couples set travel_name = public._txt(d->'travelName', 12) where id = c.id; end if;
 
     else
       raise exception '未知的動作';
@@ -535,7 +602,8 @@ drop policy if exists "read own couple" on public.cards;
 create policy "read own couple" on public.cards for select to authenticated using (couple_id = public.my_couple_id());
 
 revoke all on public.couples, public.members, public.rules, public.tickets, public.cards,
-              public.notifications, public.discord_hooks from anon, authenticated;
+              public.requests, public.notifications, public.discord_hooks from anon, authenticated;
+-- requests 不開放直接讀取（婉拒的申請要對另一半隱藏），只能透過 get_state()
 grant select on public.couples, public.members, public.rules, public.tickets, public.cards to authenticated;
 
 revoke execute on all functions in schema public from public, anon, authenticated;

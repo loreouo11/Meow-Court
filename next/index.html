@@ -291,7 +291,25 @@ textarea.input { resize: none; line-height: 1.5; }
 .switch input:checked::after { left: 25px; background: #FFFFFF; }
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 20; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; max-width: calc(100% - 32px); text-align: center; }
 .note { font-size: 12px; color: var(--muted); line-height: 1.6; }
-@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } .ticket { transform: none; } }
+/* 申請書 */
+.req { display: flex; flex-direction: column; gap: 12px; background: var(--soft-accent); }
+.req-top { display: flex; align-items: center; gap: 12px; }
+.req-ic { width: 64px; flex: none; border-radius: 16px; background: var(--surface); border: var(--bw) solid var(--line); padding: 4px; }
+.req-ic .cat { width: 100%; }
+.req-top .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.req-top b { font-weight: 400; font-size: 19px; overflow-wrap: anywhere; }
+.req-row .req-ic { width: 44px; padding: 2px; border-radius: 12px; }
+.req-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.req-pick button span { font-size: 13px; }
+.stamp-wrap { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; pointer-events: none; }
+.stamp { width: 170px; height: 170px; border-radius: 50%; border: 7px solid #E8546E; color: #E8546E; background: rgba(255,255,255,.88);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 72px; line-height: 1; font-weight: 700;
+  transform: rotate(-12deg); animation: stamp 1.5s ease-out forwards; box-shadow: 0 0 0 4px rgba(232,84,110,.25) inset; }
+.stamp svg { width: 46px; height: 46px; margin-top: 4px; }
+@keyframes stamp { 0% { transform: scale(2.4) rotate(-20deg); opacity: 0; } 18% { transform: scale(.92) rotate(-12deg); opacity: 1; }
+  26% { transform: scale(1) rotate(-12deg); } 80% { opacity: 1; } 100% { transform: scale(1) rotate(-12deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } .ticket { transform: none; } .stamp { animation: stampfade 1.5s linear forwards; } }
+@keyframes stampfade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 </style>
 </head>
 <body>
@@ -323,9 +341,9 @@ textarea.input { resize: none; line-height: 1.5; }
   var S = {
     style: lsGet(STYLE_KEY) || "coral", mode: lsGet(MODE_KEY) || "auto", me: null, loaded: false, joined: false, paired: false, invite: "",
     names: { a: "", b: "" }, start: "", goals: { wedding: { name: "結婚基金", target: 1 }, travel: { name: "旅行基金", target: 1 } },
-    rules: [], tickets: [], cards: []
+    rules: [], tickets: [], cards: [], requests: []
   };
-  var UI = { tab: "home", sheet: null, form: {}, toast: "", busy: false, login: { email: lsGet("meow-email") || "", code: "", step: "email", error: "" }, pair: { code: "" } };
+  var UI = { tab: "home", sheet: null, form: {}, toast: "", busy: false, showDone: false, login: { email: lsGet("meow-email") || "", code: "", step: "email", error: "" }, pair: { code: "" } };
 
   function applyState(st) {
     S.joined = !!st.joined; S.paired = !!st.paired; S.invite = st.inviteCode || ""; S.me = st.me || null;
@@ -337,7 +355,7 @@ textarea.input { resize: none; line-height: 1.5; }
       wedding: { name: s.weddingName || "結婚基金", target: Math.max(1, Number(s.weddingTarget) || 1) },
       travel: { name: s.travelName || "旅行基金", target: Math.max(1, Number(s.travelTarget) || 1) }
     };
-    S.rules = st.rules || []; S.tickets = st.tickets || []; S.cards = st.cards || [];
+    S.rules = st.rules || []; S.tickets = st.tickets || []; S.cards = st.cards || []; S.requests = st.requests || [];
     S.loaded = true;
   }
 
@@ -357,7 +375,7 @@ textarea.input { resize: none; line-height: 1.5; }
     });
   }
 
-  function send(action, data, okMsg) {
+  function send(action, data, okMsg, onOk) {
     if (UI.busy) return;
     UI.busy = true; toast("儲存中…", true);
     api(action, data).then(function (res) {
@@ -367,6 +385,7 @@ textarea.input { resize: none; line-height: 1.5; }
       if (!res.ok) { toast(res.error || "儲存失敗，請再試一次"); render(); return; }
       UI.sheet = null; UI.form = {};
       toast(okMsg); render();
+      if (onOk) onOk();
     }).catch(function () {
       UI.busy = false; toast("連線失敗，請檢查網絡後再試"); render();
     });
@@ -445,6 +464,23 @@ textarea.input { resize: none; line-height: 1.5; }
     music: ["唱歌", ic('<path d="M54 70V26l40-8v44" fill="none" ' + K + '/><ellipse cx="45" cy="72" rx="11" ry="8" fill="#FFFFFF" ' + K + '/><ellipse cx="85" cy="64" rx="11" ry="8" fill="#FFFFFF" ' + K + '/><path d="M54 36l40-8" ' + K + '/>')]
   };
   function iconFor(c) { return c.kind === "cat" ? CAT : (ICONS[c.icon] || ICONS.star)[1]; }
+
+  /* ---------- 申請書 ---------- */
+  var REQ_EXTRA = {
+    kiss: ["親親", ic('<path d="M28 50c9-15 22-19 38-8 16-11 29-7 38 8-11 19-25 28-38 28S39 69 28 50z" fill="#F7A1B5" ' + K + '/><path d="M30 50q36 9 72 0" fill="none" ' + K + '/><path d="M44 46c4-5 10-6 14-3" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>')],
+    icecream: ["冰淇淋", ic('<path d="M50 48l16 40 16-40z" fill="#FFD9A0" ' + K + '/><path d="M56 56l17 14M60 68l13-11" stroke="#D98A3D" stroke-width="2.5" stroke-linecap="round"/><circle cx="66" cy="36" r="19" fill="#FFFFFF" ' + K + '/><path d="M49 45c7 7 27 7 34 0" fill="none" stroke="#F7A1B5" stroke-width="4" stroke-linecap="round"/><circle cx="66" cy="14" r="5" fill="#E8546E" ' + K + '/>')],
+    walk: ["散步", ic('<ellipse cx="48" cy="58" rx="11" ry="17" fill="#FFFFFF" ' + K + '/><circle cx="40" cy="34" r="3.5" fill="#3B2A33"/><circle cx="48" cy="31" r="3.5" fill="#3B2A33"/><circle cx="56" cy="34" r="3.5" fill="#3B2A33"/><ellipse cx="86" cy="48" rx="11" ry="17" fill="#F7A1B5" ' + K + '/><circle cx="78" cy="24" r="3.5" fill="#3B2A33"/><circle cx="86" cy="21" r="3.5" fill="#3B2A33"/><circle cx="94" cy="24" r="3.5" fill="#3B2A33"/><path d="M24 86h84" stroke="#8FD6B4" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 9"/>')]
+  };
+  function reqIconSVG(k) { return (REQ_EXTRA[k] || ICONS[k] || ICONS.heart)[1]; }
+  var REQ_PRESETS = [["抱抱", "hug"], ["親親", "kiss"], ["想吃冰淇淋", "icecream"], ["陪我散步", "walk"], ["一起看電影", "movie"]];
+  var REQ_PICK = ["hug", "kiss", "icecream", "walk", "movie", "heart", "food", "coffee", "plane", "moon", "gift", "flower", "game", "music", "star"];
+  var PAW = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><ellipse cx="12" cy="15.5" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.2" cy="6.2" r="2.2"/><circle cx="14.8" cy="6.2" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg>';
+  function reqTodo() { return S.requests.filter(function (q) { return q.status === "pending" && q.to === S.me; }).length; }
+  function showStamp() {
+    var w = document.createElement("div"); w.className = "stamp-wrap"; w.setAttribute("aria-hidden", "true");
+    w.innerHTML = '<div class="stamp">准' + PAW + '</div>';
+    document.body.appendChild(w); setTimeout(function () { w.remove(); }, 1600);
+  }
   function cardHTML(c, actions) {
     var col = CARD_COLORS[c.color] || CARD_COLORS.gold;
     return '<div class="gcard' + (c.used ? ' used' : '') + '" style="--c1:' + col[0] + ';--c2:' + col[1] + '">' +
@@ -517,7 +553,7 @@ textarea.input { resize: none; line-height: 1.5; }
         '<span class="cards-row">卡包 ' + n + ' 張' + (cats ? '，賴貓卡 ' + cats + ' 張' : '') + '</span></div>';
     }
     var noRules = !S.rules.some(function (r) { return r.status === "active"; });
-    return '' +
+    return incomingRequests() +
       '<div class="card fund">' +
         '<div class="fund-top"><span>基金總額</span><span class="pill">本月 +' + money(monthAll()) + '</span></div>' +
         '<div style="display:flex;align-items:baseline;gap:8px"><span class="big num">' + money(w + tr) + '</span><span class="muted small">已存入</span></div>' +
@@ -527,8 +563,40 @@ textarea.input { resize: none; line-height: 1.5; }
       (noRules ? '<div class="section"><div class="card" style="display:flex;flex-direction:column;gap:10px"><span>還沒有任何規則。先提議第一條，等對方同意後就可以開罰單。</span><button type="button" class="btn primary" data-act="sheet" data-sheet="rule">＋ 提議新規則</button></div></div>' : '') +
       '<div class="section"><div class="duo">' + mini("a") + mini("b") + '</div>' +
         '<button type="button" class="btn block gold" data-act="sheet" data-sheet="reward">' + I.gift + ' 送一張卡給' + esc(nm(other(S.me))) + '</button></div>' +
+      requestSection() +
       '<div class="section"><h2><span>最近罰單</span>' + (waiting ? '<button type="button" class="btn" style="min-height:36px;font-size:13px" data-act="tab" data-tab="tickets">有 ' + waiting + ' 件待處理</button>' : '') + '</h2>' +
         (recent.length ? recent.map(ticketRow).join('') : '<div class="empty">還沒有罰單。按下方的「＋」開第一張。</div>') +
+      '</div>';
+  }
+
+  function incomingRequests() {
+    var inc = S.requests.filter(function (q) { return q.status === "pending" && q.to === S.me; });
+    return inc.map(function (q) {
+      return '<div class="card req" style="margin-bottom:16px">' +
+        '<div class="req-top"><span class="req-ic">' + reqIconSVG(q.icon) + '</span><span class="body"><span class="small muted">' + esc(nm(q.from)) + ' 遞上一份申請書 · ' + dateLabel(q.ts) + '</span><b>' + esc(q.title) + '</b></span></div>' +
+        (q.note ? '<div class="quote">' + esc(q.note) + '</div>' : '') +
+        '<div class="grid2"><button type="button" class="btn" data-act="req-answer" data-id="' + esc(q.id) + '">這次先不要…</button>' +
+        '<button type="button" class="btn primary" data-act="req-yes" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>准！</button></div></div>';
+    }).join('');
+  }
+  function reqRow(q) {
+    var mine = q.from === S.me, op = other(S.me), line, acts = '';
+    if (q.status === "pending") { line = '等 ' + nm(q.to) + ' 回覆'; acts = '<button type="button" class="btn" style="min-height:36px;font-size:13px" data-act="req-remove" data-id="' + esc(q.id) + '">收回</button>'; }
+    else if (q.status === "approved") { line = (mine ? nm(q.to) + ' 准了！' : '你准了，') + '記得兌現'; acts = '<button type="button" class="btn mint" style="min-height:36px;font-size:13px" data-act="req-done" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>已實現</button>'; }
+    else if (q.status === "declined") { line = nm(op) + '：這次先不要'; acts = '<button type="button" class="btn" style="min-height:36px;font-size:13px" data-act="req-remove" data-id="' + esc(q.id) + '">收起</button>'; }
+    else { line = dateLabel(q.doneTs) + ' 已實現'; }
+    return '<div class="row req-row"><span class="req-ic">' + reqIconSVG(q.icon) + '</span><span class="body"><span class="t">' + esc(q.title) + '</span>' +
+      '<span class="small muted">' + esc(mine ? '我申請' : nm(q.from) + ' 申請') + ' · ' + esc(line) + '</span>' +
+      (q.reply ? '<span class="small">「' + esc(q.reply) + '」</span>' : '') + '</span>' + acts + '</div>';
+  }
+  function requestSection() {
+    var op = other(S.me);
+    var open = S.requests.filter(function (q) { return q.status === "approved" || (q.from === S.me && (q.status === "pending" || q.status === "declined")); }).sort(byNew);
+    var done = S.requests.filter(function (q) { return q.status === "done"; }).sort(function (a, b) { return String(b.doneTs).localeCompare(String(a.doneTs)); });
+    return '<div class="section"><h2><span>申請書</span>' + (done.length ? '<button type="button" class="btn" style="min-height:36px;font-size:13px" data-act="req-toggle-done">' + (UI.showDone ? '收起' : '已實現 ' + done.length + ' 次') + '</button>' : '') + '</h2>' +
+      '<button type="button" class="btn block" style="background:var(--soft-accent)" data-act="sheet" data-sheet="request">💌 遞申請書給' + esc(nm(op)) + '</button>' +
+      open.map(reqRow).join('') +
+      (UI.showDone ? done.map(reqRow).join('') : '') +
       '</div>';
   }
 
@@ -712,7 +780,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var body = UI.tab === "home" ? viewHome() : UI.tab === "tickets" ? viewTickets() : UI.tab === "rules" ? viewRules() : UI.tab === "me" ? viewMe() : viewCards();
     var n = ticketTodo(), nr = ruleTodo();
     var tabs = '<div class="tabbar"><nav aria-label="主選單">' +
-      tabBtn("home", I.home, "首頁") + tabBtn("rules", I.rules, "規則", nr) +
+      tabBtn("home", I.home, "首頁", reqTodo()) + tabBtn("rules", I.rules, "規則", nr) +
       '<button type="button" class="fab" aria-label="開罰單" data-act="sheet" data-sheet="new">' + I.plus + '</button>' +
       tabBtn("tickets", I.mail, "罰單", n) + tabBtn("cards", I.card, "卡包") +
       '</nav></div>';
@@ -869,6 +937,37 @@ textarea.input { resize: none; line-height: 1.5; }
       '<button type="button" class="btn gold block" style="min-height:52px" data-act="submit-reward"' + busyAttr(rewardReady(f)) + '>' + I.gift + ' 送出</button>');
   }
 
+  function reqReady(f) { return !!(f.preset != null ? REQ_PRESETS[f.preset] : (f.qtitle || "").trim()); }
+  function sheetRequest() {
+    var f = UI.form, op = other(S.me), custom = f.preset == null;
+    return sheetWrap("遞申請書給" + nm(op),
+      '<div class="field"><span style="font-size:14px">想申請什麼？</span><div class="icon-pick req-pick" role="group" aria-label="申請內容">' +
+        REQ_PRESETS.map(function (p, i) {
+          return '<button type="button" aria-pressed="' + (f.preset === i) + '" data-act="q-preset" data-v="' + i + '">' + reqIconSVG(p[1]) + '<span>' + esc(p[0]) + '</span></button>';
+        }).join('') +
+        '<button type="button" aria-pressed="' + custom + '" data-act="q-preset" data-v="custom">' + reqIconSVG(f.icon || "star") + '<span>自己寫</span></button>' +
+      '</div></div>' +
+      (custom ?
+        '<div class="field"><label for="q-title">申請內容</label><input id="q-title" class="input" maxlength="20" data-bind="qtitle" value="' + esc(f.qtitle || "") + '" placeholder="例如：今晚想吃火鍋"></div>' +
+        '<div class="field"><span style="font-size:14px">圖案</span><div class="icon-pick" role="group" aria-label="申請圖案">' + REQ_PICK.map(function (k) {
+          return '<button type="button" aria-label="' + esc((REQ_EXTRA[k] || ICONS[k])[0]) + '" aria-pressed="' + (f.icon === k) + '" data-act="q-icon" data-v="' + k + '">' + reqIconSVG(k) + '<span>' + esc((REQ_EXTRA[k] || ICONS[k])[0]) + '</span></button>';
+        }).join('') + '</div></div>' : '') +
+      '<div class="field"><label for="q-note">想說的話（可不填）</label><textarea id="q-note" class="input" rows="2" maxlength="100" data-bind="qnote" placeholder="例如：今天好累，想要充電">' + esc(f.qnote || "") + '</textarea></div>' +
+      '<p class="note">' + esc(nm(op)) + ' 可以批准或婉拒。申請書跟罰款和基金完全無關。</p>' +
+      '<button type="button" class="btn primary block" style="min-height:52px" data-act="submit-request"' + busyAttr(reqReady(f)) + '>💌 送出申請</button>');
+  }
+  function sheetAnswer() {
+    var q = S.requests.filter(function (x) { return x.id === UI.form.id; })[0];
+    if (!q || q.status !== "pending") return sheetWrap("申請書", '<p class="note">這份申請已經處理好了。</p><button type="button" class="btn block" data-act="close">關閉</button>');
+    return sheetWrap(nm(q.from) + " 的申請書",
+      '<div class="card req" style="box-shadow:none"><div class="req-top"><span class="req-ic">' + reqIconSVG(q.icon) + '</span><span class="body"><b>' + esc(q.title) + '</b></span></div>' +
+        (q.note ? '<div class="quote">' + esc(q.note) + '</div>' : '') + '</div>' +
+      '<div class="field"><label for="q-reply">回一句話（可不填）</label><input id="q-reply" class="input" maxlength="60" data-bind="qreply" value="' + esc(UI.form.qreply || "") + '" placeholder="例如：今天太冷了，明天好不好？"></div>' +
+      '<p class="note">婉拒不會留在你們的紀錄裡，只有 ' + esc(nm(q.from)) + ' 會看到。</p>' +
+      '<div class="grid2"><button type="button" class="btn" data-act="req-no" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>這次先不要</button>' +
+      '<button type="button" class="btn primary" data-act="req-yes" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>准！</button></div>');
+  }
+
   function sheetUse() {
     var c = S.cards.filter(function (x) { return x.id === UI.form.id; })[0];
     if (!c) return "";
@@ -885,6 +984,7 @@ textarea.input { resize: none; line-height: 1.5; }
       '<div class="field"><span style="font-size:14px">明暗模式</span><div class="styles" role="group" aria-label="明暗模式">' + MODES.map(function (m) { return '<button type="button" aria-pressed="' + (S.mode === m[0]) + '" data-act="look-mode" data-v="' + m[0] + '">' + m[1] + '</button>'; }).join('') + '</div><span class="note">「跟隨系統」會跟著手機的淺色／深色設定自動切換；夜光風格一律是深色。</span></div>' +
       '<div class="grid2"><div class="field"><label for="s-a">第一位</label><input id="s-a" class="input" maxlength="20" data-bind="nameA" value="' + esc(f.nameA) + '"></div><div class="field"><label for="s-b">第二位</label><input id="s-b" class="input" maxlength="20" data-bind="nameB" value="' + esc(f.nameB) + '"></div></div>' +
       '<div class="field"><label for="s-start">在一起的日子</label><input id="s-start" type="date" class="input" data-bind="start" value="' + esc(f.start) + '"></div>' +
+      '<div class="grid2"><div class="field"><label for="s-gwn">第一個基金名稱</label><input id="s-gwn" class="input" maxlength="12" data-bind="weddingName" value="' + esc(f.weddingName) + '"></div><div class="field"><label for="s-gtn">第二個基金名稱</label><input id="s-gtn" class="input" maxlength="12" data-bind="travelName" value="' + esc(f.travelName) + '"></div></div>' +
       '<div class="grid2"><div class="field"><label for="s-gw">' + esc(S.goals.wedding.name) + '目標</label><input id="s-gw" type="number" inputmode="numeric" class="input" data-bind="weddingTarget" value="' + esc(f.weddingTarget) + '"></div><div class="field"><label for="s-gt">' + esc(S.goals.travel.name) + '目標</label><input id="s-gt" type="number" inputmode="numeric" class="input" data-bind="travelTarget" value="' + esc(f.travelTarget) + '"></div></div>' +
       '<div class="field"><label for="s-dc">我的 Discord 用戶 ID（收通知用）</label><input id="s-dc" class="input" inputmode="numeric" maxlength="20" data-bind="discord" value="' + esc(f.discord || "") + '" placeholder="例如：123456789012345678"><span class="note">Discord：設定 → 進階 → 開啟開發者模式，再按自己的頭像 →「複製用戶 ID」。只會改你自己的。</span></div>' +
       '<button type="button" class="btn primary block" data-act="submit-settings"' + busyAttr(true) + '>儲存</button>' +
@@ -909,6 +1009,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (auth && S.loaded && S.paired) {
       if (s === "new") html = sheetNew(); else if (s === "ticket") html = sheetTicket(); else if (s === "rule") html = sheetRule();
       else if (s === "reward") html = sheetReward(); else if (s === "settings") html = sheetSettings(); else if (s === "use") html = sheetUse(); else if (s === "email") html = sheetEmail(); else if (s === "leave") html = sheetLeave();
+      else if (s === "request") html = sheetRequest(); else if (s === "answer") html = sheetAnswer();
     }
     document.getElementById("layer").innerHTML = html;
     renderToast();
@@ -922,13 +1023,15 @@ textarea.input { resize: none; line-height: 1.5; }
   function openSheet(name, extra) {
     var f = extra || {};
     if (name === "new") f = { mode: "other", confirm: true, fund: "wedding", amount: 0, ruleId: null, note: "" };
-    if (name === "settings") f = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target, discord: (S.discord || {})[S.me] || "" };
+    if (name === "settings") f = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target, weddingName: S.goals.wedding.name, travelName: S.goals.travel.name, discord: (S.discord || {})[S.me] || "" };
     if (name === "rule") {
       var er = extra && extra.ruleId ? S.rules.filter(function (x) { return x.id === extra.ruleId; })[0] : null;
       f = er ? { ruleId: er.id, rtitle: er.title, ramt: er.amount } : { rtitle: "", ramt: 20 };
     }
     if (name === "email") f = { step: "email", newEmail: "", code: "", error: "" };
     if (name === "leave") f = { confirmText: "", error: "" };
+    if (name === "request") f = { preset: 0, qtitle: "", icon: "heart", qnote: "" };
+    if (name === "answer") f = { id: extra && extra.id, qreply: "" };
     if (name === "reward") f = { kind: "cat", reason: "", ctitle: "", cdesc: "", color: "pink", icon: "heart" };
     UI.sheet = name; UI.form = f; renderLayer();
   }
@@ -1125,9 +1228,21 @@ textarea.input { resize: none; line-height: 1.5; }
       case "use-card": openSheet("use", { id: id }); break;
       case "confirm-use": send("useCard", { id: id }, "已使用，記得找" + nm(other(S.me)) + "兌現"); break;
       case "submit-settings":
-        var ss = { nameA: f.nameA, nameB: f.nameB, start: f.start, weddingTarget: f.weddingTarget, travelTarget: f.travelTarget };
+        var ss = { nameA: f.nameA, nameB: f.nameB, start: f.start, weddingTarget: f.weddingTarget, travelTarget: f.travelTarget, weddingName: f.weddingName, travelName: f.travelName };
         ss[S.me === "a" ? "discordA" : "discordB"] = f.discord || "";
         send("saveSettings", ss, "已儲存"); break;
+      case "q-preset": f.preset = v === "custom" ? null : Number(v); renderLayer(); break;
+      case "q-icon": f.icon = v; renderLayer(); break;
+      case "submit-request":
+        var pr = f.preset != null ? REQ_PRESETS[f.preset] : null;
+        send("createRequest", { title: pr ? pr[0] : f.qtitle, icon: pr ? pr[1] : f.icon, note: f.qnote }, "申請書已送出，等" + nm(other(S.me)) + "回覆");
+        break;
+      case "req-answer": openSheet("answer", { id: id }); break;
+      case "req-yes": send("answerRequest", { id: id, accept: true, reply: UI.sheet === "answer" ? f.qreply : "" }, "已批准，記得兌現", showStamp); break;
+      case "req-no": send("answerRequest", { id: id, accept: false, reply: f.qreply }, "已婉拒，這份申請不會留在紀錄裡"); break;
+      case "req-done": send("doneRequest", { id: id }, "已實現 ❤"); break;
+      case "req-remove": send("removeRequest", { id: id }, "已收回"); break;
+      case "req-toggle-done": UI.showDone = !UI.showDone; render(); break;
       case "logout": logout(""); break;
     }
   });
@@ -1146,6 +1261,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (k === "ttitle") { var tb = document.querySelector('[data-act="submit-ticket"]'); if (tb) tb.disabled = UI.busy || !ticketReady(UI.form); }
     var need = { appeal: "t-appeal", rtitle: "submit-rule" }[k];
     if (need) { var b = document.querySelector('[data-act="' + need + '"]'); if (b) b.disabled = UI.busy || !el.value.trim(); }
+    if (UI.sheet === "request") { var qb = document.querySelector('[data-act="submit-request"]'); if (qb) qb.disabled = UI.busy || !reqReady(UI.form); }
     if (UI.sheet === "reward") {
       var btn = document.querySelector('[data-act="submit-reward"]');
       if (btn) btn.disabled = UI.busy || !rewardReady(UI.form);
