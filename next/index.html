@@ -301,40 +301,66 @@ textarea.input { resize: none; line-height: 1.5; }
 .req-row .req-ic { width: 44px; padding: 2px; border-radius: 12px; }
 .req-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .req-pick button span { font-size: 13px; }
-/* 申請書：一張紙，審批人旁邊蓋貓爪印 */
-.overlay.center { align-items: center; padding: 16px; overflow-y: auto; }
-.paper-stage { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 14px; margin: auto; }
-.paper { position: relative; background: #FFFDF6; color: #3B2A33; padding: 30px 26px 34px; transform: rotate(-1.2deg);
-  font-family: "LXGW WenKai TC", var(--font); box-shadow: 0 14px 30px rgba(59,42,51,.28); animation: paperin .45s cubic-bezier(.2,1.25,.4,1) both; }
-.paper::before { content: ""; position: absolute; inset: 0; border: 3.5px solid #3B2A33; pointer-events: none;
-  border-radius: 6px 16px 8px 12px / 14px 6px 16px 8px; filter: url(#wobble); }
-.paper h2 { margin: 0 0 20px; text-align: center; font-size: 40px; font-weight: 700; letter-spacing: 8px; }
-.p-line { display: flex; align-items: baseline; gap: 4px; font-size: 19px; margin: 12px 0; }
-.p-line .k { white-space: nowrap; }
-.p-line .v { flex: 1; min-width: 0; border-bottom: 2px dotted #3B2A33; padding: 0 4px 2px; min-height: 1.5em; overflow-wrap: anywhere; }
-.p-line input.v { font: inherit; color: inherit; background: transparent; border-top: 0; border-left: 0; border-right: 0; border-radius: 0; outline: none; }
-.p-line input.v::placeholder { color: #B5A99F; }
-.p-body { margin: 6px 0 4px; padding: 0 6px; font-size: 20px; line-height: 42px; min-height: 126px; overflow-wrap: anywhere;
-  background: repeating-linear-gradient(transparent 0 39px, #9C8F86 39px 41px, transparent 41px 42px); }
-.p-body .p-note { display: block; font-size: 17px; color: #6E6158; }
-.p-ic { float: right; width: 70px; margin: 2px -4px 0 6px; transform: rotate(4deg); }
+/* 申請書：賴貓法庭的公文紙，從信封裡抽出來，右下角蓋貓爪官印 */
+.overlay.center { align-items: center; padding: 20px 16px; overflow-y: auto; background: rgba(43,29,36,.6); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.paper-stage { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 18px; margin: auto; }
+.paper-wrap { position: relative; isolation: isolate; }
+.paper { position: relative; z-index: 2; color: #3B2A33; padding: 20px 20px 26px; border-radius: 3px; transform: rotate(-.8deg);
+  font-family: "LXGW WenKai TC", var(--font);
+  background-color: #FFFBF3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .28 .13 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), radial-gradient(130% 90% at 25% 0%, #FFFFFF 0, rgba(255,255,255,0) 55%), linear-gradient(170deg, rgba(0,0,0,0) 70%, rgba(120,80,60,.06));
+  box-shadow: 0 1px 1px rgba(59,42,51,.14), 0 8px 14px -4px rgba(59,42,51,.25), 0 30px 50px -18px rgba(20,8,14,.6); }
+.paper::before { content: ""; position: absolute; inset: 9px; border: 2px solid #E0435B; outline: 1px solid #E0435B; outline-offset: -6px; opacity: .8; pointer-events: none; }
+.p-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 8px 0 6px; font-size: 14px; color: #B4566A; }
+.p-court { display: flex; align-items: center; gap: 4px; letter-spacing: .12em; }
+.p-court .cat { width: 38px; }
+.p-head .num { font-size: 12px; letter-spacing: .06em; }
+.paper h2 { margin: 2px 0 14px; padding-left: .55em; text-align: center; font-size: 40px; font-weight: 700; letter-spacing: .55em; line-height: 1.2; }
+.p-grid { display: grid; grid-template-columns: 4.4em minmax(0, 1fr); border: 1.5px solid #E58A97; margin: 0 6px; background: rgba(255,255,255,.35); }
+.p-grid > .k { display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px 4px; font-size: 15px; line-height: 1.35; color: #9C3D52; background: rgba(250,214,221,.45); border-right: 1.5px solid #E58A97; border-bottom: 1px solid #F1B9C3; }
+.p-grid > .v { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; font-size: 18px; border-bottom: 1px solid #F1B9C3; overflow-wrap: anywhere; }
+.p-grid > :nth-last-child(-n+2) { border-bottom: 0; }
+.p-grid > .p-what { position: relative; flex-direction: column; align-items: stretch; justify-content: center; gap: 2px; min-height: 112px; }
+.p-what b { font-size: 23px; font-weight: 700; padding-right: 60px; }
+.p-what .p-note { font-size: 16px; line-height: 1.6; color: #6E6158; }
+.p-ic { position: absolute; right: 6px; top: 6px; width: 56px; transform: rotate(7deg); }
 .p-ic .cat { width: 100%; }
-.p-sign { position: relative; margin-top: 26px; }
-.p-sign .v { padding-right: 70px; }
-.p-soft { color: #8A7D72; font-size: 17px; }
-.pstamp { position: absolute; right: -10px; top: -46px; width: 104px; height: 104px; opacity: 0; transform: rotate(-12deg); mix-blend-mode: multiply; pointer-events: none; }
-.pstamp.on { opacity: .92; }
+.p-grid > .p-sign { min-height: 92px; align-items: flex-start; padding-top: 12px; }
+.p-grid input.p-in { width: 100%; font: inherit; color: inherit; background: transparent; border: 0; border-bottom: 1.5px dashed #E58A97; border-radius: 0; padding: 2px 0; outline: none; }
+.p-grid input.p-in:focus { border-bottom-style: solid; }
+.p-grid input.p-in::placeholder { color: #BCAEA5; }
+.p-soft { color: #8A7D72; font-size: 16px; }
+.p-slot { position: absolute; right: 26px; bottom: 28px; width: 104px; height: 104px; z-index: 1; display: grid; place-items: center; border: 2px dashed #EBA0AC; border-radius: 50%; color: #E58A97; font-size: 15px; transform: rotate(-8deg); }
+.pstamp { position: absolute; right: 4px; bottom: 4px; width: 152px; height: 152px; z-index: 3; opacity: 0; transform: rotate(-14deg); mix-blend-mode: multiply; pointer-events: none; }
+.pstamp.on { opacity: 1; }
 .pstamp.thunk { animation: thunk .5s cubic-bezier(.3,1.4,.5,1) both; }
-.paper.bump { animation: bump .32s .18s ease-out; }
-.p-tag { position: absolute; left: 14px; top: -14px; transform: rotate(-5deg); background: var(--mint); color: #213A33; border: 2.5px solid #3B2A33;
-  border-radius: 10px; padding: 2px 10px; font-size: 15px; }
-@keyframes paperin { from { transform: translateY(40px) rotate(-6deg) scale(.92); opacity: 0; } to { transform: rotate(-1.2deg); opacity: 1; } }
-@keyframes thunk { 0% { transform: scale(2.8) rotate(-28deg); opacity: 0; } 55% { transform: scale(.88) rotate(-12deg); opacity: .95; }
-  75% { transform: scale(1.05) rotate(-12deg); } 100% { transform: scale(1) rotate(-12deg); opacity: .92; } }
-@keyframes bump { 0% { transform: rotate(-1.2deg); } 35% { transform: rotate(-1.2deg) translateY(5px) scale(.985); } 100% { transform: rotate(-1.2deg); } }
-.paper-stage > .note { margin: 0; text-align: center; background: var(--surface); color: var(--ink); border-radius: 14px; padding: 8px 12px; }
+.paper.bump { animation: bump .34s .2s ease-out; }
+.p-tag { position: absolute; top: -10px; left: -10px; z-index: 4; padding: 4px 18px 4px 12px; font-size: 15px; color: #213A33; background: #8FD6B4; transform: rotate(-8deg); clip-path: polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%); }
+.p-acts { display: flex; flex-direction: column; gap: 10px; animation: actsin .3s ease-out both; }
+.paper-stage > .p-acts .note, .p-acts > .note { margin: 0; text-align: center; background: var(--surface); color: var(--ink); border-radius: 14px; padding: 8px 12px; }
+/* 信封 */
+.env { position: absolute; left: 0; right: 0; bottom: 0; height: 210px; pointer-events: none; }
+.env > * { position: absolute; left: 0; right: 0; }
+.env-back { top: 0; bottom: 0; z-index: 0; border-radius: 12px; background: #E996A7; }
+.env-flap { top: 0; height: 60%; z-index: 5; transform-origin: top center; background: #F2AEBC; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.env-front { top: 0; bottom: 0; z-index: 3; border-radius: 12px; background: linear-gradient(#F8C6D0, #F3B0BF); clip-path: polygon(0 16%, 50% 60%, 100% 16%, 100% 100%, 0 100%); }
+.env-seal { top: 60%; left: 50%; right: auto; width: 46px; height: 46px; margin: -28px 0 0 -23px; z-index: 6; display: grid; place-items: center; border-radius: 50%; color: #FFF5F7; background: #E0435B; box-shadow: 0 2px 0 rgba(120,20,40,.35), inset 0 0 0 3px rgba(255,255,255,.25); }
+.env-seal svg { width: 24px; height: 24px; }
+.paper-wrap.opening { overflow: hidden; padding-bottom: 170px; margin-bottom: -170px; }
+.paper-wrap.opening + .p-acts { visibility: hidden; }
+.opening .env-seal { animation: sealpop .3s .15s ease-in forwards; }
+.opening .env-flap { animation: flapopen .42s .35s ease-in-out forwards, envout .4s 1.25s ease-in forwards; }
+.opening .env-back, .opening .env-front { animation: envout .4s 1.25s ease-in forwards; }
+.opening .paper { animation: rise .8s .66s cubic-bezier(.2,.9,.3,1.1) both; }
+@keyframes sealpop { to { transform: scale(1.35); opacity: 0; } }
+@keyframes flapopen { 0% { transform: perspective(700px) rotateX(0); z-index: 5; } 49% { z-index: 5; } 50% { z-index: 0; } 100% { transform: perspective(700px) rotateX(180deg); z-index: 0; } }
+@keyframes envout { to { translate: 0 140px; opacity: 0; } }
+@keyframes rise { from { transform: translateY(calc(100% + 96px)) scale(.93); } to { transform: rotate(-.8deg); } }
+@keyframes thunk { 0% { transform: scale(2.7) rotate(-30deg); opacity: 0; } 55% { transform: scale(.9) rotate(-14deg); opacity: 1; } 75% { transform: scale(1.04) rotate(-14deg); } 100% { transform: scale(1) rotate(-14deg); opacity: 1; } }
+@keyframes bump { 0% { transform: rotate(-.8deg); } 35% { transform: rotate(-.8deg) translateY(6px) scale(.985); } 100% { transform: rotate(-.8deg); } }
+@keyframes actsin { from { opacity: 0; transform: translateY(8px); } }
 .req-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; background: none; border: 0; padding: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
-@media (prefers-reduced-motion: reduce) { .sheet, .paper, .paper.bump { animation: none; } .ticket { transform: none; } .pstamp.thunk { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sheet, .paper, .paper.bump, .p-acts { animation: none; } .ticket { transform: none; } .pstamp.thunk { animation: none; } }
 </style>
 </head>
 <body>
@@ -501,15 +527,18 @@ textarea.input { resize: none; line-height: 1.5; }
   var REQ_PICK = ["hug", "kiss", "icecream", "walk", "movie", "heart", "food", "coffee", "plane", "moon", "gift", "flower", "game", "music", "star"];
   var PAW = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><ellipse cx="12" cy="15.5" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.2" cy="6.2" r="2.2"/><circle cx="14.8" cy="6.2" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg>';
   function reqTodo() { return S.requests.filter(function (q) { return q.status === "pending" && q.to === S.me; }).length; }
-  var PAW_STAMP = '<svg class="pstamp" viewBox="0 0 120 120" aria-hidden="true">' +
-    '<circle cx="60" cy="60" r="52" fill="rgba(247,161,181,.18)" stroke="#EE6F7E" stroke-width="6"/>' +
-    '<circle cx="60" cy="60" r="44" fill="none" stroke="#EE6F7E" stroke-width="1.6" stroke-dasharray="3 5"/>' +
-    '<ellipse cx="38" cy="47" rx="8" ry="10" fill="#EE6F7E" transform="rotate(-18 38 47)"/>' +
-    '<ellipse cx="60" cy="38" rx="8.5" ry="10.5" fill="#EE6F7E"/>' +
-    '<ellipse cx="82" cy="47" rx="8" ry="10" fill="#EE6F7E" transform="rotate(18 82 47)"/>' +
-    '<path d="M60 58c-14 0-25 11-25 22 0 9 8 13 14 11 4-1 7-3 11-3s7 2 11 3c6 2 14-2 14-11 0-11-11-22-25-22z" fill="#F7A1B5" stroke="#E8546E" stroke-width="4" stroke-linejoin="round"/>' +
-    '<path d="M50 74q10-6 20 0" fill="none" stroke="#E8546E" stroke-width="3" stroke-linecap="round" opacity=".6"/></svg>';
-  var WOBBLE = '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="wobble"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="3.5"/></filter></svg>';
+  var PAW_STAMP = '<svg class="pstamp" viewBox="0 0 200 200" aria-hidden="true"><defs>' +
+    '<filter id="ink" x="-6%" y="-6%" width="112%" height="112%"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="4" result="n"/>' +
+    '<feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" result="d"/>' +
+    '<feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="1" seed="11" result="s"/>' +
+    '<feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2 0 0 0 1.95" result="m"/><feComposite in="d" in2="m" operator="in"/></filter>' +
+    '<path id="ring" d="M100,100 m-62,0 a62,62 0 1,1 124,0 a62,62 0 1,1 -124,0"/></defs>' +
+    '<g filter="url(#ink)" fill="#E0435B"><circle cx="100" cy="100" r="91" fill="none" stroke="#E0435B" stroke-width="8"/>' +
+    '<circle cx="100" cy="100" r="81" fill="none" stroke="#E0435B" stroke-width="2.2"/><circle cx="100" cy="100" r="53" fill="none" stroke="#E0435B" stroke-width="2.2"/>' +
+    '<text font-size="17" font-weight="700" font-family="LXGW WenKai TC, serif"><textPath href="#ring" textLength="386" lengthAdjust="spacing">賴貓法庭・准予所請・賴貓法庭・准予所請・</textPath></text>' +
+    '<ellipse cx="72" cy="94" rx="9" ry="11.5" transform="rotate(-24 72 94)"/><ellipse cx="89" cy="77" rx="9" ry="12"/><ellipse cx="111" cy="77" rx="9" ry="12"/><ellipse cx="128" cy="94" rx="9" ry="11.5" transform="rotate(24 128 94)"/>' +
+    '<path d="M100 101c-18 0-31 13-31 26 0 10 9 14 16 12 6-1 10-4 15-4s9 3 15 4c7 2 16-2 16-12 0-13-13-26-31-26z"/></g></svg>';
+  var ENVELOPE = '<div class="env" aria-hidden="true"><div class="env-back"></div><div class="env-flap"></div><div class="env-front"></div><div class="env-seal">' + PAW + '</div></div>';
   function cardHTML(c, actions) {
     var col = CARD_COLORS[c.color] || CARD_COLORS.gold;
     return '<div class="gcard' + (c.used ? ' used' : '') + '" style="--c1:' + col[0] + ';--c2:' + col[1] + '">' +
@@ -987,22 +1016,26 @@ textarea.input { resize: none; line-height: 1.5; }
   function paperHTML(q, f) {
     var canAnswer = q.status === "pending" && q.to === S.me;
     var stamped = q.status === "approved" || q.status === "done";
-    var sign;
-    if (canAnswer) sign = '<span class="v">' + esc(nm(q.to)) + '</span>';
-    else if (q.status === "pending") sign = '<span class="v p-soft">' + esc(nm(q.to)) + '（審批中）</span>';
-    else if (q.status === "declined") sign = '<span class="v">' + esc(nm(q.to)) + ' <span class="p-soft">這次先不要</span></span>';
-    else sign = '<span class="v">' + esc(nm(q.to)) + '</span>';
-    return WOBBLE + '<div class="paper" id="paper">' +
-      '<h2>申請書</h2>' +
-      '<div class="p-line"><span class="k">提出人：</span><span class="v">' + esc(nm(q.from)) + '</span></div>' +
-      '<div class="p-body"><span class="p-ic">' + reqIconSVG(q.icon) + '</span>' + esc(q.title) + (q.note ? '<span class="p-note">' + esc(q.note) + '</span>' : '') + '</div>' +
-      '<div class="p-line"><span class="k">日期：</span><span class="v">' + dateLabel(q.ts) + '</span></div>' +
-      (canAnswer
-        ? '<div class="p-line"><label class="k" for="q-reply">批註：</label><input id="q-reply" class="v" maxlength="60" autocomplete="off" data-bind="qreply" value="' + esc(f.qreply || "") + '" placeholder="（可不填）"></div>'
-        : (q.reply ? '<div class="p-line"><span class="k">批註：</span><span class="v">' + esc(q.reply) + '</span></div>' : '')) +
-      '<div class="p-line p-sign"><span class="k">審批人：</span>' + sign + PAW_STAMP.replace('class="pstamp"', 'class="pstamp' + (stamped ? ' on' : '') + '"') + '</div>' +
+    var sign = esc(nm(q.to));
+    if (q.status === "pending" && !canAnswer) sign += ' <span class="p-soft">（審批中）</span>';
+    if (q.status === "declined") sign += ' <span class="p-soft">這次先不要</span>';
+    return '<div class="paper-wrap' + (f.opening ? ' opening' : '') + '">' + (f.opening ? ENVELOPE : '') +
+      '<div class="paper" id="paper">' +
       (q.status === "done" ? '<span class="p-tag">' + dateLabel(q.doneTs) + ' 已實現</span>' : '') +
-      '</div>';
+      '<div class="p-head"><span class="p-court">' + CAT + '賴貓法庭</span><span class="num">No.' + esc(String(q.id).toUpperCase().slice(0, 6)) + '</span></div>' +
+      '<h2>申請書</h2>' +
+      '<div class="p-grid">' +
+        '<div class="k">提出人</div><div class="v">' + esc(nm(q.from)) + '</div>' +
+        '<div class="k">申請<br>事項</div><div class="v p-what"><span class="p-ic">' + reqIconSVG(q.icon) + '</span><b>' + esc(q.title) + '</b>' + (q.note ? '<span class="p-note">' + esc(q.note) + '</span>' : '') + '</div>' +
+        '<div class="k">日期</div><div class="v">' + dateLabel(q.ts) + '</div>' +
+        '<div class="k"><label for="q-reply">批註</label></div><div class="v">' + (canAnswer
+          ? '<input id="q-reply" class="p-in" maxlength="60" autocomplete="off" data-bind="qreply" value="' + esc(f.qreply || "") + '" placeholder="想說的話（可不填）">'
+          : (q.reply ? esc(q.reply) : '<span class="p-soft">—</span>')) + '</div>' +
+        '<div class="k">審批人</div><div class="v p-sign">' + sign + '</div>' +
+      '</div>' +
+      (q.status === "pending" ? '<span class="p-slot">蓋章處</span>' : '') +
+      (q.status === "declined" ? '' : PAW_STAMP.replace('class="pstamp"', 'class="pstamp' + (stamped ? ' on' : '') + '"')) +
+      '</div></div>';
   }
   function sheetPaper() {
     var f = UI.form, q = S.requests.filter(function (x) { return x.id === f.id; })[0];
@@ -1022,14 +1055,14 @@ textarea.input { resize: none; line-height: 1.5; }
     } else {
       acts = '<button type="button" class="btn block" data-act="close">關閉</button>';
     }
-    return '<div class="overlay center" data-act="close-bg"><div class="paper-stage" role="dialog" aria-modal="true" aria-label="' + esc(nm(q.from)) + ' 的申請書">' + paperHTML(q, f) + acts + '</div></div>';
+    return '<div class="overlay center" data-act="close-bg"><div class="paper-stage" role="dialog" aria-modal="true" aria-label="' + esc(nm(q.from)) + ' 的申請書">' + paperHTML(q, f) + '<div class="p-acts">' + acts + '</div></div></div>';
   }
   function stampPaper(id) {
     if (UI.busy) return;
     var f = UI.form, started = Date.now();
     UI.busy = true; f.stamping = true;
     var stage = document.querySelector(".paper-stage"), paper = document.getElementById("paper"), st = document.querySelector(".pstamp");
-    if (stage) Array.prototype.forEach.call(stage.querySelectorAll(".grid2, .note"), function (el) { el.style.visibility = "hidden"; });
+    if (stage) Array.prototype.forEach.call(stage.querySelectorAll(".p-acts, .p-slot"), function (el) { el.style.visibility = "hidden"; });
     if (st) { st.classList.add("on", "thunk"); }
     if (paper) paper.classList.add("bump");
     if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
@@ -1108,9 +1141,21 @@ textarea.input { resize: none; line-height: 1.5; }
     if (name === "email") f = { step: "email", newEmail: "", code: "", error: "" };
     if (name === "leave") f = { confirmText: "", error: "" };
     if (name === "request") f = { preset: 0, qtitle: "", icon: "heart", qnote: "" };
-    if (name === "paper") f = { id: extra && extra.id, qreply: "", confirmNo: false, stamping: false };
+    if (name === "paper") {
+      var pq = S.requests.filter(function (x) { return x.id === (extra && extra.id); })[0];
+      var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      /* 第一次打開收到的申請：從信封裡抽出來 */
+      f = { id: extra && extra.id, qreply: "", confirmNo: false, stamping: false, opening: !!(pq && pq.status === "pending" && pq.to === S.me && !calm) };
+    }
     if (name === "reward") f = { kind: "cat", reason: "", ctitle: "", cdesc: "", color: "pink", icon: "heart" };
     UI.sheet = name; UI.form = f; renderLayer();
+    if (name === "paper" && f.opening) setTimeout(function () {
+      if (UI.form !== f) return;
+      f.opening = false;
+      var w = document.querySelector(".paper-wrap.opening"); if (!w) return;
+      var env = w.querySelector(".env"); if (env) env.remove();
+      w.classList.remove("opening");
+    }, 1700);
   }
   function closeSheet() { UI.sheet = null; UI.form = {}; renderLayer(); }
 
