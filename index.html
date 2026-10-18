@@ -518,8 +518,10 @@ textarea.input { resize: none; line-height: 1.5; }
   function needsMe(t) {
     return (t.status === "pending" && t.to === S.me) || (t.status === "appeal" && t.from === S.me) || (t.status === "paid" && t.voidBy && t.voidBy !== S.me);
   }
-  function todo() {
-    return S.tickets.filter(needsMe).length + S.rules.filter(function (r) { return (r.status === "pending" && r.by !== S.me) || (r.status === "active" && r.change && r.changeBy !== S.me); }).length;
+  /* 紅點分開算：罰單待處理顯示在「罰單」，規則待同意顯示在「規則」 */
+  function ticketTodo() { return S.tickets.filter(needsMe).length; }
+  function ruleTodo() {
+    return S.rules.filter(function (r) { return (r.status === "pending" && r.by !== S.me) || (r.status === "active" && r.change && r.changeBy !== S.me); }).length;
   }
 
   var I = {
@@ -564,7 +566,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var w = fundTotal("wedding"), tr = fundTotal("travel");
     var gw = S.goals.wedding, gt = S.goals.travel;
     var recent = S.tickets.slice().sort(byNew).slice(0, 4);
-    var waiting = todo();
+    var waiting = ticketTodo();
     function mini(p) {
       var n = myCards(p).length, cats = catCount(p);
       return '<div class="mini ' + p + '"><span class="small">' + esc(nm(p)) + ' 本月被罰</span><b class="num">' + money(monthOf(p)) + '</b>' +
@@ -732,9 +734,9 @@ textarea.input { resize: none; line-height: 1.5; }
       '<button type="button" class="icon-btn" aria-label="設定" data-act="sheet" data-sheet="settings">' + I.dots + '</button></div></div>' +
       '</header>';
     var body = UI.tab === "home" ? viewHome() : UI.tab === "tickets" ? viewTickets() : UI.tab === "rules" ? viewRules() : UI.tab === "me" ? viewMe() : viewCards();
-    var n = todo();
+    var n = ticketTodo(), nr = ruleTodo();
     var tabs = '<div class="tabbar"><nav aria-label="主選單">' +
-      tabBtn("home", I.home, "首頁") + tabBtn("rules", I.rules, "規則") +
+      tabBtn("home", I.home, "首頁") + tabBtn("rules", I.rules, "規則", nr) +
       '<button type="button" class="fab" aria-label="開罰單" data-act="sheet" data-sheet="new">' + I.plus + '</button>' +
       tabBtn("tickets", I.mail, "罰單", n) + tabBtn("cards", I.card, "卡包") +
       '</nav></div>';
