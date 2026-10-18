@@ -23,7 +23,7 @@
 <meta name="apple-mobile-web-app-title" content="賴貓法庭">
 <title>賴貓法庭（測試版）</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Fredoka:wght@500;700&family=Baloo+2:wght@600;800&family=Orbitron:wght@600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=LXGW+WenKai+TC:wght@400;700&family=Fredoka:wght@500;700&family=Baloo+2:wght@600;800&family=Orbitron:wght@600;800&display=swap">
 <style>
 /* Layout: one phone-width column (max 440px), sticky top bar, fixed bottom tab bar, bottom sheets for every form.
    Three switchable looks share one token set: 貼紙 sticker, 果凍 clay, 夜光 neon. */
@@ -301,15 +301,40 @@ textarea.input { resize: none; line-height: 1.5; }
 .req-row .req-ic { width: 44px; padding: 2px; border-radius: 12px; }
 .req-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .req-pick button span { font-size: 13px; }
-.stamp-wrap { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; pointer-events: none; }
-.stamp { width: 170px; height: 170px; border-radius: 50%; border: 7px solid #E8546E; color: #E8546E; background: rgba(255,255,255,.88);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 72px; line-height: 1; font-weight: 700;
-  transform: rotate(-12deg); animation: stamp 1.5s ease-out forwards; box-shadow: 0 0 0 4px rgba(232,84,110,.25) inset; }
-.stamp svg { width: 46px; height: 46px; margin-top: 4px; }
-@keyframes stamp { 0% { transform: scale(2.4) rotate(-20deg); opacity: 0; } 18% { transform: scale(.92) rotate(-12deg); opacity: 1; }
-  26% { transform: scale(1) rotate(-12deg); } 80% { opacity: 1; } 100% { transform: scale(1) rotate(-12deg); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } .ticket { transform: none; } .stamp { animation: stampfade 1.5s linear forwards; } }
-@keyframes stampfade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+/* 申請書：一張紙，審批人旁邊蓋貓爪印 */
+.overlay.center { align-items: center; padding: 16px; overflow-y: auto; }
+.paper-stage { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 14px; margin: auto; }
+.paper { position: relative; background: #FFFDF6; color: #3B2A33; padding: 30px 26px 34px; transform: rotate(-1.2deg);
+  font-family: "LXGW WenKai TC", var(--font); box-shadow: 0 14px 30px rgba(59,42,51,.28); animation: paperin .45s cubic-bezier(.2,1.25,.4,1) both; }
+.paper::before { content: ""; position: absolute; inset: 0; border: 3.5px solid #3B2A33; pointer-events: none;
+  border-radius: 6px 16px 8px 12px / 14px 6px 16px 8px; filter: url(#wobble); }
+.paper h2 { margin: 0 0 20px; text-align: center; font-size: 40px; font-weight: 700; letter-spacing: 8px; }
+.p-line { display: flex; align-items: baseline; gap: 4px; font-size: 19px; margin: 12px 0; }
+.p-line .k { white-space: nowrap; }
+.p-line .v { flex: 1; min-width: 0; border-bottom: 2px dotted #3B2A33; padding: 0 4px 2px; min-height: 1.5em; overflow-wrap: anywhere; }
+.p-line input.v { font: inherit; color: inherit; background: transparent; border-top: 0; border-left: 0; border-right: 0; border-radius: 0; outline: none; }
+.p-line input.v::placeholder { color: #B5A99F; }
+.p-body { margin: 6px 0 4px; padding: 0 6px; font-size: 20px; line-height: 42px; min-height: 126px; overflow-wrap: anywhere;
+  background: repeating-linear-gradient(transparent 0 39px, #9C8F86 39px 41px, transparent 41px 42px); }
+.p-body .p-note { display: block; font-size: 17px; color: #6E6158; }
+.p-ic { float: right; width: 70px; margin: 2px -4px 0 6px; transform: rotate(4deg); }
+.p-ic .cat { width: 100%; }
+.p-sign { position: relative; margin-top: 26px; }
+.p-sign .v { padding-right: 70px; }
+.p-soft { color: #8A7D72; font-size: 17px; }
+.pstamp { position: absolute; right: -10px; top: -46px; width: 104px; height: 104px; opacity: 0; transform: rotate(-12deg); mix-blend-mode: multiply; pointer-events: none; }
+.pstamp.on { opacity: .92; }
+.pstamp.thunk { animation: thunk .5s cubic-bezier(.3,1.4,.5,1) both; }
+.paper.bump { animation: bump .32s .18s ease-out; }
+.p-tag { position: absolute; left: 14px; top: -14px; transform: rotate(-5deg); background: var(--mint); color: #213A33; border: 2.5px solid #3B2A33;
+  border-radius: 10px; padding: 2px 10px; font-size: 15px; }
+@keyframes paperin { from { transform: translateY(40px) rotate(-6deg) scale(.92); opacity: 0; } to { transform: rotate(-1.2deg); opacity: 1; } }
+@keyframes thunk { 0% { transform: scale(2.8) rotate(-28deg); opacity: 0; } 55% { transform: scale(.88) rotate(-12deg); opacity: .95; }
+  75% { transform: scale(1.05) rotate(-12deg); } 100% { transform: scale(1) rotate(-12deg); opacity: .92; } }
+@keyframes bump { 0% { transform: rotate(-1.2deg); } 35% { transform: rotate(-1.2deg) translateY(5px) scale(.985); } 100% { transform: rotate(-1.2deg); } }
+.paper-stage > .note { margin: 0; text-align: center; background: var(--surface); color: var(--ink); border-radius: 14px; padding: 8px 12px; }
+.req-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; background: none; border: 0; padding: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .sheet, .paper, .paper.bump { animation: none; } .ticket { transform: none; } .pstamp.thunk { animation: none; } }
 </style>
 </head>
 <body>
@@ -476,11 +501,15 @@ textarea.input { resize: none; line-height: 1.5; }
   var REQ_PICK = ["hug", "kiss", "icecream", "walk", "movie", "heart", "food", "coffee", "plane", "moon", "gift", "flower", "game", "music", "star"];
   var PAW = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><ellipse cx="12" cy="15.5" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.2" cy="6.2" r="2.2"/><circle cx="14.8" cy="6.2" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg>';
   function reqTodo() { return S.requests.filter(function (q) { return q.status === "pending" && q.to === S.me; }).length; }
-  function showStamp() {
-    var w = document.createElement("div"); w.className = "stamp-wrap"; w.setAttribute("aria-hidden", "true");
-    w.innerHTML = '<div class="stamp">准' + PAW + '</div>';
-    document.body.appendChild(w); setTimeout(function () { w.remove(); }, 1600);
-  }
+  var PAW_STAMP = '<svg class="pstamp" viewBox="0 0 120 120" aria-hidden="true">' +
+    '<circle cx="60" cy="60" r="52" fill="rgba(247,161,181,.18)" stroke="#EE6F7E" stroke-width="6"/>' +
+    '<circle cx="60" cy="60" r="44" fill="none" stroke="#EE6F7E" stroke-width="1.6" stroke-dasharray="3 5"/>' +
+    '<ellipse cx="38" cy="47" rx="8" ry="10" fill="#EE6F7E" transform="rotate(-18 38 47)"/>' +
+    '<ellipse cx="60" cy="38" rx="8.5" ry="10.5" fill="#EE6F7E"/>' +
+    '<ellipse cx="82" cy="47" rx="8" ry="10" fill="#EE6F7E" transform="rotate(18 82 47)"/>' +
+    '<path d="M60 58c-14 0-25 11-25 22 0 9 8 13 14 11 4-1 7-3 11-3s7 2 11 3c6 2 14-2 14-11 0-11-11-22-25-22z" fill="#F7A1B5" stroke="#E8546E" stroke-width="4" stroke-linejoin="round"/>' +
+    '<path d="M50 74q10-6 20 0" fill="none" stroke="#E8546E" stroke-width="3" stroke-linecap="round" opacity=".6"/></svg>';
+  var WOBBLE = '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="wobble"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="3.5"/></filter></svg>';
   function cardHTML(c, actions) {
     var col = CARD_COLORS[c.color] || CARD_COLORS.gold;
     return '<div class="gcard' + (c.used ? ' used' : '') + '" style="--c1:' + col[0] + ';--c2:' + col[1] + '">' +
@@ -575,8 +604,7 @@ textarea.input { resize: none; line-height: 1.5; }
       return '<div class="card req" style="margin-bottom:16px">' +
         '<div class="req-top"><span class="req-ic">' + reqIconSVG(q.icon) + '</span><span class="body"><span class="small muted">' + esc(nm(q.from)) + ' 遞上一份申請書 · ' + dateLabel(q.ts) + '</span><b>' + esc(q.title) + '</b></span></div>' +
         (q.note ? '<div class="quote">' + esc(q.note) + '</div>' : '') +
-        '<div class="grid2"><button type="button" class="btn" data-act="req-answer" data-id="' + esc(q.id) + '">這次先不要…</button>' +
-        '<button type="button" class="btn primary" data-act="req-yes" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>准！</button></div></div>';
+        '<button type="button" class="btn primary block" data-act="req-open" data-id="' + esc(q.id) + '">打開申請書，審批 🐾</button></div>';
     }).join('');
   }
   function reqRow(q) {
@@ -585,9 +613,9 @@ textarea.input { resize: none; line-height: 1.5; }
     else if (q.status === "approved") { line = (mine ? nm(q.to) + ' 准了！' : '你准了，') + '記得兌現'; acts = '<button type="button" class="btn mint" style="min-height:36px;font-size:13px" data-act="req-done" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>已實現</button>'; }
     else if (q.status === "declined") { line = nm(op) + '：這次先不要'; acts = '<button type="button" class="btn" style="min-height:36px;font-size:13px" data-act="req-remove" data-id="' + esc(q.id) + '">收起</button>'; }
     else { line = dateLabel(q.doneTs) + ' 已實現'; }
-    return '<div class="row req-row"><span class="req-ic">' + reqIconSVG(q.icon) + '</span><span class="body"><span class="t">' + esc(q.title) + '</span>' +
+    return '<div class="row req-row"><button type="button" class="req-open" data-act="req-open" data-id="' + esc(q.id) + '" aria-label="打開申請書：' + esc(q.title) + '"><span class="req-ic">' + reqIconSVG(q.icon) + '</span><span class="body"><span class="t">' + esc(q.title) + '</span>' +
       '<span class="small muted">' + esc(mine ? '我申請' : nm(q.from) + ' 申請') + ' · ' + esc(line) + '</span>' +
-      (q.reply ? '<span class="small">「' + esc(q.reply) + '」</span>' : '') + '</span>' + acts + '</div>';
+      (q.reply ? '<span class="small">「' + esc(q.reply) + '」</span>' : '') + '</span></button>' + acts + '</div>';
   }
   function requestSection() {
     var op = other(S.me);
@@ -956,16 +984,65 @@ textarea.input { resize: none; line-height: 1.5; }
       '<p class="note">' + esc(nm(op)) + ' 可以批准或婉拒。申請書跟罰款和基金完全無關。</p>' +
       '<button type="button" class="btn primary block" style="min-height:52px" data-act="submit-request"' + busyAttr(reqReady(f)) + '>💌 送出申請</button>');
   }
-  function sheetAnswer() {
-    var q = S.requests.filter(function (x) { return x.id === UI.form.id; })[0];
-    if (!q || q.status !== "pending") return sheetWrap("申請書", '<p class="note">這份申請已經處理好了。</p><button type="button" class="btn block" data-act="close">關閉</button>');
-    return sheetWrap(nm(q.from) + " 的申請書",
-      '<div class="card req" style="box-shadow:none"><div class="req-top"><span class="req-ic">' + reqIconSVG(q.icon) + '</span><span class="body"><b>' + esc(q.title) + '</b></span></div>' +
-        (q.note ? '<div class="quote">' + esc(q.note) + '</div>' : '') + '</div>' +
-      '<div class="field"><label for="q-reply">回一句話（可不填）</label><input id="q-reply" class="input" maxlength="60" data-bind="qreply" value="' + esc(UI.form.qreply || "") + '" placeholder="例如：今天太冷了，明天好不好？"></div>' +
-      '<p class="note">婉拒不會留在你們的紀錄裡，只有 ' + esc(nm(q.from)) + ' 會看到。</p>' +
-      '<div class="grid2"><button type="button" class="btn" data-act="req-no" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>這次先不要</button>' +
-      '<button type="button" class="btn primary" data-act="req-yes" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>准！</button></div>');
+  function paperHTML(q, f) {
+    var canAnswer = q.status === "pending" && q.to === S.me;
+    var stamped = q.status === "approved" || q.status === "done";
+    var sign;
+    if (canAnswer) sign = '<span class="v">' + esc(nm(q.to)) + '</span>';
+    else if (q.status === "pending") sign = '<span class="v p-soft">' + esc(nm(q.to)) + '（審批中）</span>';
+    else if (q.status === "declined") sign = '<span class="v">' + esc(nm(q.to)) + ' <span class="p-soft">這次先不要</span></span>';
+    else sign = '<span class="v">' + esc(nm(q.to)) + '</span>';
+    return WOBBLE + '<div class="paper" id="paper">' +
+      '<h2>申請書</h2>' +
+      '<div class="p-line"><span class="k">提出人：</span><span class="v">' + esc(nm(q.from)) + '</span></div>' +
+      '<div class="p-body"><span class="p-ic">' + reqIconSVG(q.icon) + '</span>' + esc(q.title) + (q.note ? '<span class="p-note">' + esc(q.note) + '</span>' : '') + '</div>' +
+      '<div class="p-line"><span class="k">日期：</span><span class="v">' + dateLabel(q.ts) + '</span></div>' +
+      (canAnswer
+        ? '<div class="p-line"><label class="k" for="q-reply">批註：</label><input id="q-reply" class="v" maxlength="60" autocomplete="off" data-bind="qreply" value="' + esc(f.qreply || "") + '" placeholder="（可不填）"></div>'
+        : (q.reply ? '<div class="p-line"><span class="k">批註：</span><span class="v">' + esc(q.reply) + '</span></div>' : '')) +
+      '<div class="p-line p-sign"><span class="k">審批人：</span>' + sign + PAW_STAMP.replace('class="pstamp"', 'class="pstamp' + (stamped ? ' on' : '') + '"') + '</div>' +
+      (q.status === "done" ? '<span class="p-tag">' + dateLabel(q.doneTs) + ' 已實現</span>' : '') +
+      '</div>';
+  }
+  function sheetPaper() {
+    var f = UI.form, q = S.requests.filter(function (x) { return x.id === f.id; })[0];
+    var acts;
+    if (!q) return '<div class="overlay center" data-act="close-bg"><div class="paper-stage"><div class="card"><p class="note" style="margin:0 0 12px">這份申請已經收回了。</p><button type="button" class="btn block" data-act="close">關閉</button></div></div></div>';
+    if (q.status === "pending" && q.to === S.me) {
+      acts = f.stamping ? '' : f.confirmNo
+        ? '<p class="note" style="text-align:center;margin:0">婉拒不會留在你們的紀錄裡，只有 ' + esc(nm(q.from)) + ' 會看到。</p>' +
+          '<div class="grid2"><button type="button" class="btn" data-act="paper-no-cancel">再想想</button><button type="button" class="btn" data-act="paper-no" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>確定這次先不要</button></div>'
+        : '<div class="grid2"><button type="button" class="btn" data-act="paper-no-ask">這次先不要…</button><button type="button" class="btn primary" style="min-height:56px;font-size:17px" data-act="paper-yes" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>🐾 蓋章，准！</button></div>';
+    } else if (q.status === "pending") {
+      acts = '<div class="grid2"><button type="button" class="btn" data-act="req-remove" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>收回申請</button><button type="button" class="btn" data-act="close">關閉</button></div>';
+    } else if (q.status === "approved") {
+      acts = '<div class="grid2"><button type="button" class="btn" data-act="close">關閉</button><button type="button" class="btn mint" data-act="req-done" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>已實現</button></div>';
+    } else if (q.status === "declined") {
+      acts = '<div class="grid2"><button type="button" class="btn" data-act="req-remove" data-id="' + esc(q.id) + '"' + busyAttr(true) + '>收起</button><button type="button" class="btn" data-act="close">關閉</button></div>';
+    } else {
+      acts = '<button type="button" class="btn block" data-act="close">關閉</button>';
+    }
+    return '<div class="overlay center" data-act="close-bg"><div class="paper-stage" role="dialog" aria-modal="true" aria-label="' + esc(nm(q.from)) + ' 的申請書">' + paperHTML(q, f) + acts + '</div></div>';
+  }
+  function stampPaper(id) {
+    if (UI.busy) return;
+    var f = UI.form, started = Date.now();
+    UI.busy = true; f.stamping = true;
+    var stage = document.querySelector(".paper-stage"), paper = document.getElementById("paper"), st = document.querySelector(".pstamp");
+    if (stage) Array.prototype.forEach.call(stage.querySelectorAll(".grid2, .note"), function (el) { el.style.visibility = "hidden"; });
+    if (st) { st.classList.add("on", "thunk"); }
+    if (paper) paper.classList.add("bump");
+    if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
+    api("answerRequest", { id: id, accept: true, reply: f.qreply || "" }).then(function (res) {
+      UI.busy = false;
+      if (res.code === "auth") { logout("登入已過期，請重新登入"); return; }
+      if (!res.ok) {
+        if (res.state) applyState(res.state);
+        f.stamping = false; toast(res.error || "儲存失敗，請再試一次"); render(); return;
+      }
+      if (res.state) applyState(res.state);
+      setTimeout(function () { UI.sheet = null; UI.form = {}; render(); toast("准了！記得兌現 ❤"); }, Math.max(0, 1500 - (Date.now() - started)));
+    }).catch(function () { UI.busy = false; f.stamping = false; toast("連線失敗，請檢查網絡後再試"); render(); });
   }
 
   function sheetUse() {
@@ -1009,7 +1086,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (auth && S.loaded && S.paired) {
       if (s === "new") html = sheetNew(); else if (s === "ticket") html = sheetTicket(); else if (s === "rule") html = sheetRule();
       else if (s === "reward") html = sheetReward(); else if (s === "settings") html = sheetSettings(); else if (s === "use") html = sheetUse(); else if (s === "email") html = sheetEmail(); else if (s === "leave") html = sheetLeave();
-      else if (s === "request") html = sheetRequest(); else if (s === "answer") html = sheetAnswer();
+      else if (s === "request") html = sheetRequest(); else if (s === "paper") html = sheetPaper();
     }
     document.getElementById("layer").innerHTML = html;
     renderToast();
@@ -1031,7 +1108,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (name === "email") f = { step: "email", newEmail: "", code: "", error: "" };
     if (name === "leave") f = { confirmText: "", error: "" };
     if (name === "request") f = { preset: 0, qtitle: "", icon: "heart", qnote: "" };
-    if (name === "answer") f = { id: extra && extra.id, qreply: "" };
+    if (name === "paper") f = { id: extra && extra.id, qreply: "", confirmNo: false, stamping: false };
     if (name === "reward") f = { kind: "cat", reason: "", ctitle: "", cdesc: "", color: "pink", icon: "heart" };
     UI.sheet = name; UI.form = f; renderLayer();
   }
@@ -1146,6 +1223,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if (!el) return;
     var act = el.getAttribute("data-act");
     if (act === "close-bg" && e.target !== el) return;
+    if ((act === "close-bg" || act === "close") && UI.form && UI.form.stamping) return;
     var id = el.getAttribute("data-id"), v = el.getAttribute("data-v"), f = UI.form;
     switch (act) {
       case "set-test-pw": setTestPassword(); break; /* TEST-LOGIN */
@@ -1237,9 +1315,11 @@ textarea.input { resize: none; line-height: 1.5; }
         var pr = f.preset != null ? REQ_PRESETS[f.preset] : null;
         send("createRequest", { title: pr ? pr[0] : f.qtitle, icon: pr ? pr[1] : f.icon, note: f.qnote }, "申請書已送出，等" + nm(other(S.me)) + "回覆");
         break;
-      case "req-answer": openSheet("answer", { id: id }); break;
-      case "req-yes": send("answerRequest", { id: id, accept: true, reply: UI.sheet === "answer" ? f.qreply : "" }, "已批准，記得兌現", showStamp); break;
-      case "req-no": send("answerRequest", { id: id, accept: false, reply: f.qreply }, "已婉拒，這份申請不會留在紀錄裡"); break;
+      case "req-open": openSheet("paper", { id: id }); break;
+      case "paper-yes": stampPaper(id); break;
+      case "paper-no-ask": f.confirmNo = true; renderLayer(); break;
+      case "paper-no-cancel": f.confirmNo = false; renderLayer(); break;
+      case "paper-no": send("answerRequest", { id: id, accept: false, reply: f.qreply }, "已婉拒，這份申請不會留在紀錄裡"); break;
       case "req-done": send("doneRequest", { id: id }, "已實現 ❤"); break;
       case "req-remove": send("removeRequest", { id: id }, "已收回"); break;
       case "req-toggle-done": UI.showDone = !UI.showDone; render(); break;
@@ -1273,7 +1353,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var k = e.target.getAttribute("data-bind-check");
     if (k) UI.form[k] = e.target.checked;
   });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && UI.sheet) closeSheet(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && UI.sheet && !(UI.form && UI.form.stamping)) closeSheet(); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
   setInterval(refresh, 30000);
 
