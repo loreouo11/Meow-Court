@@ -776,8 +776,8 @@ textarea.input { resize: none; line-height: 1.5; }
       '<h1 style="margin:0;font-size:24px;font-weight:400;text-align:center">你是哪一位？</h1>';
     if (!S.loaded) inner += '<p class="note" style="text-align:center">載入中…</p>';
     else inner += '<div class="grid2">' +
-      '<button type="button" class="btn primary block" style="min-height:64px" data-act="pick-who" data-v="a"' + (UI.busy ? ' disabled' : '') + '>' + esc(nm("a")) + '</button>' +
-      '<button type="button" class="btn primary block" style="min-height:64px" data-act="pick-who" data-v="b"' + (UI.busy ? ' disabled' : '') + '>' + esc(nm("b")) + '</button></div>';
+      '<button type="button" class="btn primary block" style="min-height:64px" data-act="pick-who" data-v="a"' + (UI.busy ? ' disabled' : '') + '>' + esc(nm("a") || "第一位") + '</button>' +
+      '<button type="button" class="btn primary block" style="min-height:64px" data-act="pick-who" data-v="b"' + (UI.busy ? ' disabled' : '') + '>' + esc(nm("b") || "第二位") + '</button></div>';
     inner += errLine(UI.login.error) + '<button type="button" class="btn block" style="min-height:40px;font-size:13px" data-act="logout">返回</button>';
     return loginCard(inner);
   }
