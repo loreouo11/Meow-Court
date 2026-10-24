@@ -394,7 +394,7 @@ textarea.input { resize: none; line-height: 1.5; }
     names: { a: "", b: "" }, start: "", goals: { wedding: { name: "結婚基金", target: 1 }, travel: { name: "旅行基金", target: 1 } },
     rules: [], tickets: [], cards: [], requests: []
   };
-  var UI = { tab: "home", sheet: null, form: {}, toast: "", busy: false, showDone: false, login: { user: lsGet("meow-user") || "", pw: "", step: "in", error: "" }, pair: { code: "" } };
+  var UI = { tab: "home", sheet: null, form: {}, toast: "", busy: false, showDone: false, login: { pw: "", step: "in", error: "" }, pair: { code: "" } };
 
   function applyState(st) {
     S.joined = !!st.joined; S.paired = !!st.paired; S.invite = st.inviteCode || ""; S.me = st.me || null;
@@ -462,7 +462,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function logout(msg) {
     sb.auth.signOut().catch(function () {});
     auth = null; S.me = null; S.loaded = false; S.joined = false; S.paired = false;
-    UI.login = { user: UI.login.user || "", pw: "", step: "in", error: msg || "" }; UI.sheet = null; render();
+    UI.login = { pw: "", step: "in", error: msg || "" }; UI.sheet = null; render();
   }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -765,14 +765,20 @@ textarea.input { resize: none; line-height: 1.5; }
   function viewLogin() {
     var L = UI.login, inner = '<div style="max-width:150px;margin:0 auto">' + CAT + '</div>' +
       '<h1 style="margin:0;font-size:26px;font-weight:400;text-align:center">賴貓法庭<br><span style="font-size:14px" class="muted">Meow Court · 測試版</span></h1>';
-    var su = L.step === "up";
     inner += '<form id="pw-login-form" style="display:flex;flex-direction:column;gap:12px">' +
-      '<div class="field"><label for="l-user">帳號名稱</label><input id="l-user" class="input" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="例如：lore" maxlength="60" data-bind-login="user" value="' + esc(L.user) + '"></div>' +
-      '<div class="field"><label for="l-pw">' + (su ? '設定密碼（至少 6 個字）' : '密碼') + '</label><input id="l-pw" class="input" type="password" autocomplete="' + (su ? 'new-password' : 'current-password') + '" data-bind-login="pw" value="' + esc(L.pw) + '"></div>' +
+      '<div class="field"><label for="l-pw">輸入你們的密碼</label><input id="l-pw" class="input" type="password" autocomplete="current-password" data-bind-login="pw" value="' + esc(L.pw) + '"></div>' +
       errLine(L.error) +
-      '<button type="submit" class="btn primary block" style="min-height:52px"' + (UI.busy ? ' disabled' : '') + '>' + (UI.busy ? (su ? '建立中…' : '登入中…') : (su ? '建立帳號' : '登入')) + '</button>' +
-      '<button type="button" class="btn block" data-act="login-toggle">' + (su ? '我已經有帳號，返回登入' : '第一次使用？建立帳號') + '</button>' +
-      '<span class="note">' + (su ? '帳號名稱只可以用英文、數字、. _ -。記住密碼，暫時無法用 Email 重設。' : '忘記密碼的話，請找網站管理員重設。') + '</span></form>';
+      '<button type="submit" class="btn primary block" style="min-height:52px"' + (UI.busy ? ' disabled' : '') + '>' + (UI.busy ? '登入中…' : '登入') + '</button></form>';
+    return loginCard(inner);
+  }
+  function viewWho() {
+    var inner = '<div style="max-width:120px;margin:0 auto">' + CAT + '</div>' +
+      '<h1 style="margin:0;font-size:24px;font-weight:400;text-align:center">你是哪一位？</h1>';
+    if (!S.loaded) inner += '<p class="note" style="text-align:center">載入中…</p>';
+    else inner += '<div class="grid2">' +
+      '<button type="button" class="btn primary block" style="min-height:64px" data-act="pick-who" data-v="a"' + (UI.busy ? ' disabled' : '') + '>' + esc(nm("a")) + '</button>' +
+      '<button type="button" class="btn primary block" style="min-height:64px" data-act="pick-who" data-v="b"' + (UI.busy ? ' disabled' : '') + '>' + esc(nm("b")) + '</button></div>';
+    inner += errLine(UI.login.error) + '<button type="button" class="btn block" style="min-height:40px;font-size:13px" data-act="logout">返回</button>';
     return loginCard(inner);
   }
   function viewPair() {
@@ -814,6 +820,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var app = document.getElementById("app");
     if (booting) { app.innerHTML = '<div style="min-height:80vh;display:grid;place-items:center" class="muted">載入中…</div>'; renderLayer(); return; }
     if (!auth) { app.innerHTML = viewLogin(); renderLayer(); return; }
+    if (UI.login.step === "who") { app.innerHTML = viewWho(); renderLayer(); return; }
     if (S.loaded && !S.paired) { app.innerHTML = viewPair(); renderLayer(); return; }
     if (!S.loaded) { app.innerHTML = '<div style="min-height:80vh;display:grid;place-items:center" class="muted">載入中…</div>'; renderLayer(); return; }
     var days = daysTogether();
@@ -1095,7 +1102,6 @@ textarea.input { resize: none; line-height: 1.5; }
       '<div class="field"><label for="s-dc">我的 Discord 用戶 ID（收通知用）</label><input id="s-dc" class="input" inputmode="numeric" maxlength="20" data-bind="discord" value="' + esc(f.discord || "") + '" placeholder="例如：123456789012345678"><span class="note">Discord：設定 → 進階 → 開啟開發者模式，再按自己的頭像 →「複製用戶 ID」。只會改你自己的。</span></div>' +
       '<button type="button" class="btn primary block" data-act="submit-settings"' + busyAttr(true) + '>儲存</button>' +
       '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:14px">帳號</span><span class="note">目前身分：' + esc(nm(S.me)) + '<br>帳號：' + esc(userLabel(myEmail())) + '<br>資料只有你們兩個看得到。</span>' +
-      '<button type="button" class="btn" data-act="sheet" data-sheet="password">更改密碼</button>' +
       '<button type="button" class="btn" data-act="sheet" data-sheet="leave">離開情侶空間</button>' +
       '<button type="button" class="btn" data-act="logout">登出這部手機</button></div>'
       );
@@ -1163,24 +1169,32 @@ textarea.input { resize: none; line-height: 1.5; }
     var suf = "@" + LOGIN_DOMAIN;
     return email && email.slice(-suf.length) === suf ? email.slice(0, -suf.length) : (email || "");
   }
+  /* 共用密碼登入：兩個人各有一個 Supabase 帳號（a@ / b@meowcourt.app），密碼都設成你們的共用密碼。
+     先用第一位登入讀出名字，再按「你是哪一位」換成對應的帳號。 */
+  function slotEmail(slot) { return slot + "@" + LOGIN_DOMAIN; }
+  function signInSlot(slot, pw) { return sb.auth.signInWithPassword({ email: slotEmail(slot), password: pw }); }
   function pwLogin() {
-    var L = UI.login, up = L.step === "up", email = loginEmail(L.user), pw = L.pw || "";
-    if (!email) { L.error = "帳號名稱只可以用英文、數字、. _ -（2 至 30 個字）"; render(); return; }
+    var L = UI.login, pw = (L.pw || "").trim();
     if (!pw) { L.error = "請輸入密碼"; render(); return; }
-    if (up && pw.length < 6) { L.error = "密碼至少要 6 個字"; render(); return; }
     UI.busy = true; L.error = ""; render();
-    var p = up ? sb.auth.signUp({ email: email, password: pw }) : sb.auth.signInWithPassword({ email: email, password: pw });
-    p.then(function (r) {
+    var saved = lsGet("meow-who");
+    signInSlot(saved === "b" ? "b" : "a", pw).then(function (r) {
       UI.busy = false;
-      if (r.error) {
-        var m = r.error.message || "";
-        L.error = up ? (/already|registered|exists/i.test(m) ? "這個帳號名稱已經有人用了" : /password/i.test(m) ? "密碼太簡單，請換一個" : ("建立失敗：" + m))
-                     : (/confirm/i.test(m) ? "帳號未啟用（後台要關閉 Email 驗證）" : "帳號或密碼不正確");
-        render(); return;
-      }
-      if (!r.data.session) { L.error = "帳號已建立，但後台仍要求 Email 驗證，請先在 Supabase 關閉「Confirm email」"; render(); return; }
-      lsSet("meow-user", userLabel(email)); L.pw = "";
-      auth = r.data.session; S.loaded = false; render(); refresh();
+      if (r.error || !r.data.session) { L.error = "密碼不正確"; render(); return; }
+      auth = r.data.session; S.loaded = false;
+      if (saved === "a" || saved === "b") { L.pw = ""; L.step = "in"; } else { L.pw = pw; L.step = "who"; }
+      render(); refresh();
+    });
+  }
+  function pickWho(slot) {
+    var L = UI.login;
+    lsSet("meow-who", slot);
+    if (auth && auth.user && auth.user.email === slotEmail(slot)) { L.pw = ""; L.step = "in"; render(); return; }
+    UI.busy = true; L.error = ""; render();
+    signInSlot(slot, L.pw || "").then(function (r) {
+      UI.busy = false;
+      if (r.error || !r.data.session) { L.error = "這位的密碼和你們的共用密碼不一樣，請到後台設定成同一個"; render(); return; }
+      auth = r.data.session; S.loaded = false; L.pw = ""; L.step = "in"; render(); refresh();
     });
   }
   function changePassword() {
@@ -1230,7 +1244,7 @@ textarea.input { resize: none; line-height: 1.5; }
       return sb.auth.getSession().then(function (g) {
         if (g.data && g.data.session) auth = g.data.session;
         if (r.data && r.data.user && auth) auth.user = r.data.user;
-        lsSet("meow-user", userLabel(f.newEmail)); UI.login.user = userLabel(f.newEmail);
+        
         UI.sheet = null; UI.form = {}; toast("已換成新的 Email"); render();
       });
     });
@@ -1258,7 +1272,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if ((act === "close-bg" || act === "close") && UI.form && UI.form.stamping) return;
     var id = el.getAttribute("data-id"), v = el.getAttribute("data-v"), f = UI.form;
     switch (act) {
-      case "login-toggle": UI.login.step = UI.login.step === "up" ? "in" : "up"; UI.login.error = ""; render(); break;
+      case "pick-who": pickWho(v); break;
       case "pair-create": pairCall("create_couple"); break;
       case "email-back": f.step = "email"; f.error = ""; renderLayer(); break;
       case "leave-confirm":
@@ -1354,7 +1368,7 @@ textarea.input { resize: none; line-height: 1.5; }
       case "req-done": send("doneRequest", { id: id }, "已實現 ❤"); break;
       case "req-remove": send("removeRequest", { id: id }, "已收回"); break;
       case "req-toggle-done": UI.showDone = !UI.showDone; render(); break;
-      case "logout": logout(""); break;
+      case "logout": lsSet("meow-who", null); logout(""); break;
     }
   });
 
