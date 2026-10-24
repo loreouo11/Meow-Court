@@ -394,7 +394,7 @@ textarea.input { resize: none; line-height: 1.5; }
     names: { a: "", b: "" }, start: "", goals: { wedding: { name: "結婚基金", target: 1 }, travel: { name: "旅行基金", target: 1 } },
     rules: [], tickets: [], cards: [], requests: []
   };
-  var UI = { tab: "home", sheet: null, form: {}, toast: "", busy: false, showDone: false, login: { email: lsGet("meow-email") || "", code: "", step: "email", error: "" }, pair: { code: "" } };
+  var UI = { tab: "home", sheet: null, form: {}, toast: "", busy: false, showDone: false, login: { user: lsGet("meow-user") || "", pw: "", step: "in", error: "" }, pair: { code: "" } };
 
   function applyState(st) {
     S.joined = !!st.joined; S.paired = !!st.paired; S.invite = st.inviteCode || ""; S.me = st.me || null;
@@ -462,7 +462,7 @@ textarea.input { resize: none; line-height: 1.5; }
   function logout(msg) {
     sb.auth.signOut().catch(function () {});
     auth = null; S.me = null; S.loaded = false; S.joined = false; S.paired = false;
-    UI.login = { email: UI.login.email || "", code: "", step: "email", error: msg || "" }; UI.sheet = null; render();
+    UI.login = { user: UI.login.user || "", pw: "", step: "in", error: msg || "" }; UI.sheet = null; render();
   }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -765,33 +765,21 @@ textarea.input { resize: none; line-height: 1.5; }
   function viewLogin() {
     var L = UI.login, inner = '<div style="max-width:150px;margin:0 auto">' + CAT + '</div>' +
       '<h1 style="margin:0;font-size:26px;font-weight:400;text-align:center">賴貓法庭<br><span style="font-size:14px" class="muted">Meow Court · 測試版</span></h1>';
-    if (L.step === "code") {
-      inner += '<form id="code-form" style="display:flex;flex-direction:column;gap:12px">' +
-        '<div class="field"><label for="l-code">輸入寄到 ' + esc(L.email) + ' 的驗證碼</label><input id="l-code" class="input num" style="font-size:24px;letter-spacing:6px;text-align:center" inputmode="numeric" autocomplete="one-time-code" maxlength="10" data-bind-login="code" value="' + esc(L.code) + '"></div>' +
-        errLine(L.error) +
-        '<button type="submit" class="btn primary block" style="min-height:52px"' + (UI.busy ? ' disabled' : '') + '>' + (UI.busy ? '確認中…' : '登入') + '</button>' +
-        '<button type="button" class="btn block" data-act="login-back">換一個 Email／重新寄送</button>' +
-        '<span class="note">沒收到的話，看看垃圾郵件匣。驗證碼一小時內有效。</span></form>';
-    } else {
-      inner += '<form id="email-form" style="display:flex;flex-direction:column;gap:12px">' +
-        '<div class="field"><label for="l-email">用 Email 登入</label><input id="l-email" class="input" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" data-bind-login="email" value="' + esc(L.email) + '"></div>' +
-        errLine(L.error) +
-        '<button type="submit" class="btn primary block" style="min-height:52px"' + (UI.busy ? ' disabled' : '') + '>' + (UI.busy ? '寄送中…' : '寄驗證碼給我') + '</button>' +
-        '<span class="note">第一次使用會自動建立帳號。不需要密碼，每次登入都會寄一組新的驗證碼。</span></form>';
-      /* TEST-LOGIN start：只有網址加 ?test 才會出現，測試完整段刪除 */
-      if (TEST_MODE) inner += '<form id="test-login-form" class="card" style="display:flex;flex-direction:column;gap:10px;border-style:dashed">' +
-        '<label for="l-tpw" style="font-size:14px">測試登入 · 第 ' + esc(TEST_SLOT) + ' 位（不用收信）</label>' +
-        '<input id="l-tpw" class="input" type="password" autocomplete="current-password" placeholder="測試密碼" data-bind-login="tpw">' +
-        '<button type="submit" class="btn block"' + (UI.busy ? ' disabled' : '') + '>用上面的 Email ＋ 測試密碼登入</button></form>';
-      /* TEST-LOGIN end */
-    }
+    var su = L.step === "up";
+    inner += '<form id="pw-login-form" style="display:flex;flex-direction:column;gap:12px">' +
+      '<div class="field"><label for="l-user">帳號名稱</label><input id="l-user" class="input" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="例如：lore" maxlength="60" data-bind-login="user" value="' + esc(L.user) + '"></div>' +
+      '<div class="field"><label for="l-pw">' + (su ? '設定密碼（至少 6 個字）' : '密碼') + '</label><input id="l-pw" class="input" type="password" autocomplete="' + (su ? 'new-password' : 'current-password') + '" data-bind-login="pw" value="' + esc(L.pw) + '"></div>' +
+      errLine(L.error) +
+      '<button type="submit" class="btn primary block" style="min-height:52px"' + (UI.busy ? ' disabled' : '') + '>' + (UI.busy ? (su ? '建立中…' : '登入中…') : (su ? '建立帳號' : '登入')) + '</button>' +
+      '<button type="button" class="btn block" data-act="login-toggle">' + (su ? '我已經有帳號，返回登入' : '第一次使用？建立帳號') + '</button>' +
+      '<span class="note">' + (su ? '帳號名稱只可以用英文、數字、. _ -。記住密碼，暫時無法用 Email 重設。' : '忘記密碼的話，請找網站管理員重設。') + '</span></form>';
     return loginCard(inner);
   }
   function viewPair() {
     var P = UI.pair, inner;
     if (S.joined) {
       inner = '<h1 style="margin:0;font-size:24px;font-weight:400">等另一半加入</h1>' +
-        '<p class="note" style="font-size:14px">請另一半也用自己的 Email 登入，選「我有邀請碼」，輸入下面這組：</p>' +
+        '<p class="note" style="font-size:14px">請另一半也用自己的帳號登入，選「我有邀請碼」，輸入下面這組：</p>' +
         '<div class="num" style="font-size:40px;font-weight:700;letter-spacing:8px;text-align:center;padding:12px;border:2px dashed var(--accent);border-radius:18px">' + esc(S.invite) + '</div>' +
         '<button type="button" class="btn block" data-act="copy-code">複製邀請碼</button>' +
         '<button type="button" class="btn primary block" data-act="pair-refresh">對方加入了，重新整理</button>' +
@@ -851,6 +839,14 @@ textarea.input { resize: none; line-height: 1.5; }
   function sheetWrap(title, inner) {
     return '<div class="overlay" data-act="close-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(title) + '">' +
       '<div class="sheet-head"><h3>' + esc(title) + '</h3><button type="button" class="icon-btn" aria-label="關閉" data-act="close">' + I.close + '</button></div>' + inner + '</div></div>';
+  }
+  function sheetPassword() {
+    var f = UI.form;
+    return sheetWrap("更改密碼", '<form id="pw-change" style="display:flex;flex-direction:column;gap:12px">' +
+      '<div class="field"><label for="n-pw">新密碼（至少 6 個字）</label><input id="n-pw" class="input" type="password" autocomplete="new-password" data-bind="pw" value="' + esc(f.pw || "") + '"></div>' +
+      '<div class="field"><label for="n-pw2">再輸入一次</label><input id="n-pw2" class="input" type="password" autocomplete="new-password" data-bind="pw2" value="' + esc(f.pw2 || "") + '"></div>' +
+      errLine(f.error) +
+      '<button type="submit" class="btn primary block"' + busyAttr(true) + '>' + (UI.busy ? '更改中…' : '確認更改') + '</button></form>');
   }
   function myEmail() { return auth && auth.user && auth.user.email || ""; }
   function sheetEmail() {
@@ -1098,15 +1094,10 @@ textarea.input { resize: none; line-height: 1.5; }
       '<div class="grid2"><div class="field"><label for="s-gw">' + esc(S.goals.wedding.name) + '目標</label><input id="s-gw" type="number" inputmode="numeric" class="input" data-bind="weddingTarget" value="' + esc(f.weddingTarget) + '"></div><div class="field"><label for="s-gt">' + esc(S.goals.travel.name) + '目標</label><input id="s-gt" type="number" inputmode="numeric" class="input" data-bind="travelTarget" value="' + esc(f.travelTarget) + '"></div></div>' +
       '<div class="field"><label for="s-dc">我的 Discord 用戶 ID（收通知用）</label><input id="s-dc" class="input" inputmode="numeric" maxlength="20" data-bind="discord" value="' + esc(f.discord || "") + '" placeholder="例如：123456789012345678"><span class="note">Discord：設定 → 進階 → 開啟開發者模式，再按自己的頭像 →「複製用戶 ID」。只會改你自己的。</span></div>' +
       '<button type="button" class="btn primary block" data-act="submit-settings"' + busyAttr(true) + '>儲存</button>' +
-      '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:14px">帳號</span><span class="note">目前身分：' + esc(nm(S.me)) + '<br>登入 Email：' + esc(myEmail()) + '<br>資料只有你們兩個看得到。</span>' +
-      '<button type="button" class="btn" data-act="sheet" data-sheet="email">更換 Email</button>' +
+      '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:14px">帳號</span><span class="note">目前身分：' + esc(nm(S.me)) + '<br>帳號：' + esc(userLabel(myEmail())) + '<br>資料只有你們兩個看得到。</span>' +
+      '<button type="button" class="btn" data-act="sheet" data-sheet="password">更改密碼</button>' +
       '<button type="button" class="btn" data-act="sheet" data-sheet="leave">離開情侶空間</button>' +
-      '<button type="button" class="btn" data-act="logout">登出這部手機</button></div>' +
-      /* TEST-LOGIN start */
-      (TEST_MODE ? '<div class="card" style="display:flex;flex-direction:column;gap:10px;border-style:dashed"><label for="s-tpw" style="font-size:14px">設定測試密碼（測試完記得刪）</label>' +
-        '<input id="s-tpw" class="input" type="password" autocomplete="new-password" placeholder="至少 8 個字" data-bind="tpw">' +
-        '<button type="button" class="btn" data-act="set-test-pw"' + busyAttr(true) + '>設定</button></div>' : '')
-      /* TEST-LOGIN end */
+      '<button type="button" class="btn" data-act="logout">登出這部手機</button></div>'
       );
   }
 
@@ -1118,7 +1109,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var s = UI.sheet, html = "";
     if (auth && S.loaded && S.paired) {
       if (s === "new") html = sheetNew(); else if (s === "ticket") html = sheetTicket(); else if (s === "rule") html = sheetRule();
-      else if (s === "reward") html = sheetReward(); else if (s === "settings") html = sheetSettings(); else if (s === "use") html = sheetUse(); else if (s === "email") html = sheetEmail(); else if (s === "leave") html = sheetLeave();
+      else if (s === "reward") html = sheetReward(); else if (s === "settings") html = sheetSettings(); else if (s === "use") html = sheetUse(); else if (s === "email") html = sheetEmail(); else if (s === "password") html = sheetPassword(); else if (s === "leave") html = sheetLeave();
       else if (s === "request") html = sheetRequest(); else if (s === "paper") html = sheetPaper();
     }
     document.getElementById("layer").innerHTML = html;
@@ -1139,6 +1130,7 @@ textarea.input { resize: none; line-height: 1.5; }
       f = er ? { ruleId: er.id, rtitle: er.title, ramt: er.amount } : { rtitle: "", ramt: 20 };
     }
     if (name === "email") f = { step: "email", newEmail: "", code: "", error: "" };
+    if (name === "password") f = { pw: "", pw2: "", error: "" };
     if (name === "leave") f = { confirmText: "", error: "" };
     if (name === "request") f = { preset: 0, qtitle: "", icon: "heart", qnote: "" };
     if (name === "paper") {
@@ -1159,53 +1151,49 @@ textarea.input { resize: none; line-height: 1.5; }
   }
   function closeSheet() { UI.sheet = null; UI.form = {}; renderLayer(); }
 
-  function sendCode() {
-    var email = (UI.login.email || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { UI.login.error = "請輸入正確的 Email"; render(); return; }
-    UI.busy = true; UI.login.error = ""; render();
-    sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } }).then(function (r) {
+  /* 帳號名稱登入：背後用「名稱@meowcourt.app」做 Supabase 帳號（不會寄信，所以後台要關閉 Confirm email）。
+     有 @ 的話就當作真 Email 直接用，之後轉 Email 登入時舊帳號照樣可以登入。 */
+  var LOGIN_DOMAIN = "meowcourt.app";
+  function loginEmail(u) {
+    u = (u || "").trim().toLowerCase();
+    if (u.indexOf("@") >= 0) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u) ? u : "";
+    return /^[a-z0-9._-]{2,30}$/.test(u) ? u + "@" + LOGIN_DOMAIN : "";
+  }
+  function userLabel(email) {
+    var suf = "@" + LOGIN_DOMAIN;
+    return email && email.slice(-suf.length) === suf ? email.slice(0, -suf.length) : (email || "");
+  }
+  function pwLogin() {
+    var L = UI.login, up = L.step === "up", email = loginEmail(L.user), pw = L.pw || "";
+    if (!email) { L.error = "帳號名稱只可以用英文、數字、. _ -（2 至 30 個字）"; render(); return; }
+    if (!pw) { L.error = "請輸入密碼"; render(); return; }
+    if (up && pw.length < 6) { L.error = "密碼至少要 6 個字"; render(); return; }
+    UI.busy = true; L.error = ""; render();
+    var p = up ? sb.auth.signUp({ email: email, password: pw }) : sb.auth.signInWithPassword({ email: email, password: pw });
+    p.then(function (r) {
       UI.busy = false;
       if (r.error) {
-        UI.login.error = /rate|seconds|after/i.test(r.error.message) ? "寄太多次了，請過一會兒再試" : (r.error.message || "寄送失敗");
+        var m = r.error.message || "";
+        L.error = up ? (/already|registered|exists/i.test(m) ? "這個帳號名稱已經有人用了" : /password/i.test(m) ? "密碼太簡單，請換一個" : ("建立失敗：" + m))
+                     : (/confirm/i.test(m) ? "帳號未啟用（後台要關閉 Email 驗證）" : "帳號或密碼不正確");
         render(); return;
       }
-      lsSet("meow-email", email);
-      UI.login = { email: email, code: "", step: "code", error: "" }; render();
-      var c = document.getElementById("l-code"); if (c) c.focus();
-    });
-  }
-  function checkCode() {
-    var code = (UI.login.code || "").replace(/\D/g, "");
-    if (code.length < 6) { UI.login.error = "請輸入完整的驗證碼"; render(); return; }
-    UI.busy = true; UI.login.error = ""; render();
-    sb.auth.verifyOtp({ email: UI.login.email, token: code, type: "email" }).then(function (r) {
-      UI.busy = false;
-      if (r.error || !r.data.session) { UI.login.error = "驗證碼不正確或已過期"; render(); return; }
+      if (!r.data.session) { L.error = "帳號已建立，但後台仍要求 Email 驗證，請先在 Supabase 關閉「Confirm email」"; render(); return; }
+      lsSet("meow-user", userLabel(email)); L.pw = "";
       auth = r.data.session; S.loaded = false; render(); refresh();
     });
   }
-  /* TEST-LOGIN start */
-  function testLogin() {
-    var email = (UI.login.email || "").trim().toLowerCase(), pw = UI.login.tpw || "";
-    if (!email || !pw) { UI.login.error = "請先填 Email 和測試密碼"; render(); return; }
-    UI.busy = true; UI.login.error = ""; render();
-    sb.auth.signInWithPassword({ email: email, password: pw }).then(function (r) {
-      UI.busy = false;
-      if (r.error || !r.data.session) { UI.login.error = "測試密碼不正確（或這個帳號還沒設定測試密碼）"; render(); return; }
-      lsSet("meow-email", email); UI.login.tpw = "";
-      auth = r.data.session; S.loaded = false; render(); refresh();
-    });
-  }
-  function setTestPassword() {
-    var pw = UI.form.tpw || "";
-    if (pw.length < 8) { toast("測試密碼至少 8 個字"); return; }
-    UI.busy = true; renderLayer();
+  function changePassword() {
+    var f = UI.form, pw = f.pw || "";
+    if (pw.length < 6) { f.error = "密碼至少要 6 個字"; renderLayer(); return; }
+    if (pw !== (f.pw2 || "")) { f.error = "兩次輸入的密碼不一樣"; renderLayer(); return; }
+    UI.busy = true; f.error = ""; renderLayer();
     sb.auth.updateUser({ password: pw }).then(function (r) {
-      UI.busy = false; UI.form.tpw = ""; renderLayer();
-      toast(r.error ? ("設定失敗：" + r.error.message) : "測試密碼已設定");
+      UI.busy = false;
+      if (r.error) { f.error = /different|same/i.test(r.error.message || "") ? "新密碼不可以和舊密碼一樣" : ("更改失敗：" + r.error.message); renderLayer(); return; }
+      UI.sheet = null; UI.form = {}; toast("密碼已更改"); render();
     });
   }
-  /* TEST-LOGIN end */
   function pairCall(fn, args) {
     UI.busy = true; UI.pair.error = ""; render();
     sb.rpc(fn, args || {}).then(function (r) {
@@ -1242,7 +1230,7 @@ textarea.input { resize: none; line-height: 1.5; }
       return sb.auth.getSession().then(function (g) {
         if (g.data && g.data.session) auth = g.data.session;
         if (r.data && r.data.user && auth) auth.user = r.data.user;
-        lsSet("meow-email", f.newEmail); UI.login.email = f.newEmail;
+        lsSet("meow-user", userLabel(f.newEmail)); UI.login.user = userLabel(f.newEmail);
         UI.sheet = null; UI.form = {}; toast("已換成新的 Email"); render();
       });
     });
@@ -1252,9 +1240,8 @@ textarea.input { resize: none; line-height: 1.5; }
     var id = e.target && e.target.id;
     if (id === "email-change") { e.preventDefault(); startEmailChange(); return; }
     if (id === "email-change-code") { e.preventDefault(); finishEmailChange(); return; }
-    if (id === "email-form") { e.preventDefault(); sendCode(); }
-    else if (id === "code-form") { e.preventDefault(); checkCode(); }
-    else if (id === "test-login-form") { e.preventDefault(); testLogin(); } /* TEST-LOGIN */
+    if (id === "pw-change") { e.preventDefault(); changePassword(); return; }
+    if (id === "pw-login-form") { e.preventDefault(); pwLogin(); }
     else if (id === "join-form") {
       e.preventDefault();
       var code = (UI.pair.code || "").trim().toUpperCase();
@@ -1271,8 +1258,7 @@ textarea.input { resize: none; line-height: 1.5; }
     if ((act === "close-bg" || act === "close") && UI.form && UI.form.stamping) return;
     var id = el.getAttribute("data-id"), v = el.getAttribute("data-v"), f = UI.form;
     switch (act) {
-      case "set-test-pw": setTestPassword(); break; /* TEST-LOGIN */
-      case "login-back": UI.login.step = "email"; UI.login.code = ""; UI.login.error = ""; render(); break;
+      case "login-toggle": UI.login.step = UI.login.step === "up" ? "in" : "up"; UI.login.error = ""; render(); break;
       case "pair-create": pairCall("create_couple"); break;
       case "email-back": f.step = "email"; f.error = ""; renderLayer(); break;
       case "leave-confirm":
