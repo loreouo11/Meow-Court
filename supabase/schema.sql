@@ -56,6 +56,7 @@ create table if not exists public.tickets (
   from_slot   text not null check (from_slot in ('a','b')),
   to_slot     text not null check (to_slot in ('a','b')),
   rule_id     uuid references public.rules(id) on delete set null,
+  kind        text not null default 'fine',  -- 類型：fine＝罰單；之後新增其他錢的類型，只要加新的值
   title       text not null,
   amount      numeric(12,2) not null,
   note        text not null default '',

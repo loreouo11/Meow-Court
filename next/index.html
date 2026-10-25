@@ -373,11 +373,7 @@ textarea.input { resize: none; line-height: 1.5; }
   var SB_KEY = "sb_publishable_fwRsxGqS7zFqDBv8NGy10A_MH2eZmkH";
   /* ====================================================================== */
   var API_URL = SB_URL;
-  /* TEST-LOGIN start：?test=1、?test=2 各自記住一個登入，同一部手機可以同時測兩個帳號 */
-  var TEST_MODE = /[?&]test(=|&|$)/.test(location.search);
-  var TEST_SLOT = TEST_MODE ? ((location.search.match(/[?&]test=([\w-]+)/) || [])[1] || "1") : "";
-  /* TEST-LOGIN end */
-  var sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: TEST_SLOT ? "meow-sb-test-" + TEST_SLOT : "meow-sb" } }); /* TEST-LOGIN：測完改回 storageKey: "meow-sb" */
+  var sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "meow-sb" } });
 
   var AUTH_KEY = "fajin-auth", STYLE_KEY = "fajin-style", MODE_KEY = "fajin-mode";
   var MODES = [["auto", "跟隨系統"], ["light", "淺色"], ["dark", "深色"]];
@@ -847,32 +843,6 @@ textarea.input { resize: none; line-height: 1.5; }
     return '<div class="overlay" data-act="close-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(title) + '">' +
       '<div class="sheet-head"><h3>' + esc(title) + '</h3><button type="button" class="icon-btn" aria-label="關閉" data-act="close">' + I.close + '</button></div>' + inner + '</div></div>';
   }
-  function sheetPassword() {
-    var f = UI.form;
-    return sheetWrap("更改密碼", '<form id="pw-change" style="display:flex;flex-direction:column;gap:12px">' +
-      '<div class="field"><label for="n-pw">新密碼（至少 6 個字）</label><input id="n-pw" class="input" type="password" autocomplete="new-password" data-bind="pw" value="' + esc(f.pw || "") + '"></div>' +
-      '<div class="field"><label for="n-pw2">再輸入一次</label><input id="n-pw2" class="input" type="password" autocomplete="new-password" data-bind="pw2" value="' + esc(f.pw2 || "") + '"></div>' +
-      errLine(f.error) +
-      '<button type="submit" class="btn primary block"' + busyAttr(true) + '>' + (UI.busy ? '更改中…' : '確認更改') + '</button></form>');
-  }
-  function myEmail() { return auth && auth.user && auth.user.email || ""; }
-  function sheetEmail() {
-    var f = UI.form, inner;
-    if (f.step === "code") {
-      inner = '<form id="email-change-code" style="display:flex;flex-direction:column;gap:12px">' +
-        '<div class="field"><label for="e-code">輸入寄到 ' + esc(f.newEmail) + ' 的驗證碼</label><input id="e-code" class="input num" style="font-size:24px;letter-spacing:6px;text-align:center" inputmode="numeric" autocomplete="one-time-code" maxlength="10" data-bind="code" value="' + esc(f.code || "") + '"></div>' +
-        errLine(f.error) +
-        '<button type="submit" class="btn primary block"' + busyAttr(true) + '>' + (UI.busy ? '確認中…' : '確認更換') + '</button>' +
-        '<button type="button" class="btn block" data-act="email-back">改填另一個 Email</button></form>';
-    } else {
-      inner = '<form id="email-change" style="display:flex;flex-direction:column;gap:12px">' +
-        '<p class="note" style="margin:0">目前是 ' + esc(myEmail()) + '。換成新的 Email 之後，所有紀錄都會保留，以後用新 Email 收驗證碼登入。</p>' +
-        '<div class="field"><label for="e-new">新的 Email</label><input id="e-new" class="input" type="email" inputmode="email" autocomplete="email" data-bind="newEmail" value="' + esc(f.newEmail || "") + '"></div>' +
-        errLine(f.error) +
-        '<button type="submit" class="btn primary block"' + busyAttr(true) + '>' + (UI.busy ? '寄送中…' : '寄驗證碼到新 Email') + '</button></form>';
-    }
-    return sheetWrap("更換 Email", inner);
-  }
   function sheetLeave() {
     var op = nm(other(S.me));
     return sheetWrap("離開情侶空間",
@@ -1101,7 +1071,7 @@ textarea.input { resize: none; line-height: 1.5; }
       '<div class="grid2"><div class="field"><label for="s-gw">' + esc(S.goals.wedding.name) + '目標</label><input id="s-gw" type="number" inputmode="numeric" class="input" data-bind="weddingTarget" value="' + esc(f.weddingTarget) + '"></div><div class="field"><label for="s-gt">' + esc(S.goals.travel.name) + '目標</label><input id="s-gt" type="number" inputmode="numeric" class="input" data-bind="travelTarget" value="' + esc(f.travelTarget) + '"></div></div>' +
       '<div class="field"><label for="s-dc">我的 Discord 用戶 ID（收通知用）</label><input id="s-dc" class="input" inputmode="numeric" maxlength="20" data-bind="discord" value="' + esc(f.discord || "") + '" placeholder="例如：123456789012345678"><span class="note">Discord：設定 → 進階 → 開啟開發者模式，再按自己的頭像 →「複製用戶 ID」。只會改你自己的。</span></div>' +
       '<button type="button" class="btn primary block" data-act="submit-settings"' + busyAttr(true) + '>儲存</button>' +
-      '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:14px">帳號</span><span class="note">目前身分：' + esc(nm(S.me)) + '<br>帳號：' + esc(userLabel(myEmail())) + '<br>資料只有你們兩個看得到。</span>' +
+      '<div class="card" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:14px">帳號</span><span class="note">目前身分：' + esc(nm(S.me)) + '<br>資料只有你們兩個看得到。</span>' +
       '<button type="button" class="btn" data-act="sheet" data-sheet="leave">離開情侶空間</button>' +
       '<button type="button" class="btn" data-act="logout">登出這部手機</button></div>'
       );
@@ -1115,7 +1085,7 @@ textarea.input { resize: none; line-height: 1.5; }
     var s = UI.sheet, html = "";
     if (auth && S.loaded && S.paired) {
       if (s === "new") html = sheetNew(); else if (s === "ticket") html = sheetTicket(); else if (s === "rule") html = sheetRule();
-      else if (s === "reward") html = sheetReward(); else if (s === "settings") html = sheetSettings(); else if (s === "use") html = sheetUse(); else if (s === "email") html = sheetEmail(); else if (s === "password") html = sheetPassword(); else if (s === "leave") html = sheetLeave();
+      else if (s === "reward") html = sheetReward(); else if (s === "settings") html = sheetSettings(); else if (s === "use") html = sheetUse(); else if (s === "leave") html = sheetLeave();
       else if (s === "request") html = sheetRequest(); else if (s === "paper") html = sheetPaper();
     }
     document.getElementById("layer").innerHTML = html;
@@ -1135,8 +1105,6 @@ textarea.input { resize: none; line-height: 1.5; }
       var er = extra && extra.ruleId ? S.rules.filter(function (x) { return x.id === extra.ruleId; })[0] : null;
       f = er ? { ruleId: er.id, rtitle: er.title, ramt: er.amount } : { rtitle: "", ramt: 20 };
     }
-    if (name === "email") f = { step: "email", newEmail: "", code: "", error: "" };
-    if (name === "password") f = { pw: "", pw2: "", error: "" };
     if (name === "leave") f = { confirmText: "", error: "" };
     if (name === "request") f = { preset: 0, qtitle: "", icon: "heart", qnote: "" };
     if (name === "paper") {
@@ -1157,20 +1125,9 @@ textarea.input { resize: none; line-height: 1.5; }
   }
   function closeSheet() { UI.sheet = null; UI.form = {}; renderLayer(); }
 
-  /* 帳號名稱登入：背後用「名稱@meowcourt.app」做 Supabase 帳號（不會寄信，所以後台要關閉 Confirm email）。
-     有 @ 的話就當作真 Email 直接用，之後轉 Email 登入時舊帳號照樣可以登入。 */
+  /* 共用密碼登入：兩個人各有一個 Supabase 帳號（a@ / b@meowcourt.app，假 Email，所以後台要關閉 Confirm email），
+     密碼都設成你們的共用密碼。先用第一位登入讀出名字，再按「你是哪一位」換成對應的帳號。 */
   var LOGIN_DOMAIN = "meowcourt.app";
-  function loginEmail(u) {
-    u = (u || "").trim().toLowerCase();
-    if (u.indexOf("@") >= 0) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u) ? u : "";
-    return /^[a-z0-9._-]{2,30}$/.test(u) ? u + "@" + LOGIN_DOMAIN : "";
-  }
-  function userLabel(email) {
-    var suf = "@" + LOGIN_DOMAIN;
-    return email && email.slice(-suf.length) === suf ? email.slice(0, -suf.length) : (email || "");
-  }
-  /* 共用密碼登入：兩個人各有一個 Supabase 帳號（a@ / b@meowcourt.app），密碼都設成你們的共用密碼。
-     先用第一位登入讀出名字，再按「你是哪一位」換成對應的帳號。 */
   function slotEmail(slot) { return slot + "@" + LOGIN_DOMAIN; }
   function signInSlot(slot, pw) { return sb.auth.signInWithPassword({ email: slotEmail(slot), password: pw }); }
   function pwLogin() {
@@ -1197,17 +1154,6 @@ textarea.input { resize: none; line-height: 1.5; }
       auth = r.data.session; S.loaded = false; L.pw = ""; L.step = "in"; render(); refresh();
     });
   }
-  function changePassword() {
-    var f = UI.form, pw = f.pw || "";
-    if (pw.length < 6) { f.error = "密碼至少要 6 個字"; renderLayer(); return; }
-    if (pw !== (f.pw2 || "")) { f.error = "兩次輸入的密碼不一樣"; renderLayer(); return; }
-    UI.busy = true; f.error = ""; renderLayer();
-    sb.auth.updateUser({ password: pw }).then(function (r) {
-      UI.busy = false;
-      if (r.error) { f.error = /different|same/i.test(r.error.message || "") ? "新密碼不可以和舊密碼一樣" : ("更改失敗：" + r.error.message); renderLayer(); return; }
-      UI.sheet = null; UI.form = {}; toast("密碼已更改"); render();
-    });
-  }
   function pairCall(fn, args) {
     UI.busy = true; UI.pair.error = ""; render();
     sb.rpc(fn, args || {}).then(function (r) {
@@ -1218,43 +1164,8 @@ textarea.input { resize: none; line-height: 1.5; }
     });
   }
 
-  function startEmailChange() {
-    var f = UI.form, email = (f.newEmail || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { f.error = "請輸入正確的 Email"; renderLayer(); return; }
-    if (email === myEmail().toLowerCase()) { f.error = "這就是你現在的 Email"; renderLayer(); return; }
-    UI.busy = true; f.error = ""; renderLayer();
-    sb.auth.updateUser({ email: email }).then(function (r) {
-      UI.busy = false;
-      if (r.error) {
-        var m = r.error.message || "";
-        f.error = /already|registered|exists/i.test(m) ? "這個 Email 已經被其他帳號使用了" : /rate|seconds/i.test(m) ? "寄太多次了，請過一會兒再試" : (m || "寄送失敗");
-        renderLayer(); return;
-      }
-      f.newEmail = email; f.step = "code"; f.code = ""; renderLayer();
-      var c = document.getElementById("e-code"); if (c) c.focus();
-    });
-  }
-  function finishEmailChange() {
-    var f = UI.form, code = (f.code || "").replace(/\D/g, "");
-    if (code.length < 6) { f.error = "請輸入完整的驗證碼"; renderLayer(); return; }
-    UI.busy = true; f.error = ""; renderLayer();
-    sb.auth.verifyOtp({ email: f.newEmail, token: code, type: "email_change" }).then(function (r) {
-      UI.busy = false;
-      if (r.error) { f.error = "驗證碼不正確或已過期"; renderLayer(); return; }
-      return sb.auth.getSession().then(function (g) {
-        if (g.data && g.data.session) auth = g.data.session;
-        if (r.data && r.data.user && auth) auth.user = r.data.user;
-        
-        UI.sheet = null; UI.form = {}; toast("已換成新的 Email"); render();
-      });
-    });
-  }
-
   document.addEventListener("submit", function (e) {
     var id = e.target && e.target.id;
-    if (id === "email-change") { e.preventDefault(); startEmailChange(); return; }
-    if (id === "email-change-code") { e.preventDefault(); finishEmailChange(); return; }
-    if (id === "pw-change") { e.preventDefault(); changePassword(); return; }
     if (id === "pw-login-form") { e.preventDefault(); pwLogin(); }
     else if (id === "join-form") {
       e.preventDefault();
@@ -1274,7 +1185,6 @@ textarea.input { resize: none; line-height: 1.5; }
     switch (act) {
       case "pick-who": pickWho(v); break;
       case "pair-create": pairCall("create_couple"); break;
-      case "email-back": f.step = "email"; f.error = ""; renderLayer(); break;
       case "leave-confirm":
         if ((f.confirmText || "").trim() !== "離開") { f.error = "請輸入「離開」兩個字"; renderLayer(); break; }
         UI.busy = true; f.error = ""; renderLayer();
