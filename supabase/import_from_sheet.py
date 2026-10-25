@@ -5,6 +5,7 @@ Supabase SQL Editor 執行的 SQL，搬進一個新的情侶空間。
 
 用法：
   python3 import_from_sheet.py 試算表.xlsx --email-a 第一位的Email --email-b 第二位的Email > import.sql
+  （選用）--skip id1,id2：不搬這些舊罰單（填試算表 Tickets 的 id，例如測試時開的）
 
   --email-a / --email-b 是兩個人在新版登入用的 Email（必須已經登入過一次）。
   第一位 = 試算表 Settings 裡的 nameA，第二位 = nameB。
@@ -96,6 +97,7 @@ def main():
     ap.add_argument("xlsx")
     ap.add_argument("--email-a", required=True)
     ap.add_argument("--email-b", required=True)
+    ap.add_argument("--skip", default="", help="不搬的舊罰單 id，用逗號分隔")
     a = ap.parse_args()
 
     wb = openpyxl.load_workbook(a.xlsx, data_only=True)
@@ -141,6 +143,8 @@ end $$;""")
   {qs(r.get('change'))}, {qs(r.get('newTitle'))}, {num(r.get('newAmount'), 'null')}, {qs(r.get('changeBy'))});""")
 
     n_req = 0
+    skip = {x.strip() for x in a.skip.split(",") if x.strip()}
+    tickets = [t for t in tickets if str(t["id"]) not in skip]
     for t in tickets:
         rid = str(t["ruleId"]) if t.get("ruleId") not in (None, "") else None
         if (rid in req_rules or request_like(t["title"], t["amount"])) and float(t["amount"] or 0) == 0:
