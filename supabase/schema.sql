@@ -633,7 +633,7 @@ create table if not exists public.push_config (
   id      int primary key default 1 check (id = 1),
   url     text not null,
   secret  text not null,
-  site    text not null default 'https://loreouo11.github.io/Meow-Court/next/'
+  site    text not null default 'https://loreouo11.github.io/Meow-Court/'
 );
 
 alter table public.push_subs   enable row level security;

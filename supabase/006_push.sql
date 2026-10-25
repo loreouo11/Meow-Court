@@ -9,8 +9,8 @@
 --   values ('https://phctyqitfywvstsdicyh.supabase.co/functions/v1/push', '這裡填 PUSH_SECRET')
 --   on conflict (id) do update set url = excluded.url, secret = excluded.secret;
 -- PUSH_SECRET 要和 Edge Functions → Secrets 裡的一樣（舊版 Apps Script 的「指令碼屬性」也有同一個）。
--- 新版換上主頁之後，記得把 site 改成主頁網址：
---   update public.push_config set site = 'https://loreouo11.github.io/Meow-Court/';
+-- （2026-10-25 新版已換上主網址。之前用 next/ 測試時填過設定的話，執行一次：
+--   update public.push_config set site = 'https://loreouo11.github.io/Meow-Court/';）
 
 -- ---------- 資料表 ----------
 create table if not exists public.push_subs (
@@ -31,7 +31,7 @@ create table if not exists public.push_config (
   id      int primary key default 1 check (id = 1),
   url     text not null,
   secret  text not null,
-  site    text not null default 'https://loreouo11.github.io/Meow-Court/next/'
+  site    text not null default 'https://loreouo11.github.io/Meow-Court/'
 );
 
 alter table public.push_subs   enable row level security;

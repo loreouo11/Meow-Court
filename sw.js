@@ -1,4 +1,4 @@
-/* 賴貓法庭：接收推播通知 */
+/* 賴貓法庭：接收推播通知（舊版備份 legacy/ 有自己的 sw.js） */
 self.addEventListener("install", function () { self.skipWaiting(); });
 self.addEventListener("activate", function (e) { e.waitUntil(self.clients.claim()); });
 
@@ -21,7 +21,7 @@ self.addEventListener("notificationclick", function (e) {
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
     for (var i = 0; i < list.length; i++) {
       var c = list[i];
-      if (c.url.indexOf(self.registration.scope) === 0 && c.url.indexOf("/next/") < 0 && "focus" in c) {
+      if (c.url.indexOf(self.registration.scope) === 0 && "focus" in c) {
         return c.focus().then(function (w) { return w && "navigate" in w ? w.navigate(url) : w; });
       }
     }
