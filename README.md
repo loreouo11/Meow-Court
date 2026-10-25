@@ -36,3 +36,19 @@
    公開金鑰要和 `index.html` 的 `VAPID_PUBLIC` 一樣；私密金鑰不要放進 GitHub。
 3. Apps Script 指令碼屬性新增 `PUSH_URL`（function 網址）和 `PUSH_SECRET`（同上）。
 4. 每部手機從主畫面打開網站 → 設定 →「開啟通知」。
+
+### 新版（next/，Supabase）的手機通知
+
+用同一個 `push` function，不用重新部署。
+
+1. Supabase → SQL Editor 執行 `supabase/006_push.sql`。
+2. 同一個 SQL Editor 填一次設定（`PUSH_SECRET` 同上）：
+   ```sql
+   insert into public.push_config (url, secret)
+   values ('https://phctyqitfywvstsdicyh.supabase.co/functions/v1/push', '這裡填 PUSH_SECRET')
+   on conflict (id) do update set url = excluded.url, secret = excluded.secret;
+   ```
+3. iPhone：Safari 打開 `/Meow-Court/next/` →「分享」→「加入主畫面」（會叫「賴貓法庭β」），
+   從主畫面打開 → 設定 →「手機通知」打開 →「發送測試通知」。
+4. 新版換上主頁時：`next/index.html` 的 manifest 改回根目錄那份、`sw.js` 換成新版那份，
+   再執行 `update public.push_config set site = 'https://loreouo11.github.io/Meow-Court/';`。

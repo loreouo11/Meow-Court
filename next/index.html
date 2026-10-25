@@ -20,8 +20,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png">
-<link rel="manifest" href="../manifest.webmanifest">
-<meta name="apple-mobile-web-app-title" content="賴貓法庭">
+<!-- 測試版有自己的 manifest（start_url "./" ＝ next/），加到主畫面就會打開新版，iPhone 才能收通知。換上主頁時改回 ../manifest.webmanifest -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="賴貓法庭β">
 <title>賴貓法庭（測試版）</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link rel="preload" as="image" href="qiqi.svg">
@@ -594,7 +595,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   var refreshing = false;
   function typing() {
     var ae = document.activeElement, app = document.getElementById("app");
-    return !!(ae && app && app.contains(ae) && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName));
+    return !!(ae && app && app.contains(ae) && (/^(TEXTAREA|SELECT)$/.test(ae.tagName) || (ae.tagName === "INPUT" && !/^(checkbox|radio|button|submit)$/.test(ae.type))));
   }
   function refresh() {
     if (!auth || refreshing || UI.busy || document.hidden) return;
@@ -764,6 +765,95 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       S.rules.filter(function (r) { return (r.status === "pending" && r.by !== me) || (r.status === "active" && r.change && r.changeBy !== me); }).length;
   }
 
+  /* ---------- 手機推播 ---------- */
+  var VAPID_PUBLIC = "BK4MEeZSZZfmjhrpLzUSJYd1pIK8-o-yu7YV1fD7WXs6ecW3QGK7Z7a6RjgV6wuW4dkUOFZtXUXC-CL76NGLG5w";
+  var swReg = null;
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js", { scope: "./" }).then(function (r) { swReg = r; }).catch(function () {});
+  }
+  function isIOS() { return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
+  function isStandalone() { return window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches); }
+  function pushSupported() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function deviceName() {
+    var u = navigator.userAgent;
+    return /iPhone/.test(u) ? "iPhone" : /iPad/.test(u) ? "iPad" : /Android/.test(u) ? "Android" : /Mac/.test(u) ? "Mac" : /Windows/.test(u) ? "Windows" : "瀏覽器";
+  }
+  function deviceId() {
+    var id = lsGet("meow-device");
+    if (!id) { id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2); lsSet("meow-device", id); }
+    return id;
+  }
+  function getReg() {
+    if (swReg) return Promise.resolve(swReg);
+    return Promise.race([navigator.serviceWorker.ready, new Promise(function (_, no) { setTimeout(function () { no(new Error("sw")); }, 8000); })]);
+  }
+  function b64ToBytes(b) {
+    var pad = "=".repeat((4 - b.length % 4) % 4), raw = atob((b + pad).replace(/-/g, "+").replace(/_/g, "/"));
+    var out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out;
+  }
+  function rpc(fn, args) { return sb.rpc(fn, args || {}).then(function (r) { return rpcResult(r) || r.data || { ok: false, error: "系統忙碌，請稍後再試" }; }); }
+  /* 狀態：checking、ios-home（要先加入主畫面）、unsupported、denied、on、off */
+  function checkPush() {
+    if (!pushSupported()) { UI.push = isIOS() && !isStandalone() ? "ios-home" : "unsupported"; return Promise.resolve(); }
+    if (Notification.permission === "denied") { UI.push = "denied"; return Promise.resolve(); }
+    return getReg().then(function (r) { return r.pushManager.getSubscription(); })
+      .then(function (sub) { UI.push = sub && Notification.permission === "granted" ? "on" : "off"; })
+      .catch(function () { UI.push = "off"; });
+  }
+  function pushRender() { if (UI.tab === "settings" && !typing()) render(true); }
+  function pushOn() {
+    if (UI.busy) return;
+    UI.busy = true; UI.push = "checking"; toast("開啟中…", true); pushRender();
+    Notification.requestPermission().then(function (perm) {
+      if (perm !== "granted") throw new Error(perm === "denied" ? "denied" : "dismissed");
+      return getReg();
+    }).then(function (r) {
+      return r.pushManager.getSubscription().then(function (old) {
+        return old || r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) });
+      });
+    }).then(function (sub) {
+      return rpc("save_push", { sub: sub.toJSON(), device_id: deviceId(), device: deviceName() });
+    }).then(function (res) {
+      UI.busy = false;
+      if (!res.ok) { toast(res.error || "開啟失敗，請再試一次"); return checkPush().then(pushRender); }
+      UI.push = "on"; toast("已開啟通知，可以按「發送測試」試試看"); pushRender();
+    }).catch(function (err) {
+      UI.busy = false;
+      var m = String(err && err.message || err);
+      toast(m === "denied" ? "通知被封鎖了，請到手機設定開啟" : m === "dismissed" ? "要按「允許」才能收到通知" : "開啟失敗，請再試一次");
+      checkPush().then(pushRender);
+    });
+  }
+  function pushOff(silent) {
+    if (!pushSupported() || !swReg) return Promise.resolve();
+    return getReg().then(function (r) { return r.pushManager.getSubscription(); }).then(function (sub) {
+      if (!sub) return;
+      var ep = sub.endpoint;
+      return sub.unsubscribe().then(function () { if (auth) return rpc("remove_push", { endpoint: ep }).catch(function () {}); });
+    }).then(function () {
+      UI.push = "off"; if (!silent) { toast("這部手機已關閉通知"); pushRender(); }
+    }).catch(function () { if (!silent) { toast("關閉失敗，請再試一次"); checkPush().then(pushRender); } });
+  }
+  function pushTest() {
+    if (UI.busy) return;
+    UI.busy = true; toast("發送中…", true);
+    rpc("test_push").then(function (res) {
+      UI.busy = false; toast(res.ok ? "已發送，幾秒內應該會收到" : (res.error || "發送失敗"));
+    }).catch(function () { UI.busy = false; toast("連線失敗，請再試一次"); });
+  }
+  function pushBlock() {
+    var st = UI.push || "checking", on = st === "on", note;
+    if (st === "ios-home") note = 'iPhone 要先把網站加到主畫面：在 Safari 按「分享」→「加入主畫面」，再從主畫面的「賴貓法庭β」打開，回來這裡開啟。需要 iOS 16.4 或以上。';
+    else if (st === "denied") note = '通知被封鎖了。iPhone：設定 → 通知 → 賴貓法庭β → 允許通知。其他瀏覽器：在網址列的網站設定裡允許通知。';
+    else if (st === "unsupported") note = '這個瀏覽器不支援網頁通知。';
+    else if (st === "checking") note = '檢查中…';
+    else note = on ? '已開啟。對方開罰單、遞申請書、送卡或提議規則時會通知你。' : '對方開罰單、遞申請書或送卡時通知你。每部手機要各自開一次。';
+    var canSwitch = st === "on" || st === "off";
+    return '<div style="display:flex;flex-direction:column;gap:8px"><label class="swrow"' + (canSwitch ? ' for="push-sw"' : '') + '><span><span style="font-size:16px">手機通知</span><span class="note">' + note + '</span></span>' +
+      (canSwitch || st === "checking" ? '<input id="push-sw" class="sw" type="checkbox" role="switch" data-act="push-toggle"' + (on ? ' checked' : '') + (canSwitch && !UI.busy ? '' : ' disabled') + '>' : '') + '</label>' +
+      (on ? '<button type="button" class="pill ghost" style="align-self:flex-start" data-act="push-test"' + busyAttr(true) + '>發送測試通知</button>' : '') + '</div>';
+  }
+
   /* ---------- 頁面 ---------- */
   function hd(title, sub, back) {
     return '<header class="hd">' + (back ? '<button type="button" class="circle" aria-label="' + esc(back[1]) + '" data-act="tab" data-tab="' + back[0] + '">' + I.back + '</button>' : '') +
@@ -921,6 +1011,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   }
   function viewSettings() {
     if (!UI.set) setInit();
+    if (!UI.push) { UI.push = "checking"; checkPush().then(pushRender); }
     var f = UI.set;
     function inp(label, k, attrs) { return '<label class="lab s">' + label + '<input class="field" data-bind-set="' + k + '" value="' + esc(f[k]) + '"' + (attrs || '') + '></label>'; }
     return hd("設定", "", ["home", "回到首頁"]) +
@@ -931,7 +1022,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
           '<div style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:10px">' +
           inp("第一個基金", "weddingName", ' maxlength="12"') + inp("目標", "weddingTarget", ' type="number" inputmode="numeric" min="1"') +
           inp("第二個基金", "travelName", ' maxlength="12"') + inp("目標", "travelTarget", ' type="number" inputmode="numeric" min="1"') + '</div></section>' + RULE2 +
-        '<section class="set-sec" aria-labelledby="look-h"><h2 class="h2" id="look-h">外觀與通知</h2>' +
+        '<section class="set-sec" aria-labelledby="look-h"><h2 class="h2" id="look-h">通知與外觀</h2>' + pushBlock() +
           '<div class="lab"><span class="lab-t">風格</span><div class="tiles" role="group" aria-label="風格">' + STYLES.map(function (s) {
             return '<button type="button" class="tile" aria-pressed="' + (S.style === s[0]) + '" data-act="style" data-style="' + s[0] + '"><i class="' + s[0] + '" aria-hidden="true"></i>' + s[1] + '</button>';
           }).join('') + '</div></div>' +
@@ -1531,7 +1622,9 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       case "paper-no": send("answerRequest", { id: id, accept: false, reply: f.qreply }, "已婉拒，這份申請不會留在紀錄裡"); break;
       case "req-done": send("doneRequest", { id: id }, "已實現 ❤"); break;
       case "req-remove": send("removeRequest", { id: id }, "已收回"); break;
-      case "logout": lsSet("meow-who", null); logout(""); break;
+      case "logout": lsSet("meow-who", null); pushOff(true).then(function () { logout(""); }, function () { logout(""); }); break;
+      case "push-toggle": e.preventDefault(); if (UI.push === "on") pushOff(false); else if (UI.push === "off") pushOn(); break;
+      case "push-test": pushTest(); break;
     }
   });
 
