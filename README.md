@@ -13,7 +13,7 @@
 - `supabase/functions/push`：發送手機通知的 Edge Function
 - `supabase/import_from_sheet.py`：把舊版 Google 試算表的資料搬進 Supabase
 - `next/`：測試版的舊網址，現在會自動跳回主網址
-- `legacy/`、`apps-script/`：舊版（Google 試算表後台）的備份，Git tag `legacy-sheet-version` 是換版前的最後狀態
+- `legacy/`、`apps-script/`：舊版（Google 試算表後台）的備份，換版前的最後狀態是 commit `bdf0a67`
 
 ## 登入
 
