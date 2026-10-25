@@ -118,7 +118,7 @@
       <path stroke="#3B2A33" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M100 446 C 160 450, 220 446, 270 448"></path>
     </g>
     
-    <path d="M216 296 L 232 296 L 224 305 Z" fill="#F4A6B4" stroke="#3B2A33" stroke-width="3" stroke-linejoin="round" filter="url(#wob)"></path>
+    <path d="M215 295 C 219 293, 229 293, 233 295 C 232 300, 228 304, 224 305 C 220 304, 216 300, 215 295 Z" fill="#F4A6B4" filter="url(#paint)"></path><path d="M215 295 C 219 293, 229 293, 233 295 C 232 300, 228 304, 224 305 C 220 304, 216 300, 215 295 Z" fill="none" stroke="#3B2A33" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" filter="url(#crayon)"></path>
     
     <g filter="url(#crayon)">
       <path stroke="#3B2A33" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M318 178 L 338 178 L 318 198 L 340 198"></path>
