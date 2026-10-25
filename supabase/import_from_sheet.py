@@ -9,6 +9,13 @@ Supabase SQL Editor 執行的 SQL，搬進一個新的情侶空間。
   --email-a / --email-b 是兩個人在新版登入用的 Email（必須已經登入過一次）。
   第一位 = 試算表 Settings 裡的 nameA，第二位 = nameB。
 
+舊版還沒有申請書，你們用 $0 的罰單／規則來代替（例如「想要貼貼」罰 $0）。
+匯入時會自動轉換：
+  - $0 而且像申請的規則（想要…、貼貼、攬攬、抱抱、啵啵、親親、宵夜…）→ 標成已刪除，不會出現在法規
+  - 用這些規則開的 $0 罰單 → 變成申請書（自首＝自己申請；開給對方＝開單的人申請），
+    已入帳的算「已實現」，還在等的算「等對方審批」；已刪除／已否決的不搬
+  - 其他 $0 規則和罰單（例如「冷落對方」）照舊當罰單
+
 產生的 SQL 含有你們的私人紀錄，不要提交到 GitHub。
 這份 SQL 可以重複執行：會先刪掉上次匯入的同一個空間再重新匯入。
 """
@@ -52,6 +59,30 @@ def b(v):
 
 def uid(kind, old):
     return str(uuid.uuid5(NS, f"{kind}:{old}"))
+
+
+REQ_WORDS = ("想要", "想吃", "貼貼", "攬攬", "抱抱", "啵啵", "親親", "錫錫", "宵夜", "陪我")
+
+
+def request_like(title, amount):
+    try:
+        zero = float(amount or 0) == 0
+    except ValueError:
+        zero = False
+    return zero and any(w in str(title or "") for w in REQ_WORDS)
+
+
+def req_icon(title):
+    t = str(title)
+    if any(w in t for w in ("啵啵", "親親", "錫錫")):
+        return "kiss"
+    if any(w in t for w in ("貼貼", "攬攬", "抱抱")):
+        return "hug"
+    if any(w in t for w in ("宵夜", "吃", "食")):
+        return "food"
+    if "散步" in t:
+        return "walk"
+    return "heart"
 
 
 def rows(ws):
@@ -99,15 +130,31 @@ end $$;""")
     w(f"""insert into public.members (couple_id, user_id, slot)
   select {q(cid)}, id, 'b' from auth.users where lower(email) = lower({q(a.email_b)});""")
 
-    rule_ids = set()
+    rule_ids, req_rules = set(), set()
     for r in rules:
         rule_ids.add(str(r["id"]))
+        if request_like(r["title"], r["amount"]):
+            req_rules.add(str(r["id"]))
+            r = dict(r, status="deleted", change=None, newTitle=None, newAmount=None, changeBy=None)
         w(f"""insert into public.rules (id, couple_id, title, amount, status, by_slot, created_at, change, new_title, new_amount, change_by) values (
   {q(uid('rule', r['id']))}, {q(cid)}, {qs(r['title'])}, {num(r['amount'])}, {q(r['status'] or 'active')}, {q(r['by'])}, {qt(r['createdAt'])},
   {qs(r.get('change'))}, {qs(r.get('newTitle'))}, {num(r.get('newAmount'), 'null')}, {qs(r.get('changeBy'))});""")
 
+    n_req = 0
     for t in tickets:
         rid = str(t["ruleId"]) if t.get("ruleId") not in (None, "") else None
+        if (rid in req_rules or request_like(t["title"], t["amount"])) and float(t["amount"] or 0) == 0:
+            if t["status"] not in ("paid", "waived", "pending", "appeal"):
+                continue  # 已刪除／已否決的不搬
+            asker = t["to"] if b(t.get("self")) == "true" else t["from"]
+            to = "b" if asker == "a" else "a"
+            title = str(t["title"]).replace("不敢說", "").strip() or str(t["title"])
+            done = t["status"] in ("paid", "waived")
+            w(f"""insert into public.requests (id, couple_id, from_slot, to_slot, title, icon, note, status, created_at, done_at) values (
+  {q(uid('request', t['id']))}, {q(cid)}, {q(asker)}, {q(to)}, {qs(title[:20])}, {q(req_icon(title))}, {qs(t.get('note'))},
+  {q('done' if done else 'pending')}, {qt(t['ts'])}, {qt(t.get('updatedAt') or t['ts']) if done else 'null'});""")
+            n_req += 1
+            continue
         if rid and rid not in rule_ids:
             rid = None
         w(f"""insert into public.tickets (id, couple_id, from_slot, to_slot, rule_id, title, amount, note, fund, status, final,
@@ -125,11 +172,12 @@ end $$;""")
   (select count(*) from public.rules where couple_id = {q(cid)}) as 規則,
   (select count(*) from public.tickets where couple_id = {q(cid)}) as 罰單,
   (select count(*) from public.cards where couple_id = {q(cid)}) as 卡片,
+  (select count(*) from public.requests where couple_id = {q(cid)}) as 申請書,
   (select coalesce(sum(final), 0) from public.tickets where couple_id = {q(cid)} and status = 'paid' and fund = 'wedding') as 結婚基金,
   (select coalesce(sum(final), 0) from public.tickets where couple_id = {q(cid)} and status = 'paid' and fund = 'travel') as 旅行基金;""")
     w("commit;")
     sys.stdout.write("\n".join(out) + "\n")
-    print(f"規則 {len(rules)}、罰單 {len(tickets)}、卡片 {len(cards)}", file=sys.stderr)
+    print(f"規則 {len(rules)}（其中 {len(req_rules)} 條像申請，已標成刪除）、罰單 {len(tickets)}（其中 {n_req} 張轉成申請書）、卡片 {len(cards)}", file=sys.stderr)
 
 
 if __name__ == "__main__":
