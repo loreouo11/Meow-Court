@@ -1029,8 +1029,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
           '<div class="lab"><span class="lab-t">明暗</span><div class="seg" role="group" aria-label="明暗" style="--n:3">' + MODES.map(function (m) {
             return '<button type="button" aria-pressed="' + (S.mode === m[0]) + '" data-act="look-mode" data-v="' + m[0] + '">' + m[1] + '</button>';
           }).join('') + '</div><span class="note">風格和明暗只會套用在這部手機。</span></div>' +
-          '<label class="lab s">我的 Discord 用戶 ID（收通知用）<input class="field" inputmode="numeric" maxlength="20" data-bind-set="discord" value="' + esc(f.discord) + '" placeholder="例如：123456789012345678"></label>' +
-          '<p class="note">Discord：設定 → 進階 → 開啟開發者模式，再按自己的頭像 →「複製用戶 ID」。只會改你自己的。</p></section>' + RULE2 +
+          '</section>' + RULE2 +
         '<section aria-labelledby="acc-h" style="display:flex;flex-direction:column"><h2 class="h2" id="acc-h" style="margin-bottom:4px">這部手機</h2>' +
           '<div class="set-row" style="border-top:0"><span style="flex:1">目前身分</span><span>' + esc(nm(S.me)) + '</span></div>' +
           '<button type="button" class="link-row" data-act="logout">登出這部手機</button>' +
@@ -1608,7 +1607,6 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       case "submit-settings":
         var u = UI.set || {};
         var ss = { nameA: u.nameA, nameB: u.nameB, start: u.start, weddingTarget: u.weddingTarget, travelTarget: u.travelTarget, weddingName: u.weddingName, travelName: u.travelName };
-        ss[S.me === "a" ? "discordA" : "discordB"] = u.discord || "";
         send("saveSettings", ss, "已儲存", function () { setInit(); render(); }); break;
       case "q-preset": f.preset = v === "custom" ? null : Number(v); renderLayer(); if (v === "custom") { var qt = document.getElementById("q-title"); if (qt) qt.focus(); } break;
       case "submit-request":
