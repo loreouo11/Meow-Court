@@ -217,7 +217,7 @@ img { display: block; }
 .status { flex: none; max-width: 112px; padding: 3px 9px; border-radius: 999px; font-size: 12px; line-height: 17px; text-align: center; background: var(--surface); border: 1.5px solid var(--line); }
 .status.wait { background: var(--soft-gold); } .status.ok { background: var(--soft-mint); } .status.no { background: var(--soft-accent); }
 .calm { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1.5px dashed var(--dash); font-size: 14px; line-height: 20px; }
-.calm img { flex: none; width: 60px; height: 60px; }
+.calm img { flex: none; width: 116px; height: auto; }
 .end { margin: 6px 0 0; padding-top: 10px; border-top: 1.5px dashed var(--dash); text-align: center; font-size: 13px; color: var(--muted); }
 .plain-list { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; }
 .plain-list li { display: flex; align-items: baseline; gap: 10px; padding: 9px 0; border-top: 1.5px dashed var(--dash); font-size: 15px; }
@@ -926,12 +926,12 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
   function viewInbox() {
     var L = inboxLists(), op = nm(other(S.me));
-    var mine = L.mine.length ? L.mine.join('') : '<div class="calm">' + qq("", "") + '<span>現在沒有要你回覆的事。<br>七七在睡覺，你也休息一下。</span></div>';
+    var mine = L.mine.length ? L.mine.join('') : '<div class="calm"><img src="qiqi.svg#svgView(viewBox(84,108,368,356))" alt="" aria-hidden="true"><span>現在沒有要你回覆的事。<br>七七在睡覺，你也休息一下。</span></div>';
     return hd("案件匣", "要回覆的都在這裡，有空再看就好") +
       doc('<section aria-labelledby="mine-h"><h2 class="h2 lg" id="mine-h" style="margin-bottom:6px">等你回覆</h2>' + mine + '</section>' +
         (L.kept.length ? RULE2 + '<section aria-labelledby="kept-h"><h2 class="h2" id="kept-h" style="margin-bottom:6px">說好的事</h2>' + L.kept.join('') + '</section>' : '') +
         RULE2 + '<section aria-labelledby="theirs-h"><h2 class="h2" id="theirs-h" style="margin-bottom:6px">等' + esc(op) + '回覆</h2>' +
-          (L.theirs.length ? L.theirs.join('') : '<div class="calm"><img src="qiqi-yarn.svg" alt="" aria-hidden="true"><span>沒有在等' + esc(op) + '的事。<br>七七在玩毛線，沒什麼好等的。</span></div>') + '</section>' +
+          (L.theirs.length ? L.theirs.join('') : '<div class="calm"><img src="qiqi-yarn.svg" alt="" aria-hidden="true"><span>沒有在等' + esc(op) + '的事。<br>七七在玩毛線，不用等。</span></div>') + '</section>' +
         RULE2 + '<button type="button" class="quiet" style="margin:0" data-act="tab" data-tab="history">看全部的罰單和申請書</button>', "") ;
   }
 
