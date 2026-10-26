@@ -7,6 +7,7 @@
 
 - `index.html`：網站本體（單一檔案）
 - `qiqi.svg`：七七（法官貓）插圖
+- `qiqi-yarn.svg`：七七玩毛線插圖（案件匣「等對方回覆」空白時）
 - `sw.js`、`manifest.webmanifest`：加到主畫面、接收手機通知
 - `supabase/schema.sql`：完整的資料庫設定（新專案整份貼到 SQL Editor 執行一次）
 - `supabase/00X_*.sql`：之後的更新，舊專案按順序執行
