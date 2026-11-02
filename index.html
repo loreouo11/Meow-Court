@@ -9,9 +9,9 @@
 (function () {
   var r = document.documentElement, st = null, md = null;
   try { st = localStorage.getItem("fajin-style"); md = localStorage.getItem("fajin-mode"); } catch (e) {}
-  if (st !== "coral" && st !== "sticker") st = "court";
+  if (st !== "coral" && st !== "sticker" && st !== "neon") st = "court";
   md = md || "auto";
-  var dark = md === "dark" || (md === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  var dark = st === "neon" || md === "dark" || (md === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
   r.setAttribute("data-style", st); r.setAttribute("data-mode", dark ? "dark" : "light");
 })();
 </script>
@@ -25,11 +25,11 @@
 <title>賴貓法庭</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link rel="preload" as="image" href="qiqi.svg">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=LXGW+WenKai+TC:wght@400;700&family=Fredoka:wght@500;600;700&family=Baloo+2:wght@600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=LXGW+WenKai+TC:wght@400;700&family=Fredoka:wght@500;600;700&family=Baloo+2:wght@600;800&family=Orbitron:wght@500;600;700&display=swap">
 <style>
 /* 賴貓法庭 · 方案四
    一欄手機版面（最闊 440px），內容放在「公文紙」上；底部五格選單；表單用底部抽屜，罰單／申請書／法規提案用置中的紙。
-   三個外觀共用同一組 token：預設 court（法庭公文）、珊瑚海 coral、貼紙 sticker；每個都有淺色／深色。
+   四個外觀共用同一組 token：預設 court（法庭公文）、珊瑚海 coral、貼紙 sticker（都有淺色／深色），夜光 neon（只有深色）。
    罰單、申請書、法規提案是「實體的紙」，深色模式下也保持淺色紙。 */
 :root, :root[data-style="court"] {
   --bg: #FBEFF3; --bg-art: var(--bg);
@@ -85,6 +85,23 @@
   --soft-accent: rgba(255,106,111,.2); --soft-gold: rgba(254,149,129,.2); --soft-mint: rgba(60,199,180,.2);
   --dash: rgba(95,210,195,.22); --track: rgba(255,255,255,.12); --handle: rgba(95,210,195,.35); --link: #7FD3C6;
   --tab-bg: rgba(18,48,47,.94); --layer-b: #173937; --sheet-bg: linear-gradient(180deg, #16302F, #0E2827);
+}
+
+/* 夜光 neon：只有深色，選了就固定 data-mode="dark" */
+:root[data-style="neon"], :root[data-mode="dark"][data-style="neon"] {
+  color-scheme: dark;
+  --bg: #11132A; --bg-art: radial-gradient(circle at 15% 0%, rgba(255,92,138,.22), transparent 42%), radial-gradient(circle at 100% 32%, rgba(69,224,190,.16), transparent 46%), #11132A;
+  --ink: #F4F1FF; --muted: #A9A7CF; --paper: #1C1F3D; --surface: #1C1F3D; --surface-2: #242850;
+  --line: rgba(255,255,255,.16); --bw: 1px; --hard: transparent;
+  --shadow: 0 0 0 1px rgba(255,92,138,.18), 0 0 26px rgba(255,92,138,.16), 0 12px 30px rgba(0,0,0,.45);
+  --shadow-md: 0 0 16px rgba(255,92,138,.16), 0 8px 18px rgba(0,0,0,.4); --shadow-sm: 0 0 10px rgba(255,92,138,.16);
+  --accent: #FF5C8A; --accent-grad: #FF5C8A; --accent-ink: #FF5C8A; --on-accent: #1A0B14; --frame: transparent;
+  --gold: #FFD45E; --mint: #45E0BE; --mint-ink: #45E0BE; --bad: #FF7A9C;
+  --soft-accent: rgba(255,92,138,.16); --soft-gold: rgba(255,212,94,.14); --soft-mint: rgba(69,224,190,.14);
+  --dash: rgba(255,255,255,.14); --track: rgba(255,255,255,.1); --handle: rgba(255,255,255,.28); --link: #F4F1FF;
+  --doc-r: 20px; --layer-a: #242850; --layer-b: #242850;
+  --num: "Orbitron", "Huninn", sans-serif;
+  --overlay: rgba(5,6,18,.72); --tab-bg: rgba(28,31,61,.94); --sheet-bg: #161936;
 }
 
 * { box-sizing: border-box; }
@@ -410,14 +427,53 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 .loading { flex: 1; min-height: 70vh; display: grid; place-content: center; justify-items: center; gap: 8px; color: var(--muted); }
 .loading img { width: 120px; height: 120px; }
 
+/* 夜光：元件 */
+:root[data-style="neon"] .circle { background: var(--surface); }
+:root[data-style="neon"] .star-mark { display: block; }
+:root[data-style="neon"] .star-mark path { fill: #FFD45E; stroke: #FFD45E; }
+:root[data-style="neon"] .stack::before { display: none; }
+:root[data-style="neon"] .stack::after { border-color: rgba(255,255,255,.1); transform: translate(8px, -8px) rotate(1.6deg); }
+:root[data-style="neon"] .doc { padding: 0; }
+:root[data-style="neon"] .doc-in { box-shadow: none; padding: 18px 18px 16px; }
+:root[data-style="neon"] .rule2 { height: 1px; margin: 16px 0; border: 0; background: linear-gradient(90deg, transparent, rgba(255,92,138,.7), rgba(69,224,190,.7), transparent); }
+:root[data-style="neon"] .days b { font-size: 26px; color: var(--accent); text-shadow: 0 0 16px rgba(255,92,138,.75); }
+:root[data-style="neon"] .total { font-size: 22px; color: var(--gold); text-shadow: 0 0 18px rgba(255,212,94,.5); }
+:root[data-style="neon"] .f-amt { font-weight: 600; font-size: 14px; }
+:root[data-style="neon"] .bar i { color: var(--accent); box-shadow: 0 0 10px currentColor; }
+:root[data-style="neon"] .bar.t i { background: var(--mint); color: var(--mint); }
+:root[data-style="neon"] .stat { padding: 8px 0; border-radius: 14px; background: var(--surface-2); border: 0; color: var(--muted); }
+:root[data-style="neon"] .stat b { font-size: 20px; color: var(--gold); }
+:root[data-style="neon"] .tag { border-color: rgba(255,92,138,.45); }
+:root[data-style="neon"] .tag.fine { border-color: transparent; }
+:root[data-style="neon"] .tag.rule { border-color: rgba(255,212,94,.45); }
+:root[data-style="neon"] .tag.card { border-color: rgba(69,224,190,.45); }
+:root[data-style="neon"] .status.wait { color: var(--gold); border-color: rgba(255,212,94,.45); }
+:root[data-style="neon"] .status.ok { color: var(--mint); border-color: rgba(69,224,190,.45); }
+:root[data-style="neon"] .status.no { color: #FF8FAD; border-color: rgba(255,92,138,.45); }
+:root[data-style="neon"] .perch, :root[data-style="neon"] .calm img, :root[data-style="neon"] .loading img, :root[data-style="neon"] .login .qq, :root[data-style="neon"] .who .qq { filter: drop-shadow(0 0 14px rgba(255,212,94,.35)); }
+:root[data-style="neon"] .btn.primary, :root[data-style="neon"] .seg button[aria-pressed="true"] { border-color: transparent; box-shadow: 0 0 18px rgba(255,92,138,.5); }
+:root[data-style="neon"] .tabbar { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-top-color: rgba(255,255,255,.12); }
+:root[data-style="neon"] .tab { color: var(--muted); }
+:root[data-style="neon"] .tab[aria-current="page"] { color: var(--accent); font-weight: 700; text-shadow: 0 0 10px rgba(255,92,138,.6); }
+:root[data-style="neon"] .fab-btn { color: var(--muted); }
+:root[data-style="neon"] .fab { border: 0; color: #1A0B14; box-shadow: 0 0 22px rgba(255,92,138,.65); }
+:root[data-style="neon"] .gc, :root[data-style="neon"] .menu-opt, :root[data-style="neon"] .who-btn { box-shadow: var(--shadow-md); }
+:root[data-style="neon"] .tk { filter: drop-shadow(0 0 22px rgba(255,92,138,.35)) drop-shadow(0 18px 22px rgba(0,0,0,.5)); }
+:root[data-style="neon"] .good li { grid-template-columns: 54px minmax(0, 1fr); }
+:root[data-style="neon"] .good .d { font-size: 12px; white-space: nowrap; }
+:root[data-style="neon"] .eng { color: var(--accent); text-shadow: 0 0 10px rgba(255,92,138,.6); }
+:root[data-style="neon"] .code { border-color: var(--accent); color: var(--gold); text-shadow: 0 0 14px rgba(255,212,94,.5); }
+
 /* 設定 */
-.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .tile { display: flex; flex-direction: column; gap: 6px; padding: 7px; border-radius: 14px; background: var(--surface); border: 2px solid var(--line); font-size: 14px; text-align: center; }
 .tile[aria-pressed="true"] { background: var(--soft-accent); border-width: 2.5px; box-shadow: var(--shadow-sm); }
 .tile i { position: relative; display: block; height: 46px; border-radius: 10px; }
 .tile i.court { border-radius: 4px; background: #FFFBF3; box-shadow: inset 0 0 0 2px #E8546E, inset 0 0 0 4px #FFFBF3, inset 0 0 0 5px #E8546E; }
 .tile i.coral { background: linear-gradient(180deg, #FFD3C6 0%, #FFF1EB 45%, #9FD8CE 100%); }
 .tile i.sticker { background: #FBEFF3; }
+.tile i.neon { background: radial-gradient(circle at 20% 0%, rgba(255,92,138,.5), transparent 60%), radial-gradient(circle at 100% 70%, rgba(69,224,190,.4), transparent 60%), #11132A; }
+.tile i.neon::after { content: ""; position: absolute; left: 10px; right: 10px; top: 50%; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #FF5C8A, #45E0BE); box-shadow: 0 0 8px #FF5C8A; }
 .tile i.sticker::after { content: ""; position: absolute; left: 8px; right: 12px; top: 8px; bottom: 8px; border-radius: 8px; background: #FFFFFF; border: 2px solid #3B2A33; box-shadow: 2px 2px 0 #3B2A33; transform: rotate(-3deg); }
 .set-sec { display: flex; flex-direction: column; gap: 10px; }
 .set-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1.5px dashed var(--dash); font-size: 16px; }
@@ -511,8 +567,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
   var STYLE_KEY = "fajin-style", MODE_KEY = "fajin-mode";
   var MODES = [["auto", "跟隨手機"], ["light", "淺色"], ["dark", "深色"]];
-  var STYLES = [["court", "預設"], ["coral", "珊瑚海"], ["sticker", "貼紙"]];
-  function normStyle(s) { return s === "coral" || s === "sticker" ? s : "court"; }
+  var STYLES = [["court", "預設"], ["coral", "珊瑚海"], ["sticker", "貼紙"], ["neon", "夜光"]];
+  function normStyle(s) { return s === "coral" || s === "sticker" || s === "neon" ? s : "court"; }
 
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
@@ -1037,8 +1093,9 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
             return '<button type="button" class="tile" aria-pressed="' + (S.style === s[0]) + '" data-act="style" data-style="' + s[0] + '"><i class="' + s[0] + '" aria-hidden="true"></i>' + s[1] + '</button>';
           }).join('') + '</div></div>' +
           '<div class="lab"><span class="lab-t">明暗</span><div class="seg" role="group" aria-label="明暗" style="--n:3">' + MODES.map(function (m) {
-            return '<button type="button" aria-pressed="' + (S.mode === m[0]) + '" data-act="look-mode" data-v="' + m[0] + '">' + m[1] + '</button>';
-          }).join('') + '</div><span class="note">風格和明暗只會套用在這部手機。</span></div>' +
+            var nn = S.style === "neon";
+            return '<button type="button" aria-pressed="' + (nn ? m[0] === "dark" : S.mode === m[0]) + '"' + (nn ? ' disabled style="opacity:.5"' : '') + ' data-act="look-mode" data-v="' + m[0] + '">' + m[1] + '</button>';
+          }).join('') + '</div><span class="note">' + (S.style === "neon" ? '夜光只有深色。' : '') + '風格和明暗只會套用在這部手機。</span></div>' +
           '</section>' + RULE2 +
         '<section aria-labelledby="acc-h" style="display:flex;flex-direction:column"><h2 class="h2" id="acc-h" style="margin-bottom:4px">這部手機</h2>' +
           '<div class="set-row" style="border-top:0"><span style="flex:1">目前身分</span><span>' + esc(nm(S.me)) + '</span></div>' +
@@ -1093,7 +1150,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   var darkMQ = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
   function applyLook() {
     var r = document.documentElement;
-    var dark = S.mode === "dark" || (S.mode === "auto" && darkMQ && darkMQ.matches);
+    var dark = S.style === "neon" || S.mode === "dark" || (S.mode === "auto" && darkMQ && darkMQ.matches);
     r.setAttribute("data-style", S.style); r.setAttribute("data-mode", dark ? "dark" : "light");
     var bg = getComputedStyle(r).getPropertyValue("--bg").trim(), m = document.querySelector('meta[name="theme-color"]');
     if (m && bg) m.setAttribute("content", bg);
