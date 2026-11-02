@@ -14,7 +14,8 @@
 - `supabase/functions/push`：發送手機通知的 Edge Function
 - `supabase/import_from_sheet.py`：把舊版 Google 試算表的資料搬進 Supabase
 - `next/`：測試版的舊網址，現在會自動跳回主網址
-- `legacy/`、`apps-script/`：舊版（Google 試算表後台）的備份，換版前的最後狀態是 commit `bdf0a67`
+- `legacy/`：舊版停用頁面（2026-11 起舊版不再運作）；舊版完整程式在 commit `bdf0a67`
+- `apps-script/`：舊版 Apps Script 程式的紀錄（部署已封存，不再使用）
 
 ## 登入
 
@@ -35,7 +36,8 @@
 
 ## 舊版（Google 試算表後台）
 
-舊版備份在 <https://loreouo11.github.io/Meow-Court/legacy/>，仍然連著原本的 Apps Script，只在需要回頭查資料時用。
+舊版已於 2026 年 11 月停用：`legacy/` 只剩停用說明頁，Apps Script 部署已封存，舊資料仍留在原本的 Google 試算表。
+以下步驟只作紀錄，萬一要重新架設舊版時參考（要先從 commit `bdf0a67` 取回 `legacy/index.html`）。
 
 ### 設定 Google 試算表後台
 
