@@ -966,10 +966,28 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
 /* ===== 七七來決定：轉盤／抽籤筒 =====
    同一個籤筒可以用轉盤或抽籤筒來抽。轉盤的指針會被邊緣的釘子撥動；抽籤筒搖幾下，抽中的籤從筒口升出來。 */
-.sp-chips { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 8px; scrollbar-width: none; }
-.sp-chips::-webkit-scrollbar { display: none; }
-.sp-chips .chip { flex: none; white-space: nowrap; }
-.sp-mode { margin-top: 6px; }
+.sp-title-lab { display: flex; align-items: center; gap: 10px; padding-bottom: 6px; border-bottom: 1.5px dashed var(--dash); }
+.sp-title-lab .tk-k { flex: none; font-size: 13px; color: var(--muted); }
+.sp-title { flex: 1; min-width: 0; min-height: 40px; padding: 0; border: 0; background: none; color: var(--ink); font-family: var(--serif); font-weight: 700; font-size: 20px; }
+.sp-title::placeholder { color: var(--muted); font-weight: 400; font-size: 16px; }
+.sp-title:focus { outline: none; }
+.sp-title-lab:focus-within { border-bottom-color: var(--accent); }
+.sp-mode { width: min(100%, 220px); margin: 12px auto 0; }
+.sp-mode button { min-height: 32px; font-size: 14px; }
+.sp-opts-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.sp-pre-tog { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 12px; border-radius: 999px; background: var(--surface); border: 2px solid var(--line); color: var(--ink); font-size: 14px; }
+.sp-pre-tog[aria-expanded="true"] { background: var(--soft-accent); }
+.sp-pre { display: flex; flex-direction: column; margin: 0 0 10px; padding: 4px 12px 8px; border-radius: 14px; background: var(--surface-2); border: 1.5px dashed var(--dash); }
+.sp-pre-row { display: flex; align-items: center; gap: 4px; border-top: 1.5px dashed var(--dash); }
+.sp-pre-row:first-child { border-top: 0; }
+.sp-pre-btn { flex: 1; min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0; background: none; border: 0; color: var(--ink); text-align: left; font-size: 15px; }
+.sp-pre-btn b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-pre-btn small { flex: none; font-size: 13px; color: var(--muted); }
+.sp-pre-x { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; background: none; border: 0; color: var(--muted); }
+.sp-pre-save { align-self: flex-start; margin-top: 4px; }
+.sp-link { min-height: 32px; padding: 0 2px; background: none; border: 0; color: var(--link); font-size: 13px; text-decoration: underline dotted; text-underline-offset: 4px; }
+.sp-text { font-size: 16px; line-height: 24px; resize: vertical; }
+.sp-count { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .sp-stage { position: relative; width: min(100%, 300px); margin: 14px auto 0; }
 .sp-stage.tube { width: min(100%, 250px); }
 .sp-stage svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -998,9 +1016,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 #sp-tube, #sp-pick { transform-box: view-box; }
 :root[data-style="neon"] .sp-stage svg { filter: drop-shadow(0 0 14px rgba(255,92,138,.28)); }
 :root[data-style="neon"] .sp-txt, :root[data-style="neon"] .sp-tube-label { fill: #F4F1FF; }
-.sp-go { margin-top: 16px; }
-.sp-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--muted); }
-.sp-meta button { min-height: 36px; padding: 0 4px; background: none; border: 0; color: var(--link); font-size: 14px; text-decoration: underline dotted; text-underline-offset: 4px; }
+#sp-live { display: flex; flex-direction: column; }
+.sp-go { width: 100%; margin-top: 16px; }
 /* 判決書：實體的紙，深色模式下也保持淺色 */
 .sp-paper { position: relative; color: #3B2A33; transform: rotate(-1deg); filter: drop-shadow(0 18px 22px rgba(20,8,14,.45)); }
 .sp-ph { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 18px; border-radius: 10px 10px 0 0; background: #FFD15C; border: 2.5px solid #3B2A33; border-bottom: 0; }
@@ -1771,10 +1788,6 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       '</nav></div>';
     app.className = "app";
     app.innerHTML = (VIEWS[UI.tab] || viewHome)() + tabs;
-    if (UI.tab === "spin") {
-      var spc = app.querySelector(".sp-chips"), spa = spc && spc.querySelector('[aria-pressed="true"]');
-      if (spa && spa.offsetLeft + spa.offsetWidth > spc.clientWidth - 8) spc.scrollLeft = spa.offsetLeft - 24;
-    }
     if (!keepLayer) renderLayer(); else renderToast();
     hydratePhotos();
   }
@@ -2813,70 +2826,79 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
 
   /* ===================== 七七來決定（轉盤／抽籤） =====================
-     不用後台：籤筒存在這部手機（localStorage），判決抽完就算，不記錄。
-     內建三個預設籤筒，修改了才會存一份；也可以自己開新籤筒。
-     先用 crypto 隨機選好結果，動畫只是把結果「轉」出來；再抽一次算「上訴」。 */
+     像一般的抽籤轉盤：選項直接寫在下面（一行一個），轉盤即時跟著變。
+     預設清單平時收起來，要用時才拉出來選；也可以把現在的清單存成自己的預設。
+     不用後台：全部存在這部手機（localStorage），判決抽完就算。
+     先用 crypto 隨機選好結果，動畫只是把結果「轉」出來；同一份清單再抽算「上訴」。 */
   var SP_PRESETS = [
-    { preset: "food", title: "今晚吃什麼", options: ["拉麵", "火鍋", "壽司", "茶餐廳", "韓式烤肉", "泰國菜", "漢堡", "自己煮"] },
-    { preset: "date", title: "約會去哪裡", options: ["看電影", "去海邊", "行山", "逛街", "咖啡店", "看展覽", "公園野餐", "在家煲劇"] },
-    { preset: "who", title: "誰來做", options: ["@a", "@b"] }
+    { id: "p-food", title: "今晚吃什麼", options: ["拉麵", "火鍋", "壽司", "茶餐廳", "韓式烤肉", "泰國菜", "漢堡", "自己煮"] },
+    { id: "p-date", title: "約會去哪裡", options: ["看電影", "去海邊", "行山", "逛街", "咖啡店", "看展覽", "公園野餐", "在家煲劇"] },
+    { id: "p-who", title: "誰來做", options: ["@a", "@b"] },
+    { id: "p-yes", title: "要不要", options: ["要", "不要"] }
   ];
-  var SP_KEY = "meow-spin-wheels";
+  var SP_KEY = "meow-spin";
   var SP = {
-    wheels: spLoad(), sel: lsGet("meow-spin-sel") || "food", mode: lsGet("meow-spin-mode") || "",
+    title: "", text: "", hidden: [], saved: [], mode: lsGet("meow-spin-mode") || "", showPre: false,
     angle: 0, running: false, dirty: false, raf: 0, anims: [], appeals: 0, undecided: false, lastKey: "", lastResult: ""
   };
-  function spLoad() {
-    try { var v = JSON.parse(lsGet(SP_KEY) || "[]"); return Array.isArray(v) ? v.filter(function (w) { return w && w.id && w.title && Array.isArray(w.options); }) : []; } catch (e) { return []; }
-  }
-  function spStore() { lsSet(SP_KEY, JSON.stringify(SP.wheels)); }
-  /* 預設籤筒（有存過就用存的那份）＋自己開的籤筒 */
-  function spList() {
-    var out = SP_PRESETS.map(function (p) {
-      var w = SP.wheels.filter(function (x) { return x.preset === p.preset; })[0];
-      return w ? { key: p.preset, id: w.id, preset: p.preset, title: w.title, options: w.options, saved: true }
-        : { key: p.preset, id: "", preset: p.preset, title: p.title, options: p.options, saved: false };
+  (function () {
+    var v = null; try { v = JSON.parse(lsGet(SP_KEY) || "null"); } catch (e) {}
+    if (v && typeof v.text === "string") {
+      SP.title = String(v.title || ""); SP.text = v.text;
+      SP.hidden = Array.isArray(v.hidden) ? v.hidden.map(String) : [];
+      SP.saved = Array.isArray(v.saved) ? v.saved.filter(function (x) { return x && x.id && typeof x.text === "string"; }) : [];
+    } else { SP.title = SP_PRESETS[0].title; SP.text = SP_PRESETS[0].options.join("\n"); }
+  })();
+  function spStore() { lsSet(SP_KEY, JSON.stringify({ title: SP.title, text: SP.text, hidden: SP.hidden, saved: SP.saved })); }
+  function spOpt(o) { return o === "@a" ? (nm("a") || "第一位") : o === "@b" ? (nm("b") || "第二位") : String(o); }
+  /* 清單裡全部選項（去空白、去重複，每個最多 20 字，最多 100 個） */
+  function spAll() {
+    var seen = {}, out = [];
+    String(SP.text || "").split(/\n/).forEach(function (l) {
+      l = l.trim().slice(0, 20); if (!l || seen[l] || out.length >= 100) return;
+      seen[l] = 1; out.push(l);
     });
-    SP.wheels.forEach(function (w) { if (!w.preset) out.push({ key: w.id, id: w.id, preset: "", title: w.title, options: w.options, saved: true }); });
     return out;
   }
-  function spCur() { var L = spList(); return L.filter(function (w) { return w.key === SP.sel; })[0] || L[0]; }
-  function spOpt(o) { return o === "@a" ? (nm("a") || "第一位") : o === "@b" ? (nm("b") || "第二位") : String(o); }
+  function spOpts() { return spAll().filter(function (o) { return SP.hidden.indexOf(o) < 0; }); }
+  function spHiddenN() { var all = spAll(); return SP.hidden.filter(function (h) { return all.indexOf(h) >= 0; }).length; }
   function spRand(n) {
     try { var a = new Uint32Array(1); window.crypto.getRandomValues(a); return a[0] % n; } catch (e) { return Math.floor(Math.random() * n); }
   }
-  function spWheelOk(w) { return w.options.length <= 16; }
-  function spModeFor(w) { return !spWheelOk(w) ? "tube" : (SP.mode || (w.options.length > 12 ? "tube" : "wheel")); }
+  function spWheelOk(o) { return o.length <= 16; }
+  function spModeFor(o) { return !spWheelOk(o) ? "tube" : (SP.mode || (o.length > 12 ? "tube" : "wheel")); }
   function spClip(t, n) { t = String(t); return t.length > n ? t.slice(0, n - 1) + "…" : t; }
 
   /* ---- 轉盤（指針在正上方，角度由正上方順時針計） ---- */
   var SP_R = 144;
   function spPt(r, deg) { var a = deg * Math.PI / 180; return (r * Math.sin(a)).toFixed(2) + " " + (-r * Math.cos(a)).toFixed(2); }
-  function spWheelSVG(w) {
-    var n = w.options.length, seg = 360 / n, g = "", pegs = "";
+  function spWheelSVG(opts) {
+    var n = opts.length, seg = 360 / Math.max(1, n), g = "", pegs = "";
     var fs = n <= 6 ? 17 : n <= 10 ? 15 : 13, max = n <= 4 ? 7 : n <= 8 ? 6 : n <= 12 ? 5 : 4;
+    if (!n) g = '<circle class="sp-seg sp-s0" r="' + SP_R + '"/><text class="sp-txt" font-size="15" y="-70" text-anchor="middle">在下面寫上選項</text>';
     for (var i = 0; i < n; i++) {
       var a0 = i * seg, a1 = (i + 1) * seg, mid = a0 + seg / 2;
       var cls = "sp-s" + (n % 3 === 1 && i === n - 1 ? 1 : i % 3);
       g += n === 1 ? '<circle class="sp-seg ' + cls + '" r="' + SP_R + '"/>'
         : '<path class="sp-seg ' + cls + '" d="M0 0L' + spPt(SP_R, a0) + 'A' + SP_R + ' ' + SP_R + ' 0 ' + (seg > 180 ? 1 : 0) + ' 1 ' + spPt(SP_R, a1) + 'Z"/>';
       var flip = mid > 180, rot = flip ? mid + 90 : mid - 90, x = (flip ? -1 : 1) * SP_R * 0.6;
-      g += '<text class="sp-txt" font-size="' + fs + '" transform="rotate(' + rot.toFixed(2) + ')" x="' + x.toFixed(1) + '" y="0" text-anchor="middle" dominant-baseline="central">' + esc(spClip(spOpt(w.options[i]), max)) + '</text>';
-      pegs += '<circle class="sp-peg" r="3.4" cx="' + (147 * Math.sin(a0 * Math.PI / 180)).toFixed(2) + '" cy="' + (-147 * Math.cos(a0 * Math.PI / 180)).toFixed(2) + '"/>';
+      if (n === 1) { rot = 0; x = 0; }
+      g += '<text class="sp-txt" font-size="' + fs + '" transform="rotate(' + rot.toFixed(2) + ')" x="' + x.toFixed(1) + '" y="' + (n === 1 ? -80 : 0) + '" text-anchor="middle" dominant-baseline="central">' + esc(spClip(spOpt(opts[i]), max)) + '</text>';
+      if (n > 1) pegs += '<circle class="sp-peg" r="3.4" cx="' + (147 * Math.sin(a0 * Math.PI / 180)).toFixed(2) + '" cy="' + (-147 * Math.cos(a0 * Math.PI / 180)).toFixed(2) + '"/>';
     }
-    return '<svg viewBox="-160 -176 320 336" role="img" aria-label="轉盤：' + esc(w.options.map(spOpt).join("、")) + '">' +
+    return '<svg viewBox="-160 -176 320 336" role="img" aria-label="轉盤：' + esc(opts.map(spOpt).join("、") || "還沒有選項") + '">' +
       '<g id="sp-rot" transform="rotate(' + (SP.angle % 360).toFixed(2) + ')"><circle class="sp-base" r="150"/>' + g + '<circle class="sp-rim" r="150"/>' + pegs + '</g>' +
       '<g class="hub" data-act="sp-go" aria-hidden="true"><circle class="sp-hub" r="30"/><text class="sp-hub-t" text-anchor="middle" dominant-baseline="central">轉</text></g>' +
       '<g id="sp-ptr"><path class="sp-ptr" d="M-12 -166L12 -166L0 -134Z"/><circle class="sp-pin" cy="-164" r="5"/></g></svg>';
   }
   /* ---- 抽籤筒 ---- */
-  function spTubeSVG(w) {
-    var n = Math.min(w.options.length, 9), sticks = "";
+  function spTubeSVG(opts) {
+    var n = Math.min(opts.length, 9), sticks = "";
     for (var i = 0; i < n; i++) {
       var x = 76 + i * (88 / Math.max(1, n - 1 || 1)) - 4.5, top = 22 + ((i * 37) % 5) * 7;
       sticks += '<g class="sp-st"><rect class="sp-stick" x="' + x.toFixed(1) + '" y="' + top + '" width="9" height="190" rx="4"/><rect class="sp-stick-tip" x="' + (x + 1).toFixed(1) + '" y="' + (top + 1) + '" width="7" height="13" rx="3"/></g>';
     }
-    return '<svg viewBox="0 -48 240 296" role="img" aria-label="抽籤筒，裡面有 ' + w.options.length + ' 支籤">' +
+    return '<svg viewBox="0 -48 240 296" role="img" aria-label="抽籤筒，裡面有 ' + opts.length + ' 支籤">' +
       '<defs><clipPath id="sp-inside"><rect x="0" y="-200" width="240" height="430"/></clipPath></defs>' +
       '<g id="sp-tube" style="transform-origin:120px 240px">' +
         '<ellipse class="sp-tube-back" cx="120" cy="92" rx="62" ry="16"/>' +
@@ -2890,20 +2912,52 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       '</g></svg>';
   }
 
+  /* 轉盤、按鈕和選項數會隨著打字更新，所以分開畫 */
+  function spStageHTML(o) {
+    var mode = spModeFor(o);
+    return '<div class="sp-stage ' + mode + '">' + (mode === "wheel" ? spWheelSVG(o) : spTubeSVG(o)) + '</div>' +
+      '<button type="button" class="btn primary sp-go" data-act="sp-go"' + (SP.running || o.length < 2 ? ' disabled' : '') + '>' +
+        (SP.running ? '七七思考中…' : o.length < 2 ? '最少要兩個選項' : mode === "wheel" ? '轉一下' : '搖一搖') + '</button>' +
+      '<div class="seg ink sp-mode" role="group" aria-label="抽法">' +
+        '<button type="button" data-act="sp-mode" data-v="wheel" aria-pressed="' + (mode === "wheel") + '"' + (spWheelOk(o) ? '' : ' disabled') + '>轉盤</button>' +
+        '<button type="button" data-act="sp-mode" data-v="tube" aria-pressed="' + (mode === "tube") + '">抽籤筒</button></div>' +
+      (spWheelOk(o) ? '' : '<p class="note" style="margin-top:6px;text-align:center">超過 16 個選項，轉盤會太擠，用抽籤筒吧。</p>');
+  }
+  function spCountHTML(o) {
+    var h = spHiddenN();
+    return o.length + ' 個選項' + (h ? '・拿走了 ' + h + ' 個 <button type="button" class="sp-link" data-act="sp-unhide">全部放回去</button>' : '');
+  }
+  function spRefresh() {
+    var o = spOpts(), st = document.getElementById("sp-live"), ct = document.getElementById("sp-count");
+    if (st) st.innerHTML = spStageHTML(o);
+    if (ct) ct.innerHTML = spCountHTML(o);
+  }
+  function spInput(k, v) {
+    if (k === "title") SP.title = v.slice(0, 20);
+    if (k === "text") { SP.text = v; SP.undecided = false; SP.appeals = 0; }
+    spStore();
+    if (k === "text" && !SP.running) spRefresh();
+  }
+  function spPresetList() {
+    return SP_PRESETS.map(function (p) { return { id: p.id, title: p.title, n: p.options.length, mine: false }; })
+      .concat(SP.saved.map(function (s) { return { id: s.id, title: s.title, n: s.text.split(/\n/).filter(function (l) { return l.trim(); }).length, mine: true }; }));
+  }
   function viewSpin() {
-    var L = spList(), w = spCur(), mode = spModeFor(w), n = w.options.length;
-    var chips = '<div class="sp-chips chips" role="group" aria-label="籤筒">' + L.map(function (x) {
-      return '<button type="button" class="chip" data-act="sp-pick" data-v="' + esc(x.key) + '" aria-pressed="' + (x.key === w.key) + '">' + esc(x.title) + '</button>';
-    }).join('') + '<button type="button" class="chip add" data-act="sp-new">＋ 新籤筒</button></div>';
-    var seg = '<div class="seg ink sp-mode" role="group" aria-label="抽法">' +
-      '<button type="button" data-act="sp-mode" data-v="wheel" aria-pressed="' + (mode === "wheel") + '"' + (spWheelOk(w) ? '' : ' disabled') + '>轉盤</button>' +
-      '<button type="button" data-act="sp-mode" data-v="tube" aria-pressed="' + (mode === "tube") + '">抽籤筒</button></div>';
-    var stage = '<div class="sp-stage ' + mode + '">' + (mode === "wheel" ? spWheelSVG(w) : spTubeSVG(w)) + '</div>';
+    var o = spOpts();
+    var pre = SP.showPre ? '<div class="sp-pre" id="sp-pre">' + spPresetList().map(function (p) {
+        return '<div class="sp-pre-row"><button type="button" class="sp-pre-btn" data-act="sp-load" data-v="' + esc(p.id) + '"><b>' + esc(p.title) + '</b><small>' + p.n + ' 個</small></button>' +
+          (p.mine ? '<button type="button" class="sp-pre-x" aria-label="刪除「' + esc(p.title) + '」" data-act="sp-unsave" data-v="' + esc(p.id) + '">' + I.close + '</button>' : '') + '</div>';
+      }).join('') +
+      '<button type="button" class="sp-link sp-pre-save" data-act="sp-store">＋ 把現在的清單存成預設</button></div>' : '';
     return hd("七七來決定", "選不了的事，交給七七", ["home", "回到首頁"]) +
-      doc(chips + seg + (spWheelOk(w) ? '' : '<p class="note" style="margin-top:6px">選項超過 16 個，轉盤會太擠，用抽籤筒吧。</p>') + stage +
-        '<button type="button" class="btn primary sp-go" data-act="sp-go"' + (SP.running ? ' disabled' : '') + '>' + (SP.running ? '七七思考中…' : mode === "wheel" ? '轉一下' : '搖一搖') + '</button>' +
-        '<div class="sp-meta"><span>「' + esc(w.title) + '」有 ' + n + ' 個選項</span><button type="button" data-act="sp-edit">修改籤筒</button></div>' +
-        '<p class="note" style="margin-top:12px;text-align:center">籤筒只存在這部手機，判決不會記錄，抽完就算。</p>', "one");
+      doc('<label class="sp-title-lab"><span class="tk-k">案由</span><input class="sp-title" data-bind-sp="title" maxlength="20" placeholder="要決定什麼？（可不填）" value="' + esc(SP.title) + '"></label>' +
+        '<div id="sp-live">' + spStageHTML(o) + '</div>' +
+        RULE2 +
+        '<div class="sp-opts-h"><label for="sp-text" class="lab-t">選項（一行一個）</label>' +
+          '<button type="button" class="sp-pre-tog" data-act="sp-presets" aria-expanded="' + SP.showPre + '" aria-controls="sp-pre">預設清單<span aria-hidden="true">' + (SP.showPre ? '▴' : '▾') + '</span></button></div>' +
+        pre +
+        '<textarea id="sp-text" class="field sp-text" rows="6" data-bind-sp="text" placeholder="' + esc("例如：\n拉麵\n火鍋\n壽司") + '">' + esc(SP.text) + '</textarea>' +
+        '<p class="note sp-count" id="sp-count">' + spCountHTML(o) + '</p>', "one");
   }
 
   /* ---- 抽 ---- */
@@ -2914,20 +2968,23 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   }
   function spGo() {
     if (SP.running || UI.tab !== "spin") return;
-    var w = spCur(), n = w.options.length; if (n < 1) return;
-    if (SP.undecided && SP.lastKey === w.key) SP.appeals++; else SP.appeals = 0;
-    var k = spRand(n), res = { key: w.key, preset: w.preset, title: w.title, result: spOpt(w.options[k]), appeals: SP.appeals, same: SP.appeals > 0 && spOpt(w.options[k]) === SP.lastResult, mark: null };
-    SP.lastKey = w.key; SP.lastResult = res.result; SP.undecided = true;
+    var o = spOpts(), n = o.length; if (n < 2) return;
+    var key = o.join("\n");
+    if (SP.undecided && SP.lastKey === key) SP.appeals++; else SP.appeals = 0;
+    var k = spRand(n), result = spOpt(o[k]);
+    var res = { title: SP.title.trim() || "抽一個", opt: o[k], result: result, appeals: SP.appeals, same: SP.appeals > 0 && result === SP.lastResult, left: n, mark: null };
+    SP.lastKey = key; SP.lastResult = result; SP.undecided = true;
     SP.running = true;
     var b = document.querySelector('.sp-go'); if (b) { b.disabled = true; b.textContent = "七七思考中…"; }
+    var mode = spModeFor(o);
     var done = function () {
       SP.running = false; SP.raf = 0; SP.anims = [];
       if (UI.tab !== "spin") return;
       if (SP.dirty) { SP.dirty = false; render(true); }
-      var bb = document.querySelector('.sp-go'); if (bb) { bb.disabled = false; bb.textContent = spModeFor(w) === "wheel" ? "轉一下" : "搖一搖"; }
+      var bb = document.querySelector('.sp-go'); if (bb) { bb.disabled = false; bb.textContent = mode === "wheel" ? "轉一下" : "搖一搖"; }
       openSheet("spinres", res);
     };
-    if (spModeFor(w) === "wheel") spSpinWheel(n, k, done); else spShakeTube(res.result, done);
+    if (mode === "wheel") spSpinWheel(n, k, done); else spShakeTube(result, done);
   }
   function spSpinWheel(n, k, done) {
     var seg = 360 / n, jit = (spRand(1000) / 1000 - 0.5) * 0.7;
@@ -2989,8 +3046,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
   /* ---- 判決書 ---- */
   function sheetSpinRes() {
-    var f = UI.form, op = nm(other(S.me)), now = new Date();
-    var calOk = f.preset === "date" || !f.preset;
+    var f = UI.form, now = new Date();
     var apNote = f.appeals ? '上訴第 ' + f.appeals + ' 次' + (f.same ? '・七七維持原判。' : f.appeals >= 3 ? '・七七：本庭耐性有限。' : '') : '';
     var paper = '<div class="sp-paper"><div class="sp-ph"><b>判決書</b><span>' + (now.getMonth() + 1) + '/' + now.getDate() + '</span></div>' +
       '<div class="sp-pb">' + qq("sp-qq", "") +
@@ -2999,9 +3055,10 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
         (apNote ? '<span class="sp-ap">' + apNote + '</span>' : '') +
         (f.mark ? '<span class="mark ' + f.mark[1] + '">' + f.mark[0] + '</span>' : '') + '</div></div>';
     var acts = '<div class="sp-acts">' +
-      '<button type="button" class="btn primary" data-act="sp-ok"' + busyAttr(true) + '>就這樣決定</button>' +
-      (calOk ? '<button type="button" class="btn" data-act="sp-ok-cal"' + busyAttr(true) + '>決定，並加到日曆</button>' : '') +
-      '<button type="button" class="btn flat" data-act="sp-appeal"' + busyAttr(true) + '>不服，上訴再抽</button></div>' +
+      '<button type="button" class="btn primary" data-act="sp-ok">就這樣決定</button>' +
+      '<div class="grid2"><button type="button" class="btn sm" data-act="sp-appeal">不服，上訴再抽</button>' +
+        (f.left > 2 ? '<button type="button" class="btn sm" data-act="sp-drop">拿走這個，再抽</button>' : '<button type="button" class="btn sm" data-act="sp-ok-cal">決定，加到日曆</button>') + '</div>' +
+      (f.left > 2 ? '<button type="button" class="pop-close" style="margin-top:-4px" data-act="sp-ok-cal">決定，並加到日曆</button>' : '') + '</div>' +
       POP_CLOSE;
     return popWrap("七七判決", paper + hideIf(!!f.mark, acts));
   }
@@ -3015,60 +3072,34 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       if (withCal) openSheet("event", { title: f.result }); else renderLayer();
     }, calm() ? 350 : 1100);
   }
-
-  /* ---- 新增／修改籤筒 ---- */
-  function spFormInit(key) {
-    var w = key ? spList().filter(function (x) { return x.key === key; })[0] : null;
-    if (!w) return { key: "", id: "", preset: "", saved: false, wtitle: "", wopts: "", confirmDel: false, error: "" };
-    return { key: w.key, id: w.id, preset: w.preset, saved: w.saved, wtitle: w.title, wopts: w.options.map(spOpt).join("\n"), confirmDel: false, error: "" };
-  }
-  /* 寫兩個人的名字會存成 @a / @b，之後改名也會跟著變 */
-  function spLines(f) {
-    var seen = {}, out = [], a = nm("a"), b = nm("b");
-    String(f.wopts || "").split(/\n/).forEach(function (l) {
-      l = l.trim().slice(0, 20); if (!l) return;
-      var v = a && b && a !== b ? (l === a ? "@a" : l === b ? "@b" : l) : l;
-      if (seen[v]) return; seen[v] = 1; out.push(v);
-    });
-    return out;
-  }
-  function spFormReady(f) { var n = spLines(f).length; return !!String(f.wtitle || "").trim() && n >= 2 && n <= 30; }
-  function spCountText(f) { var n = spLines(f).length; return n < 2 ? "最少要兩個選項（現在 " + n + " 個）" : n > 30 ? "最多 30 個（現在 " + n + " 個）" : "共 " + n + " 個選項"; }
-  function sheetWheel() {
-    var f = UI.form, isNew = !f.key, preset = SP_PRESETS.filter(function (p) { return p.preset === f.preset; })[0];
-    var del = "";
-    if (f.preset && f.saved) del = '<button type="button" class="btn flat sm" data-act="sp-del"' + busyAttr(true) + '>還原成原本的選項</button>';
-    else if (!isNew && !f.preset) del = f.confirmDel
-      ? '<div class="pop-box"><p class="note">確定要刪除「' + esc(f.wtitle) + '」這個籤筒？</p><div class="grid2"><button type="button" class="btn" data-act="sp-del-cancel">不刪了</button><button type="button" class="btn danger" data-act="sp-del"' + busyAttr(true) + '>確定刪除</button></div></div>'
-      : '<button type="button" class="btn flat sm danger" data-act="sp-del-ask">刪除這個籤筒</button>';
-    return sheetWrap(isNew ? "開一個新籤筒" : "修改籤筒",
-      '<label class="lab">籤筒名稱<input id="w-title" class="field" maxlength="20" data-bind="wtitle" value="' + esc(f.wtitle || "") + '" placeholder="例如：誰洗碗、週末做什麼"></label>' +
-      '<label class="lab">選項（一行一個）<textarea id="w-opts" class="field" rows="8" data-bind="wopts" placeholder="' + esc("例如：\n看電影\n去海邊\n在家煲劇") + '">' + esc(f.wopts || "") + '</textarea></label>' +
-      '<p class="note" id="w-count" style="margin-top:-6px">' + spCountText(f) + '</p>' +
-      '<p class="note" style="margin-top:-6px">寫上「' + esc(nm("a")) + '」或「' + esc(nm("b")) + '」，改名後也會跟著更新。' + '籤筒只存在這部手機。' + '</p>' +
-      (f.error ? '<p class="err" role="alert">' + esc(f.error) + '</p>' : '') +
-      '<button type="button" class="btn primary" data-act="sp-save"' + (spFormReady(f) ? '' : ' disabled') + '>' + (isNew ? '開籤筒' : '儲存') + '</button>' + del);
-  }
-  function spDone(msg) { SP.undecided = false; SP.appeals = 0; spStore(); UI.sheet = null; UI.form = {}; render(); toast(msg); }
-  function spSave() {
-    var f = UI.form; if (!spFormReady(f)) return;
-    var title = String(f.wtitle).trim().slice(0, 20), opts = spLines(f).slice(0, 30), id = f.id;
-    if (id) SP.wheels.forEach(function (w) { if (w.id === id) { w.title = title; w.options = opts; } });
-    else {
-      id = "w" + Date.now().toString(36) + spRand(1e6).toString(36);
-      SP.wheels.push({ id: id, preset: f.preset || "", title: title, options: opts });
-      if (!f.preset) { SP.sel = id; lsSet("meow-spin-sel", id); }
-    }
-    spDone(f.key ? "籤筒已更新" : "新籤筒開好了");
-  }
-  function spDelete() {
-    var f = UI.form; if (!f.id) return;
-    SP.wheels = SP.wheels.filter(function (w) { return w.id !== f.id; });
-    if (!f.preset) { SP.sel = "food"; lsSet("meow-spin-sel", "food"); }
-    spDone(f.preset ? "已還原成原本的選項" : "籤筒已刪除");
+  /* 拿走抽中的這個，用剩下的再抽（不算上訴） */
+  function spDrop() {
+    var f = UI.form;
+    if (f.opt && SP.hidden.indexOf(f.opt) < 0) SP.hidden.push(f.opt);
+    SP.undecided = false; SP.appeals = 0; spStore();
+    UI.sheet = null; UI.form = {}; render();
+    setTimeout(spGo, 250);
   }
 
-  var SHEETS = { spinres: sheetSpinRes, wheel: sheetWheel, newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView, event: sheetEvent, eventview: sheetEventView };
+  /* ---- 預設清單 ---- */
+  function spLoadPreset(id) {
+    var p = SP_PRESETS.filter(function (x) { return x.id === id; })[0], s = SP.saved.filter(function (x) { return x.id === id; })[0];
+    if (!p && !s) return;
+    SP.title = p ? p.title : s.title;
+    SP.text = p ? p.options.map(spOpt).join("\n") : s.text;
+    SP.hidden = []; SP.showPre = false; SP.undecided = false; SP.appeals = 0;
+    spStore(); render(); toast("換成「" + SP.title + "」");
+  }
+  function spSaveList() {
+    if (spAll().length < 2) { toast("最少要兩個選項才能存"); return; }
+    var title = SP.title.trim() || "我的清單 " + (SP.saved.length + 1), ex = SP.saved.filter(function (x) { return x.title === title; })[0];
+    if (ex) ex.text = SP.text;
+    else { if (SP.saved.length >= 30) { toast("最多存 30 個清單"); return; } SP.saved.push({ id: "s" + Date.now().toString(36) + spRand(1e6).toString(36), title: title, text: SP.text }); }
+    spStore(); render(); toast(ex ? "已更新「" + title + "」" : "已存進預設清單");
+  }
+  function spUnsave(id) { SP.saved = SP.saved.filter(function (x) { return x.id !== id; }); spStore(); render(); toast("已從預設清單刪除"); }
+
+  var SHEETS = { spinres: sheetSpinRes, newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView, event: sheetEvent, eventview: sheetEventView };
   function renderLayer() {
     var s = UI.sheet, html = "";
     if (auth && S.loaded && S.paired && SHEETS[s]) html = SHEETS[s]();
@@ -3107,7 +3138,6 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
         : { mode: "new", kind: "ours", title: (extra && extra.title) || "", start: (extra && extra.date) || dflt, end: "", at: "", yearly: false, note: "", error: "" };
     }
     if (name === "eventview") f = { id: extra && extra.id, confirmDel: false };
-    if (name === "wheel") f = spFormInit(extra && extra.key);
     if (UI.sheet === "memory" && UI.form && UI.form.preview && UI.form !== f) URL.revokeObjectURL(UI.form.preview);
     UI.sheet = name; UI.form = f; renderLayer();
     var first = document.querySelector("#layer .sheet, #layer .pop");
@@ -3311,24 +3341,25 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       case "mem-del-ask": f.confirmDel = true; renderLayer(); break;
       case "mem-del-cancel": f.confirmDel = false; renderLayer(); break;
       case "mem-del": deleteMemory(id); break;
-      case "sp-pick": if (!SP.running) { SP.sel = v; lsSet("meow-spin-sel", v); SP.undecided = false; SP.appeals = 0; render(); } break;
       case "sp-mode": if (!SP.running) { SP.mode = v; lsSet("meow-spin-mode", v); render(); } break;
       case "sp-go": spGo(); break;
       case "sp-appeal": UI.sheet = null; UI.form = {}; renderLayer(); spGo(); break;
       case "sp-ok": spDecide(false); break;
       case "sp-ok-cal": spDecide(true); break;
-      case "sp-new": if (!SP.running) openSheet("wheel", { key: "" }); break;
-      case "sp-edit": if (!SP.running) openSheet("wheel", { key: SP.sel }); break;
-      case "sp-save": spSave(); break;
-      case "sp-del-ask": f.confirmDel = true; renderLayer(); break;
-      case "sp-del-cancel": f.confirmDel = false; renderLayer(); break;
-      case "sp-del": spDelete(); break;
+      case "sp-drop": spDrop(); break;
+      case "sp-unhide": SP.hidden = []; SP.undecided = false; spStore(); if (!SP.running) spRefresh(); break;
+      case "sp-presets": if (!SP.running) { SP.showPre = !SP.showPre; render(); } break;
+      case "sp-load": if (!SP.running) spLoadPreset(v); break;
+      case "sp-store": if (!SP.running) spSaveList(); break;
+      case "sp-unsave": if (!SP.running) spUnsave(v); break;
     }
   });
 
   function setAmt(id, v) { var el = document.getElementById(id); if (el) el.value = v; }
   document.addEventListener("input", function (e) {
-    var el = e.target, nk = el.getAttribute("data-bind-num");
+    var el = e.target, spk = el.getAttribute("data-bind-sp");
+    if (spk) { spInput(spk, el.value); return; }
+    var nk = el.getAttribute("data-bind-num");
     if (nk) { var n = Math.max(0, Math.min(100000, Number(el.value) || 0)); UI.form[nk] = Math.round(n * 100) / 100; return; }
     var lk = el.getAttribute("data-bind-login");
     if (lk) { UI.login[lk] = el.value; return; }
@@ -3344,10 +3375,6 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (need) { var b = document.querySelector('[data-act="' + need + '"]'); if (b) b.disabled = UI.busy || !el.value.trim(); }
     if (UI.sheet === "memory") { var mb = document.querySelector('[data-act="mem-submit"]'); if (mb) mb.disabled = UI.busy || !memReady(UI.form); }
     if (UI.sheet === "event") { var eb = document.querySelector('[data-act="ev-submit"]'); if (eb) eb.disabled = UI.busy || !evReady(UI.form); }
-    if (UI.sheet === "wheel") {
-      var wb = document.querySelector('[data-act="sp-save"]'); if (wb) wb.disabled = UI.busy || !spFormReady(UI.form);
-      var wn = document.getElementById("w-count"); if (wn) wn.textContent = spCountText(UI.form);
-    }
     if (UI.sheet === "request") { var qb = document.querySelector('[data-act="submit-request"]'); if (qb) qb.disabled = UI.busy || !reqReady(UI.form); }
     if (UI.sheet === "reward") {
       var btn = document.querySelector('[data-act="submit-reward"]');
