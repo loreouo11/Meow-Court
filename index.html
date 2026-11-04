@@ -535,6 +535,17 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 .mem-cell { position: relative; aspect-ratio: 1; padding: 0; overflow: hidden; border-radius: 12px; border: 2px solid var(--line); background: var(--surface-2); }
 .mem-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .mem-cell span { position: absolute; left: 4px; bottom: 4px; padding: 1px 6px; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff; font-family: var(--num); font-size: 11px; }
+.good-mem .memo-th { flex: none; width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--line); background: #FFF0C2; display: grid; place-items: center; overflow: hidden; }
+.good-mem .memo-th img { width: 30px; height: auto; border: 0; background: none; border-radius: 0; }
+.good li:has(> .good-mem) { align-items: center; }
+.big-tag { margin-right: 4px; padding: 0 6px; border-radius: 999px; background: #FFD15C; color: #3B2A33; font-size: 11px; font-weight: 700; vertical-align: 1px; }
+.mem-cell.memo { display: grid; place-items: center; padding: 8px; background: #FFF6DA; }
+.mem-cell em { font-style: normal; font-family: var(--serif); font-size: 13px; line-height: 17px; color: #3B2A33; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; text-align: center; }
+.big-star { position: absolute; right: 4px; top: 3px; color: #FFD15C; font-style: normal; font-size: 18px; text-shadow: 0 0 2px #3B2A33, 0 0 2px #3B2A33; }
+.mem-pola .memo-art { display: grid; place-items: center; min-height: 160px; background: #FFF6DA; border: 1.5px solid #3B2A33; }
+.mem-pola .memo-art img { width: 120px; min-height: 0; max-height: none; border: 0; background: none; }
+.big-stamp { position: absolute; right: 18px; top: 18px; padding: 4px 12px; border: 3px solid #E0435B; border-radius: 8px; color: #E0435B; background: rgba(255,255,255,.75); font-family: var(--serif); font-weight: 700; font-size: 20px; letter-spacing: .2em; transform: rotate(10deg); }
+.mem-pick small { font-size: 12px; color: var(--muted); }
 .mem-pola { position: relative; padding: 10px 10px 16px; background: #FFFFFF; color: #3B2A33; border: 2.5px solid #3B2A33; border-radius: 4px; box-shadow: 4px 4px 0 #3B2A33; transform: rotate(-1deg); }
 .mem-pola img { width: 100%; max-height: 58vh; object-fit: contain; display: block; background: #F4EFEA; border: 1.5px solid #3B2A33; min-height: 120px; }
 .mem-pola .d { margin-top: 10px; font-family: "Fredoka", sans-serif; font-size: 13px; color: #7A5F6B; }
@@ -866,6 +877,10 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var c = PHOTO[path], src = c && c.exp > Date.now() ? c.url : "";
     return '<img class="' + (cls || "") + '" data-mpath="' + esc(path) + '"' + (src ? ' src="' + esc(src) + '"' : '') + ' alt="' + esc(alt || "") + '" loading="lazy" decoding="async">';
   }
+  /* 有相片就用相片；只寫了一句的回憶用七七小卡 */
+  function memThumb(m, alt) {
+    return m.path ? photoImg(m.path, "", alt) : '<span class="memo-th" aria-hidden="true"><img src="' + QQ + '" alt=""></span>';
+  }
   var hydrating = false;
   function hydratePhotos() {
     var imgs = [].slice.call(document.querySelectorAll("img[data-mpath]:not([src])"));
@@ -889,7 +904,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) { var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); });
   }
-  /* 上載前先壓細：最長邊 1600px、JPEG */
+  /* 上載前先壓細：最長邊 1440px、JPEG */
   function loadImgEl(file) {
     return new Promise(function (ok, bad) {
       var url = URL.createObjectURL(file), im = new Image();
@@ -901,7 +916,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   function compressPhoto(file) {
     var get = window.createImageBitmap ? createImageBitmap(file, { imageOrientation: "from-image" }).catch(function () { return loadImgEl(file); }) : loadImgEl(file);
     return get.then(function (src) {
-      var w = src.width, h = src.height, k = Math.min(1, 1600 / Math.max(w, h));
+      var w = src.width, h = src.height, k = Math.min(1, 1440 / Math.max(w, h));
       var cv = document.createElement("canvas"); cv.width = Math.round(w * k); cv.height = Math.round(h * k);
       var cx = cv.getContext("2d"); cx.fillStyle = "#FFFFFF"; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(src, 0, 0, cv.width, cv.height);
       if (src.close) try { src.close(); } catch (e) {}
@@ -913,7 +928,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var f = UI.form; if (UI.busy) return;
     if (f.mode === "edit") {
       UI.busy = true; toast("儲存中…", true); renderLayer();
-      sb.rpc("edit_memory", { id: f.id, caption: f.caption || "", taken: f.date || "" }).then(function (r) {
+      sb.rpc("edit_memory", { id: f.id, caption: f.caption || "", taken: f.date || "", big: !!f.big }).then(function (r) {
         var bad = rpcResult(r); if (bad) return memFail(bad.error);
         if (!r.data || !r.data.ok) return memFail(r.data && r.data.error);
         UI.busy = false; setMemories(r.data.memories);
@@ -921,10 +936,10 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       }).catch(function () { memFail("連線失敗，請檢查網絡後再試"); });
       return;
     }
-    if (!f.file) return;
-    UI.busy = true; toast("上載中…", true); renderLayer();
+    if (!memReady(f)) return;
+    UI.busy = true; toast(f.file ? "上載中…" : "儲存中…", true); renderLayer();
     var path = "";
-    compressPhoto(f.file).then(function (blob) {
+    (f.file ? compressPhoto(f.file).then(function (blob) {
       return sb.rpc("my_couple_id").then(function (r) {
         if (r.error || !r.data) throw new Error("找不到你們的情侶空間，請重新登入");
         path = r.data + "/" + newId() + ".jpg";
@@ -932,15 +947,16 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       });
     }).then(function (u) {
       if (u.error) throw new Error("相片上載失敗，請再試一次");
-      return sb.rpc("add_memory", { path: path, caption: f.caption || "", taken: f.date || "" });
+    }) : Promise.resolve()).then(function () {
+      return sb.rpc("add_memory", { path: path, caption: f.caption || "", taken: f.date || "", big: !!f.big });
     }).then(function (r) {
       if (r.error || !r.data || !r.data.ok) {
-        sb.storage.from(MEM_BUCKET).remove([path]).catch(function () {});
+        if (path) sb.storage.from(MEM_BUCKET).remove([path]).catch(function () {});
         throw new Error((r.data && r.data.error) || "儲存失敗，請再試一次");
       }
       if (f.preview) URL.revokeObjectURL(f.preview);
       UI.busy = false; setMemories(r.data.memories);
-      UI.sheet = null; UI.form = {}; render(); toast("記下了 📷");
+      UI.sheet = null; UI.form = {}; render(); toast(f.file ? "記下了 📷" : f.big ? "記下了一件大事 ⭐" : "記下了");
     }).catch(function (err) { memFail(err && err.message); });
   }
   function deleteMemory(id) {
@@ -949,7 +965,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     sb.rpc("delete_memory", { id: id }).then(function (r) {
       var bad = rpcResult(r); if (bad) return memFail(bad.error);
       if (!r.data || !r.data.ok) return memFail(r.data && r.data.error);
-      sb.storage.from(MEM_BUCKET).remove([r.data.path]).catch(function () {});
+      if (r.data.path) sb.storage.from(MEM_BUCKET).remove([r.data.path]).catch(function () {});
       UI.busy = false; setMemories(r.data.memories);
       UI.sheet = S.memories.length ? "memories" : null; UI.form = {}; render(); toast("已刪除");
     }).catch(function () { memFail("連線失敗，請檢查網絡後再試"); });
@@ -1250,8 +1266,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       });
       S.cards.forEach(function (c) { ev.push({ ts: c.ts, t: (c.from === S.me ? '你' : esc(nm(c.from)) + ' ') + '送了' + esc(c.owner === S.me ? '你' : nm(c.owner)) + '一張「' + esc(c.title) + '」' }); });
       S.memories.forEach(function (m) {
-        ev.push({ ts: m.date + "T23:59:59", sort: m.date + "T23:59:59|" + m.ts, d: m.date, h: '<button type="button" class="good-mem" data-act="mem-open" data-id="' + esc(m.id) + '">' + photoImg(m.path, "", "") +
-          '<span>' + (m.caption ? esc(m.caption) : (m.by === S.me ? '你' : esc(nm(m.by)) + ' ') + '記下了一張相片') + '</span></button>' });
+        ev.push({ ts: m.date + "T23:59:59", sort: m.date + "T23:59:59|" + m.ts, d: m.date, h: '<button type="button" class="good-mem' + (m.big ? ' big' : '') + '" data-act="mem-open" data-id="' + esc(m.id) + '">' + memThumb(m, "") +
+          '<span>' + (m.big ? '<b class="big-tag">大事</b>' : '') + (m.caption ? esc(m.caption) : (m.by === S.me ? '你' : esc(nm(m.by)) + ' ') + '記下了一張相片') + '</span></button>' });
       });
       ev.sort(byNew); ev = ev.slice(0, 5);
       body = RULE2 + funds + RULE2 +
@@ -1504,24 +1520,31 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   function sheetMemory() {
     var f = UI.form, edit = f.mode === "edit";
     var pick = edit
-      ? '<div class="mem-pick has">' + photoImg(f.path, "", "") + '</div>'
+      ? (f.path ? '<div class="mem-pick has">' + photoImg(f.path, "", "") + '</div>' : '')
       : '<label class="mem-pick' + (f.preview ? ' has' : '') + '">' +
           (f.preview ? '<img src="' + esc(f.preview) + '" alt="選好的相片"><span class="mem-change">換一張</span>'
-            : '<span>' + qq("cat", "") + '點這裡選一張相片</span>') +
-          '<input id="m-file" type="file" accept="image/*" aria-label="選擇相片"></label>';
+            : '<span>' + qq("cat", "") + '點這裡選一張相片<br><small>不放相片，只寫一句也可以</small></span>') +
+          '<input id="m-file" type="file" accept="image/*" aria-label="選擇相片"></label>' +
+          (f.preview ? '<button type="button" class="link-row" style="border:0;min-height:32px;justify-content:center;font-size:14px;color:var(--muted)" data-act="mem-nophoto">不放相片</button>' : '');
     return sheetWrap(edit ? "修改回憶" : "記下回憶",
       pick +
       '<label class="lab">想說的話（可不填）<textarea id="m-cap" class="field" rows="2" maxlength="120" data-bind="caption" placeholder="例如：週末一起去看海">' + esc(f.caption || "") + '</textarea></label>' +
       '<label class="lab">日期<input id="m-date" class="field" type="date" max="' + todayHK() + '" data-bind="date" value="' + esc(f.date || "") + '"></label>' +
+      '<label class="swrow" for="m-big"><span><span>這是大事</span><span class="note">年度回顧的時間線會用星星標出來</span></span><input id="m-big" class="sw" type="checkbox" role="switch" data-bind-check="big"' + (f.big ? ' checked' : '') + '></label>' +
       (edit ? '' : '<p class="note">相片只有你們兩個人看得到。上載前會自動縮小，節省空間，也上載得更快。</p>') +
-      '<button type="button" class="btn primary" data-act="mem-submit"' + busyAttr(edit || !!f.file) + '>' + (UI.busy ? (edit ? '儲存中…' : '上載中…') : (edit ? '儲存' : '放進回憶')) + '</button>');
+      '<button type="button" class="btn primary" data-act="mem-submit"' + busyAttr(memReady(f)) + '>' + (UI.busy ? (edit || !f.file ? '儲存中…' : '上載中…') : (edit ? '儲存' : '放進回憶')) + '</button>');
+  }
+  function memReady(f) {
+    var cap = String(f.caption || "").trim() !== "";
+    return f.mode === "edit" ? (!!f.path || cap) : (!!f.file || cap);
   }
   function sheetMemories() {
     var list = S.memories;
     return sheetWrap("我們的回憶",
       '<button type="button" class="btn sm" data-act="sheet" data-sheet="memory">' + I.plusSm + '記下回憶</button>' +
       (list.length ? '<div class="mem-grid">' + list.map(function (m) {
-        return '<button type="button" class="mem-cell" data-act="mem-open" data-id="' + esc(m.id) + '" aria-label="' + esc(m.date + " " + (m.caption || "相片")) + '">' + photoImg(m.path, "", "") + '<span>' + md(m.date + "T12:00:00") + '</span></button>';
+        return '<button type="button" class="mem-cell' + (m.path ? '' : ' memo') + '" data-act="mem-open" data-id="' + esc(m.id) + '" aria-label="' + esc(m.date + " " + (m.big ? "大事 " : "") + (m.caption || "相片")) + '">' +
+          (m.path ? photoImg(m.path, "", "") : '<em>' + esc(m.caption) + '</em>') + (m.big ? '<i class="big-star" aria-hidden="true">★</i>' : '') + '<span>' + md(m.date + "T12:00:00") + '</span></button>';
       }).join('') + '</div>' : '<p class="empty-note">還沒有回憶。記下第一張相片吧。</p>'));
   }
   function sheetMemView() {
@@ -1534,7 +1557,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
           : '<div class="grid2"><button type="button" class="btn" data-act="mem-edit" data-id="' + esc(m.id) + '">修改</button><button type="button" class="btn danger" data-act="mem-del-ask">刪除</button></div>')
       : '';
     return popWrap("回憶",
-      '<div class="mem-pola">' + photoImg(m.path, "", m.caption || "相片") +
+      '<div class="mem-pola' + (m.path ? '' : ' memo') + '">' + (m.path ? photoImg(m.path, "", m.caption || "相片") : '<div class="memo-art"><img src="' + QQ + '" alt=""></div>') +
+        (m.big ? '<span class="big-stamp">大事</span>' : '') +
         '<div class="d">' + d[0] + ' 年 ' + Number(d[1]) + ' 月 ' + Number(d[2]) + ' 日</div>' +
         (m.caption ? '<p>' + esc(m.caption) + '</p>' : '') +
         '<small>' + (mine ? '你' : esc(nm(m.by))) + ' 放的</small></div>' +
@@ -1843,7 +1867,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (name === "reward") f = { kind: "cat", reason: "", ctitle: "", cdesc: "", color: "pink", icon: "heart" };
     if (name === "memory") {
       var em = extra && extra.id ? findMem(extra.id) : null;
-      f = em ? { mode: "edit", id: em.id, path: em.path, caption: em.caption, date: em.date } : { mode: "new", file: null, preview: "", caption: "", date: todayHK() };
+      f = em ? { mode: "edit", id: em.id, path: em.path, caption: em.caption, date: em.date, big: !!em.big } : { mode: "new", file: null, preview: "", caption: "", date: todayHK(), big: false };
     }
     if (name === "memview") f = { id: extra && extra.id, confirmDel: false };
     if (UI.sheet === "memory" && UI.form && UI.form.preview && UI.form !== f) URL.revokeObjectURL(UI.form.preview);
@@ -2033,6 +2057,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       case "mem-back": openSheet("memories"); break;
       case "mem-edit": openSheet("memory", { id: id }); break;
       case "mem-submit": submitMemory(); break;
+      case "mem-nophoto": if (f.preview) URL.revokeObjectURL(f.preview); f.file = null; f.preview = ""; renderLayer(); break;
       case "mem-del-ask": f.confirmDel = true; renderLayer(); break;
       case "mem-del-cancel": f.confirmDel = false; renderLayer(); break;
       case "mem-del": deleteMemory(id); break;
@@ -2055,6 +2080,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (k === "ttitle") { var tb = document.querySelector('[data-act="submit-ticket"]'); if (tb) tb.disabled = UI.busy || !ticketReady(UI.form); }
     var need = { appeal: "t-appeal", rtitle: "submit-rule" }[k];
     if (need) { var b = document.querySelector('[data-act="' + need + '"]'); if (b) b.disabled = UI.busy || !el.value.trim(); }
+    if (UI.sheet === "memory") { var mb = document.querySelector('[data-act="mem-submit"]'); if (mb) mb.disabled = UI.busy || !memReady(UI.form); }
     if (UI.sheet === "request") { var qb = document.querySelector('[data-act="submit-request"]'); if (qb) qb.disabled = UI.busy || !reqReady(UI.form); }
     if (UI.sheet === "reward") {
       var btn = document.querySelector('[data-act="submit-reward"]');
