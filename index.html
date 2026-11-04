@@ -920,6 +920,49 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 .leave-mem .mem-pola p { font-size: 13px; line-height: 18px; margin-top: 4px; }
 .leave-mem .mem-pola .d { margin-top: 4px; font-size: 11px; }
 .leave-mem .say { font-size: 14px; line-height: 21px; }
+/* ===================== 日曆 ===================== */
+.cal-top { display: flex; align-items: center; gap: 8px; }
+.cal-top h2 { flex: 1; margin: 0; font-family: var(--serif); font-size: 21px; }
+.cal-top .circle { width: 38px; height: 38px; }
+.cal-today { min-height: 34px; padding: 0 12px; border-radius: 999px; background: var(--surface); border: var(--bw) solid var(--line); color: var(--ink); font-size: 13px; }
+.cal-wk, .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.cal-wk { margin-top: 12px; text-align: center; font-size: 12px; color: var(--muted); }
+.cal-grid { margin-top: 4px; }
+.cal-d { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 48px; padding: 5px 0 4px; border-radius: 12px; background: none; border: 1.5px solid transparent; color: var(--ink); font-family: var(--num); font-size: 15px; line-height: 20px; }
+.cal-d.blank { visibility: hidden; }
+.cal-d.past { color: var(--muted); }
+.cal-d.today > b { display: grid; place-items: center; width: 26px; height: 26px; margin-top: -3px; border-radius: 50%; border: 2px solid var(--accent); }
+.cal-d[aria-pressed="true"] { background: var(--soft-accent); border-color: var(--line); }
+.cal-d b { font-weight: 600; }
+.cal-dots { display: flex; gap: 2px; height: 7px; }
+.cal-dots i, .cal-key i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid rgba(59,42,51,.55); }
+.ev-ours { background: var(--accent); } .ev-a { background: #FFD15C; } .ev-b { background: #8FD6B4; } .ev-ann { background: #fff; border-color: var(--accent) !important; }
+.cal-key { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.cal-key span { display: inline-flex; align-items: center; gap: 4px; }
+.cal-key i { display: inline-block; }
+.cal-day-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.cal-day-h .h2 { margin: 0; }
+.ev-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 0; margin: 0; background: none; border: 0; border-top: 1.5px dashed var(--dash); text-align: left; color: var(--ink); }
+.ev-row:first-of-type { border-top: 0; }
+.ev-when { flex: none; width: 52px; text-align: center; font-family: var(--num); font-size: 13px; line-height: 17px; color: var(--muted); }
+.ev-when b { display: block; font-size: 17px; line-height: 22px; color: var(--ink); }
+.ev-bar { flex: none; align-self: stretch; width: 5px; border-radius: 3px; }
+.ev-b2 { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ev-b2 .t { font-size: 16px; line-height: 22px; overflow-wrap: anywhere; }
+.ev-b2 .m { font-size: 13px; line-height: 18px; color: var(--muted); overflow-wrap: anywhere; }
+.ev-left { flex: none; font-size: 13px; color: var(--accent-ink); white-space: nowrap; }
+.cal-add { margin-top: 10px; }
+/* 首頁倒數 */
+.count-card { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: var(--surface); border: var(--bw) solid var(--line); color: var(--ink); text-align: left; }
+.count-n { flex: none; min-width: 54px; text-align: center; font-family: var(--num); font-size: 13px; color: var(--muted); line-height: 16px; }
+.count-n b { display: block; font-size: 24px; line-height: 28px; color: var(--accent-ink); }
+.count-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.count-t b { font-size: 16px; line-height: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.count-t span { font-size: 13px; color: var(--muted); }
+/* 新增／查看 */
+.ev-pop h3 { margin: 0; font-family: var(--serif); font-size: 22px; line-height: 30px; overflow-wrap: anywhere; }
+.ev-pop .ev-meta { margin: 4px 0 0; font-size: 14px; line-height: 22px; color: var(--muted); }
+.ev-pop .ev-note { margin: 8px 0 0; font-size: 15px; line-height: 24px; white-space: pre-wrap; overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -947,7 +990,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   var S = {
     style: normStyle(lsGet(STYLE_KEY)), mode: lsGet(MODE_KEY) || "auto", me: null, loaded: false, joined: false, paired: false, invite: "",
     names: { a: "", b: "" }, start: "", goals: { wedding: { name: "結婚基金", target: 1 }, travel: { name: "旅行基金", target: 1 } },
-    rules: [], tickets: [], cards: [], requests: [], memories: []
+    rules: [], tickets: [], cards: [], requests: [], memories: [], events: []
   };
   var UI = { tab: "home", sheet: null, form: {}, toast: "", busy: false, hist: "all", set: null, login: { pw: "", step: "in", error: "" }, pair: { code: "" } };
 
@@ -1028,7 +1071,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       if (res.code === "auth") { logout("登入已過期，請重新登入"); return; }
       if (res.ok) {
         applyState(res.state);
-        if (S.paired) { syncPush(); loadMemories(); }
+        if (S.paired) { syncPush(); loadMemories(); loadEvents(); }
         if (typing()) return;            // 正在打字（例如設定頁），不要重畫打斷
         if (UI.sheet && UI.sheet !== "ticket" && UI.sheet !== "use" && UI.sheet !== "vote") { render(true); } else { render(); }
       }
@@ -1241,6 +1284,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     inbox: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16v12H4z"/><path d="M7 8V5h10v3"/><path d="M9 13h6"/></svg>',
     rules: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M6 4h12v16H6zM9 9h6M9 13h6"/></svg>',
     card: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M12 9.5c-1-1.6-3.5-1-3.5 1 0 1.7 3.5 3.8 3.5 3.8s3.5-2.1 3.5-3.8c0-2-2.5-2.6-3.5-1z"/></svg>',
+    cal: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><path d="M12 17.2s-2.6-1.5-2.6-3c0-1.4 1.8-1.8 2.6-.7.8-1.1 2.6-.7 2.6.7 0 1.5-2.6 3-2.6 3z" fill="currentColor" stroke="none"/></svg>',
+    mCal: '<svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#3B2A33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="7" width="22" height="20" rx="3" fill="#FFFFFF"/><path d="M5 13h22M11 4.5v5M21 4.5v5"/><path d="M16 23.5s-3.4-2-3.4-4c0-1.8 2.4-2.4 3.4-.9 1-1.5 3.4-.9 3.4.9 0 2-3.4 4-3.4 4z" fill="#E8546E"/></svg>',
     plus: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
     plusSm: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
     dots: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/></svg>',
@@ -1418,7 +1463,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
         '<span class="bar ' + cls + '" role="img" aria-label="' + esc(g.name) + ' ' + money(v) + '，目標 ' + money(g.target) + '"><i style="width:' + Math.min(100, v / g.target * 100) + '%"></i></span></div>';
     }
     var top = '<div class="rowb"><h2 class="ttl">' + (fresh ? '本庭剛成立' : '本庭現況') + '</h2><span class="today">' + (now.getMonth() + 1) + '月' + now.getDate() + '日</span></div>' +
-      (days ? '<p class="days">在一起第 <b>' + days + '</b> 天</p>' : '');
+      (days ? '<p class="days">在一起第 <b>' + days + '</b> 天</p>' : '') + (fresh ? '' : homeCountdown());
     var funds = '<section class="funds" aria-label="基金"><div class="rowb"><h2 class="h2">我們一起存了</h2><span class="total">' + money(w + tr) + '</span></div>' +
       '<div class="fund-list">' + fund("w", gw, w) + fund("t", gt, tr) + '</div></section>';
     var body;
@@ -1463,7 +1508,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     return '<header class="hd"><div class="hd-t"><span class="pt">賴貓法庭' + I.star + '</span><span class="hd-sub">' + esc(nm("a")) + '和' + esc(nm("b")) + '</span></div>' +
         '<button type="button" class="circle" aria-label="設定" data-act="tab" data-tab="settings">' + I.dots + '</button></header>' +
       doc(top + body, "hero", qq("perch", "七七趴在公文上睡覺")) + yrEntry() +
-      '<button type="button" class="quiet" data-act="tab" data-tab="inbox">' + I.env + (n ? '案件匣裡有 ' + n + ' 件等你回覆' : '案件匣裡沒有要回覆的事') + '</button>';
+      '<button type="button" class="quiet" data-act="tab" data-tab="inbox">' + I.env + (n ? '案件匣裡有 ' + n + ' 件等你回覆' : '案件匣裡沒有要回覆的事') + '</button>' +
+      '<button type="button" class="quiet" style="margin-top:0" data-act="tab" data-tab="cards">' + I.card.replace('width="24" height="24"', 'width="20" height="20"') + '我的卡包' + (myCards(S.me).length ? '（' + myCards(S.me).length + ' 張）' : '') + '</button>';
   }
 
   function viewInbox() {
@@ -1545,7 +1591,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var me = S.me, op = nm(other(me));
     var mine = myCards(me).sort(byNew), used = myCards(me, true).sort(function (a, b) { return String(b.usedTs).localeCompare(String(a.usedTs)); });
     var given = S.cards.filter(function (c) { return c.from === me; }).sort(byNew);
-    return hd("我的卡包", esc(op) + "送你的卡都收在這裡") +
+    return hd("我的卡包", esc(op) + "送你的卡都收在這裡", ["home", "回到首頁"]) +
       (mine.length ? '<div class="gcards">' + mine.map(function (c) {
         return cardHTML(c, c.kind === "cat" ? '<span class="gc-m gc-foot">收到罰單時就能用</span>' : '<button type="button" class="btn mint sm" data-act="use-card" data-id="' + esc(c.id) + '">使用</button>');
       }).join('') + '</div>' : '<div class="empty-note mt">卡包還是空的。卡片只能由' + esc(op) + '送給你。</div>') +
@@ -1647,7 +1693,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (darkMQ.addEventListener) darkMQ.addEventListener("change", onScheme); else if (darkMQ.addListener) darkMQ.addListener(onScheme);
   }
 
-  var VIEWS = { home: viewHome, inbox: viewInbox, history: viewHistory, rules: viewRules, cards: viewCards, settings: viewSettings };
+  var VIEWS = { home: viewHome, inbox: viewInbox, history: viewHistory, rules: viewRules, cards: viewCards, cal: viewCal, settings: viewSettings };
   function loadingView() { return '<div class="loading">' + qq("", "") + '<span>載入中…</span></div>'; }
   function render(keepLayer) {
     applyLook();
@@ -1663,8 +1709,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var cur = UI.tab === "history" ? "inbox" : UI.tab;
     var tabs = '<div class="tabbar"><nav aria-label="主選單">' +
       tabBtn("home", I.home, "首頁", cur) + tabBtn("inbox", I.inbox, "案件匣", cur, inboxTodo() > 0) +
-      '<button type="button" class="fab-btn" aria-label="新增：開罰單、遞申請書、送卡或記下回憶" data-act="sheet" data-sheet="newmenu"><span class="fab">' + I.plus + '</span>新增</button>' +
-      tabBtn("rules", I.rules, "法規", cur) + tabBtn("cards", I.card, "卡包", cur) +
+      '<button type="button" class="fab-btn" aria-label="新增：開罰單、遞申請書、送卡、記下回憶或加到日曆" data-act="sheet" data-sheet="newmenu"><span class="fab">' + I.plus + '</span>新增</button>' +
+      tabBtn("rules", I.rules, "法規", cur) + tabBtn("cal", I.cal, "日曆", cur) +
       '</nav></div>';
     app.className = "app";
     app.innerHTML = (VIEWS[UI.tab] || viewHome)() + tabs;
@@ -1695,7 +1741,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       opt("new", "#E8546E", I.mTicket, "開罰單", "罰" + esc(op) + "，或是自己自首") +
       opt("request", "#FFE0E5", I.mReq, "遞申請書", "抱抱、親親、想吃的東西") +
       opt("reward", "#FFD15C", I.mCard, "送一張卡", "賴貓卡，或是自己設計的卡") +
-      opt("memory", "#CDEFE0", I.mPhoto, "記下回憶", "放一張相片，寫一句話"));
+      opt("memory", "#CDEFE0", I.mPhoto, "記下回憶", "放一張相片，寫一句話") +
+      opt("event", "#E1EFFC", I.mCal, "加到日曆", "約會、我的行程、生日"));
   }
 
   function sheetMemory() {
@@ -2518,7 +2565,192 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     return '<div class="leave-mem">' + yrPola(x) + '<span class="say">七七從卷宗裡找到了這一刻。</span></div>';
   }
 
-  var SHEETS = { newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView };
+
+  /* ===================== 日曆 =====================
+     「我們的約會」兩個人都可以改；「我的行程」讓對方知道，只有自己可以改。
+     週年和每一百天由在一起的日子自動算出來。 */
+  var evKey = "";
+  function loadEvents() {
+    return sb.rpc("get_events").then(function (r) {
+      if (r.error || !Array.isArray(r.data)) return;
+      var k = JSON.stringify(r.data);
+      if (k === evKey) return;
+      evKey = k; S.events = r.data;
+      if (typing()) return;
+      if (UI.sheet && UI.sheet !== "eventview") render(true); else render();
+    }).catch(function () {});
+  }
+  function setEvents(list) { S.events = list || []; evKey = JSON.stringify(S.events); }
+  function findEv(id) { return S.events.filter(function (e) { return e.id === id; })[0]; }
+  function evCanEdit(e) { return e.kind === "ours" || e.by === S.me; }
+  function dayDiff(a, b) { return Math.round((new Date(b + "T00:00:00Z") - new Date(a + "T00:00:00Z")) / 864e5); }
+  function leap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+  /* 每年重複：2 月 29 日在平年放在 2 月 28 日 */
+  function yearlyOn(start, d) {
+    var y = +d.slice(0, 4); if (y <= +start.slice(0, 4)) return false;
+    var md = start.slice(5);
+    if (md === "02-29" && !leap(y)) md = "02-28";
+    return d.slice(5) === md;
+  }
+  function evOn(e, d) {
+    if (e.yearly) return d === e.start || yearlyOn(e.start, d);
+    return d >= e.start && d <= (e.end || e.start);
+  }
+  function evColor(e) { return e.kind === "ours" ? "ev-ours" : "ev-" + e.by; }
+  function evWho(e) { return e.kind === "ours" ? "約會" : (e.by === S.me ? "我的行程" : nm(e.by) + "的行程"); }
+  function mdText(d) { return +d.slice(5, 7) + "/" + +d.slice(8, 10); }
+  function wkText(d) { return "日一二三四五六".charAt(new Date(d + "T00:00:00Z").getUTCDay()); }
+  /* 紀念日：週年、每一百天 */
+  function annOn(d) {
+    var out = [];
+    if (!S.start || d < S.start) return out;
+    if (d !== S.start && yearlyOn(S.start, d)) out.push({ ann: true, title: "在一起 " + (+d.slice(0, 4) - +S.start.slice(0, 4)) + " 週年", d: d });
+    var n = dayDiff(S.start, d) + 1;
+    if (n > 1 && n % 100 === 0) out.push({ ann: true, title: "在一起第 " + n + " 天", d: d });
+    return out;
+  }
+  function dayItems(d) {
+    var list = S.events.filter(function (e) { return evOn(e, d); }).sort(function (a, b) { return (a.at || "") < (b.at || "") ? -1 : 1; });
+    return annOn(d).concat(list);
+  }
+  /* 接下來：每件事只列下一次 */
+  function upcoming(limit, days) {
+    var today = todayHK(), out = [], i, d;
+    S.events.forEach(function (e) {
+      var next = null;
+      if (e.yearly) { for (i = 0; i <= 366 && !next; i++) { d = addDays(today, i); if (evOn(e, d)) next = d; } }
+      else if ((e.end || e.start) >= today) next = e.start < today ? today : e.start;
+      if (next && dayDiff(today, next) <= days) out.push({ e: e, d: next, now: !e.yearly && e.start < today });
+    });
+    for (i = 0; i <= days; i++) { d = addDays(today, i); annOn(d).forEach(function (a) { out.push({ e: a, d: d }); }); }
+    out.sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : (a.e.ann ? -1 : b.e.ann ? 1 : ((a.e.at || "") < (b.e.at || "") ? -1 : 1)); });
+    return out.slice(0, limit);
+  }
+  function leftText(d, now) {
+    var n = dayDiff(todayHK(), d);
+    return now ? "進行中" : n === 0 ? "今天" : n === 1 ? "明天" : "還有 " + n + " 天";
+  }
+  function evRow(it, showDate) {
+    var e = it.e, d = it.d;
+    var when = showDate ? '<span class="ev-when"><b>' + mdText(d) + '</b>週' + wkText(d) + '</span>' : '<span class="ev-when">' + (e.at ? '<b>' + esc(e.at) + '</b>' : e.ann ? '紀念日' : '全日') + '</span>';
+    var meta = e.ann ? "紀念日" : esc(evWho(e)) + (e.end ? "・" + mdText(e.start) + "–" + mdText(e.end) : "") + (e.yearly ? "・每年" : "") + (showDate && e.at ? "・" + esc(e.at) : "");
+    var inner = when + '<span class="ev-bar ' + (e.ann ? 'ev-ann' : evColor(e)) + '" aria-hidden="true"></span><span class="ev-b2"><span class="t">' + (e.ann ? '♥ ' : '') + esc(e.title) + '</span><span class="m">' + meta + '</span></span>' +
+      (showDate ? '<span class="ev-left">' + leftText(d, it.now) + '</span>' : '');
+    return e.ann ? '<div class="ev-row">' + inner + '</div>' : '<button type="button" class="ev-row" data-act="ev-open" data-id="' + esc(e.id) + '">' + inner + '</button>';
+  }
+  /* 首頁：下一件約會或紀念日（60 天內） */
+  function homeCountdown() {
+    var it = upcoming(20, 60).filter(function (x) { return x.e.ann || x.e.kind === "ours"; })[0];
+    if (!it) return "";
+    var n = dayDiff(todayHK(), it.d);
+    return '<button type="button" class="count-card" data-act="cal-go" data-v="' + it.d + '"><span class="count-n">' +
+      (it.now ? '<b>今天</b>進行中' : n === 0 ? '<b>今天</b>' : n === 1 ? '<b>明天</b>' : '還有<b>' + n + '</b>天') + '</span>' +
+      '<span class="count-t"><b>' + (it.e.ann ? '♥ ' : '') + esc(it.e.title) + '</b><span>' + mdText(it.d) + '（週' + wkText(it.d) + '）' + (it.e.at ? ' ' + esc(it.e.at) : '') + '</span></span>' + I.next + '</button>';
+  }
+
+  function calState() {
+    if (!UI.cal) { var t = todayHK(); UI.cal = { y: +t.slice(0, 4), m: +t.slice(5, 7), sel: t }; }
+    return UI.cal;
+  }
+  function viewCal() {
+    var c = calState(), today = todayHK(), first = c.y + "-" + ("0" + c.m).slice(-2) + "-01";
+    var pad = new Date(first + "T00:00:00Z").getUTCDay(), len = new Date(Date.UTC(c.y, c.m, 0)).getUTCDate(), cells = "";
+    for (var i = 0; i < pad; i++) cells += '<span class="cal-d blank" aria-hidden="true"></span>';
+    for (var dd = 1; dd <= len; dd++) {
+      var d = first.slice(0, 8) + ("0" + dd).slice(-2), items = dayItems(d), dots = {};
+      items.forEach(function (e) { dots[e.ann ? "ev-ann" : evColor(e)] = 1; });
+      var dl = Object.keys(dots).slice(0, 4);
+      cells += '<button type="button" class="cal-d' + (d === today ? ' today' : '') + (d < today ? ' past' : '') + '" aria-pressed="' + (d === c.sel) + '" data-act="cal-day" data-v="' + d + '" aria-label="' + c.m + '月' + dd + '日' + (items.length ? '，' + items.length + ' 件事' : '') + '">' +
+        '<b>' + dd + '</b><span class="cal-dots" aria-hidden="true">' + dl.map(function (k) { return '<i class="' + k + '"></i>'; }).join('') + '</span></button>';
+    }
+    var sel = c.sel, list = dayItems(sel);
+    var dayH = '<div class="cal-day-h"><h2 class="h2">' + mdText(sel) + '（週' + wkText(sel) + '）' + (sel === today ? '・今天' : '') + '</h2></div>' +
+      (list.length ? list.map(function (e) { return evRow({ e: e, d: sel }); }).join('') : '<p class="note" style="margin:4px 0 0">這一天還沒有安排。</p>') +
+      '<button type="button" class="btn sm cal-add" data-act="ev-new" data-v="' + sel + '">' + I.plusSm + '加到這一天</button>';
+    var up = upcoming(6, 120);
+    return hd("我們的日曆", "兩個人的行程、約會和紀念日都在這裡") +
+      doc('<div class="cal-top"><button type="button" class="circle" aria-label="上一個月" data-act="cal-mon" data-v="-1">' + I.back + '</button>' +
+          '<h2>' + c.y + ' 年 ' + c.m + ' 月</h2>' + (sel !== today || c.m !== +today.slice(5, 7) ? '<button type="button" class="cal-today" data-act="cal-go" data-v="' + today + '">今天</button>' : '') +
+          '<button type="button" class="circle" aria-label="下一個月" data-act="cal-mon" data-v="1">' + I.next + '</button></div>' +
+        '<div class="cal-wk" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>' +
+        '<div class="cal-grid">' + cells + '</div>' +
+        '<div class="cal-key"><span><i class="ev-ours"></i>約會</span><span><i class="ev-a"></i>' + esc(nm("a")) + '的行程</span><span><i class="ev-b"></i>' + esc(nm("b")) + '的行程</span><span><i class="ev-ann"></i>紀念日</span></div>' +
+        RULE2 + '<section aria-live="polite">' + dayH + '</section>' +
+        RULE2 + '<section aria-labelledby="up-h"><h2 class="h2" id="up-h">接下來</h2>' +
+          (up.length ? up.map(function (x) { return evRow(x, true); }).join('') : '<p class="note" style="margin:4px 0 0">接下來還沒有安排。</p>') + '</section>', "one");
+  }
+  function calMove(delta) {
+    var c = calState(), m = c.m + delta, y = c.y;
+    if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; }
+    c.y = y; c.m = m;
+    var t = todayHK();
+    c.sel = (+t.slice(0, 4) === y && +t.slice(5, 7) === m) ? t : y + "-" + ("0" + m).slice(-2) + "-01";
+    render();
+  }
+  function calGo(d) {
+    var c = calState(); c.y = +d.slice(0, 4); c.m = +d.slice(5, 7); c.sel = d;
+    if (UI.tab !== "cal") goTab("cal"); else render();
+  }
+
+  /* ---- 新增／修改 ---- */
+  function evReady(f) { return !!String(f.title || "").trim() && !!f.start && (!f.end || f.end >= f.start); }
+  function sheetEvent() {
+    var f = UI.form, edit = f.mode === "edit", lockKind = edit && f.by !== S.me, multi = f.end && f.end !== f.start;
+    return sheetWrap(edit ? "修改" : "加到日曆",
+      (lockKind ? '<p class="note" style="margin:0">這是' + esc(nm(f.by)) + '加的約會。</p>'
+        : '<div class="seg" role="group" aria-label="種類"><button type="button" aria-pressed="' + (f.kind === "ours") + '" data-act="ev-kind" data-v="ours">我們的約會</button><button type="button" aria-pressed="' + (f.kind === "mine") + '" data-act="ev-kind" data-v="mine">我的行程</button></div>' +
+          '<p class="note" style="margin:-4px 0 0">' + (f.kind === "ours" ? '兩個人都可以修改，前一天早上會提醒你們。' : '讓' + esc(nm(other(S.me))) + '知道你的安排，只有你可以修改。') + '</p>') +
+      '<label class="lab">要做什麼<input id="e-title" class="field" maxlength="40" data-bind="title" value="' + esc(f.title || "") + '" placeholder="' + (f.kind === "ours" ? '例如：一起去看海' : '例如：期末考試') + '"></label>' +
+      '<div class="grid2"><label class="lab">日期<input id="e-start" class="field" type="date" data-bind="start" value="' + esc(f.start || "") + '"></label>' +
+        '<label class="lab">到（可不填）<input id="e-end" class="field" type="date" data-bind="end" min="' + esc(f.start || "") + '" value="' + esc(f.end || "") + '"></label></div>' +
+      '<label class="lab">時間（可不填）<input id="e-at" class="field" type="time" data-bind="at" value="' + esc(f.at || "") + '"></label>' +
+      (multi ? '' : '<label class="swrow" for="e-yearly"><span><span>每年重複</span><span class="note">生日、紀念日可以選這個</span></span><input id="e-yearly" class="sw" type="checkbox" role="switch" data-bind-check="yearly"' + (f.yearly ? ' checked' : '') + '></label>') +
+      '<label class="lab">備註（可不填）<textarea id="e-note" class="field" rows="2" maxlength="200" data-bind="note" placeholder="例如：記得帶相機">' + esc(f.note || "") + '</textarea></label>' +
+      (f.error ? '<p class="err" role="alert">' + esc(f.error) + '</p>' : '') +
+      '<button type="button" class="btn primary" data-act="ev-submit"' + busyAttr(evReady(f)) + '>' + (UI.busy ? '儲存中…' : edit ? '儲存' : '放上日曆') + '</button>');
+  }
+  function submitEvent() {
+    var f = UI.form; if (UI.busy || !evReady(f)) return;
+    var args = { title: f.title.trim(), kind: f.kind, start_on: f.start, end_on: f.end || "", at: f.at || "", yearly: !!f.yearly && !(f.end && f.end !== f.start), note: f.note || "" };
+    if (f.mode === "edit") args.id = f.id;
+    UI.busy = true; f.error = ""; renderLayer();
+    sb.rpc(f.mode === "edit" ? "edit_event" : "add_event", args).then(function (r) {
+      UI.busy = false;
+      var bad = rpcResult(r); if (bad) { if (bad.code === "auth") { logout(bad.error); return; } f.error = bad.error; renderLayer(); return; }
+      if (!r.data || !r.data.ok) { f.error = (r.data && r.data.error) || "儲存失敗，請再試一次"; renderLayer(); return; }
+      setEvents(r.data.events);
+      var c = calState(); c.y = +f.start.slice(0, 4); c.m = +f.start.slice(5, 7); c.sel = f.start;
+      UI.sheet = null; UI.form = {}; toast(f.mode === "edit" ? "已修改" : "放上日曆了");
+      if (UI.tab !== "cal") goTab("cal"); else render();
+    }).catch(function () { UI.busy = false; f.error = "連線失敗，請檢查網絡後再試"; renderLayer(); });
+  }
+  function deleteEvent(id) {
+    if (UI.busy) return;
+    UI.busy = true; renderLayer();
+    sb.rpc("delete_event", { id: id }).then(function (r) {
+      UI.busy = false;
+      var bad = rpcResult(r); if (bad) { if (bad.code === "auth") { logout(bad.error); return; } toast(bad.error); renderLayer(); return; }
+      if (!r.data || !r.data.ok) { toast((r.data && r.data.error) || "刪除失敗，請再試一次"); renderLayer(); return; }
+      setEvents(r.data.events); UI.sheet = null; UI.form = {}; render(); toast("已從日曆刪除");
+    }).catch(function () { UI.busy = false; toast("連線失敗，請檢查網絡後再試"); renderLayer(); });
+  }
+  function sheetEventView() {
+    var f = UI.form, e = findEv(f.id);
+    if (!e) return popWrap("日曆", '<div class="pop-box"><p class="note">這件事已經不在日曆上了。</p><button type="button" class="btn" data-act="close">關閉</button></div>');
+    var when = e.end ? mdText(e.start) + "（週" + wkText(e.start) + "）至 " + mdText(e.end) + "（週" + wkText(e.end) + "）" : (e.yearly ? "每年 " + mdText(e.start) : e.start.slice(0, 4) + " 年 " + mdText(e.start) + "（週" + wkText(e.start) + "）");
+    var who = e.kind === "ours" ? "約會・" + (e.by === S.me ? "你" : nm(e.by)) + "加的" : evWho(e);
+    var acts = evCanEdit(e)
+      ? (f.confirmDel
+          ? '<div class="pop-box"><p class="note">確定要從日曆刪除「' + esc(e.title) + '」？</p><div class="grid2"><button type="button" class="btn" data-act="ev-del-cancel">不刪了</button><button type="button" class="btn danger" data-act="ev-del" data-id="' + esc(e.id) + '"' + busyAttr(true) + '>確定刪除</button></div></div>'
+          : '<div class="grid2"><button type="button" class="btn" data-act="ev-edit" data-id="' + esc(e.id) + '">修改</button><button type="button" class="btn danger" data-act="ev-del-ask">刪除</button></div>')
+      : '<p class="note" style="text-align:center">這是' + esc(nm(e.by)) + '的行程，只有' + esc(nm(e.by)) + '可以修改。</p>';
+    return popWrap(e.title,
+      '<div class="pop-box ev-pop"><span class="ev-bar ' + evColor(e) + '" style="display:block;width:44px;height:6px" aria-hidden="true"></span><h3>' + esc(e.title) + '</h3>' +
+        '<p class="ev-meta">' + when + (e.at ? '　' + esc(e.at) : '') + '<br>' + esc(who) + '</p>' + (e.note ? '<p class="ev-note">' + esc(e.note) + '</p>' : '') + '</div>' +
+      acts + POP_CLOSE);
+  }
+
+  var SHEETS = { newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView, event: sheetEvent, eventview: sheetEventView };
   function renderLayer() {
     var s = UI.sheet, html = "";
     if (auth && S.loaded && S.paired && SHEETS[s]) html = SHEETS[s]();
@@ -2551,6 +2783,12 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       f = em ? { mode: "edit", id: em.id, path: em.path, caption: em.caption, date: em.date, big: !!em.big } : { mode: "new", file: null, preview: "", caption: "", date: todayHK(), big: false };
     }
     if (name === "memview") f = { id: extra && extra.id, confirmDel: false };
+    if (name === "event") {
+      var ee = extra && extra.id ? findEv(extra.id) : null, cs = calState(), dflt = cs.sel >= todayHK() ? cs.sel : todayHK();
+      f = ee ? { mode: "edit", id: ee.id, by: ee.by, kind: ee.kind, title: ee.title, start: ee.start, end: ee.end, at: ee.at, yearly: !!ee.yearly, note: ee.note, error: "" }
+        : { mode: "new", kind: "ours", title: "", start: (extra && extra.date) || dflt, end: "", at: "", yearly: false, note: "", error: "" };
+    }
+    if (name === "eventview") f = { id: extra && extra.id, confirmDel: false };
     if (UI.sheet === "memory" && UI.form && UI.form.preview && UI.form !== f) URL.revokeObjectURL(UI.form.preview);
     UI.sheet = name; UI.form = f; renderLayer();
     var first = document.querySelector("#layer .sheet, #layer .pop");
@@ -2631,6 +2869,17 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     switch (act) {
       case "pick-who": pickWho(v); break;
       case "yr-open": openReview(+v); break;
+      case "cal-day": calState().sel = v; render(); break;
+      case "cal-mon": calMove(+v); break;
+      case "cal-go": UI.sheet = null; UI.form = {}; calGo(v); break;
+      case "ev-new": openSheet("event", { date: v }); break;
+      case "ev-open": openSheet("eventview", { id: id }); break;
+      case "ev-kind": f.kind = v; renderLayer(); break;
+      case "ev-submit": submitEvent(); break;
+      case "ev-edit": openSheet("event", { id: id }); break;
+      case "ev-del-ask": f.confirmDel = true; renderLayer(); break;
+      case "ev-del-cancel": f.confirmDel = false; renderLayer(); break;
+      case "ev-del": deleteEvent(id); break;
       case "pair-create": pairCall("create_couple"); break;
       case "leave-confirm":
         if ((f.confirmText || "").trim() !== "離開") { f.error = "請輸入「離開」兩個字"; renderLayer(); break; }
@@ -2763,6 +3012,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var need = { appeal: "t-appeal", rtitle: "submit-rule" }[k];
     if (need) { var b = document.querySelector('[data-act="' + need + '"]'); if (b) b.disabled = UI.busy || !el.value.trim(); }
     if (UI.sheet === "memory") { var mb = document.querySelector('[data-act="mem-submit"]'); if (mb) mb.disabled = UI.busy || !memReady(UI.form); }
+    if (UI.sheet === "event") { var eb = document.querySelector('[data-act="ev-submit"]'); if (eb) eb.disabled = UI.busy || !evReady(UI.form); }
     if (UI.sheet === "request") { var qb = document.querySelector('[data-act="submit-request"]'); if (qb) qb.disabled = UI.busy || !reqReady(UI.form); }
     if (UI.sheet === "reward") {
       var btn = document.querySelector('[data-act="submit-reward"]');
@@ -2782,6 +3032,12 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     }
     var k = e.target.getAttribute("data-bind-check");
     if (k) UI.form[k] = e.target.checked;
+    var dk = e.target.getAttribute("data-bind");
+    if (UI.sheet === "event" && (dk === "start" || dk === "end")) {
+      UI.form[dk] = e.target.value;
+      if (dk === "start" && UI.form.end && UI.form.end < UI.form.start) UI.form.end = "";
+      renderLayer();
+    }
   });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && UI.sheet && !(UI.form && (UI.form.stamping || UI.form.mark))) closeSheet(); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
