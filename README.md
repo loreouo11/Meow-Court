@@ -12,6 +12,8 @@
 - `supabase/schema.sql`：完整的資料庫設定（新專案整份貼到 SQL Editor 執行一次）
 - `supabase/00X_*.sql`：之後的更新，舊專案按順序執行
 - `supabase/007_memories.sql`：回憶（放相）：私人 Storage bucket `memories`、`memories` 表、`get_memories` / `add_memory` / `edit_memory` / `delete_memory`
+- `supabase/008_memories_big.sql`：回憶可以只寫一句不放相、可以標記「這是大事」
+- `supabase/009_year_notes.sql`：年度卷宗的寄語：`year_notes` 表、`get_year_notes` / `save_year_note`，1 月 15 日和 28 日用 pg_cron 提醒還沒寫的人
 - `supabase/functions/push`：發送手機通知的 Edge Function
 - `supabase/import_from_sheet.py`：把舊版 Google 試算表的資料搬進 Supabase
 - `next/`：測試版的舊網址，現在會自動跳回主網址
