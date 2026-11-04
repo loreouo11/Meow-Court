@@ -11,6 +11,7 @@
 - `sw.js`、`manifest.webmanifest`：加到主畫面、接收手機通知
 - `supabase/schema.sql`：完整的資料庫設定（新專案整份貼到 SQL Editor 執行一次）
 - `supabase/00X_*.sql`：之後的更新，舊專案按順序執行
+- `supabase/007_memories.sql`：回憶（放相）：私人 Storage bucket `memories`、`memories` 表、`get_memories` / `add_memory` / `edit_memory` / `delete_memory`
 - `supabase/functions/push`：發送手機通知的 Edge Function
 - `supabase/import_from_sheet.py`：把舊版 Google 試算表的資料搬進 Supabase
 - `next/`：測試版的舊網址，現在會自動跳回主網址
