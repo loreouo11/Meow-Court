@@ -1507,13 +1507,13 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       ? '<div class="mem-pick has">' + photoImg(f.path, "", "") + '</div>'
       : '<label class="mem-pick' + (f.preview ? ' has' : '') + '">' +
           (f.preview ? '<img src="' + esc(f.preview) + '" alt="選好的相片"><span class="mem-change">換一張</span>'
-            : '<span>' + qq("cat", "") + '撳這裡揀一張相片</span>') +
-          '<input id="m-file" type="file" accept="image/*" aria-label="揀相片"></label>';
+            : '<span>' + qq("cat", "") + '點這裡選一張相片</span>') +
+          '<input id="m-file" type="file" accept="image/*" aria-label="選擇相片"></label>';
     return sheetWrap(edit ? "修改回憶" : "記下回憶",
       pick +
       '<label class="lab">想說的話（可不填）<textarea id="m-cap" class="field" rows="2" maxlength="120" data-bind="caption" placeholder="例如：週末一起去看海">' + esc(f.caption || "") + '</textarea></label>' +
       '<label class="lab">日期<input id="m-date" class="field" type="date" max="' + todayHK() + '" data-bind="date" value="' + esc(f.date || "") + '"></label>' +
-      (edit ? '' : '<p class="note">相片只有你們兩個看得到。上載前會自動縮細，慳位又快。</p>') +
+      (edit ? '' : '<p class="note">相片只有你們兩個人看得到。上載前會自動縮小，節省空間，也上載得更快。</p>') +
       '<button type="button" class="btn primary" data-act="mem-submit"' + busyAttr(edit || !!f.file) + '>' + (UI.busy ? (edit ? '儲存中…' : '上載中…') : (edit ? '儲存' : '放進回憶')) + '</button>');
   }
   function sheetMemories() {
@@ -2067,7 +2067,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (e.target.id === "m-file" && UI.sheet === "memory") {
       var file = e.target.files && e.target.files[0];
       if (!file) return;
-      if (!/^image\//.test(file.type || "image/")) { toast("請揀一張相片"); return; }
+      if (!/^image\//.test(file.type || "image/")) { toast("請選擇一張相片"); return; }
       if (UI.form.preview) URL.revokeObjectURL(UI.form.preview);
       UI.form.file = file; UI.form.preview = URL.createObjectURL(file); renderLayer();
       return;
