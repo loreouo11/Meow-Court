@@ -1,6 +1,6 @@
 -- 第 9 版更新：年度卷宗的寄語。在 SQL Editor 執行一次即可，重複執行也沒關係。
 --
--- 每年 12 月 1 日至翌年 1 月 31 日（香港時間）可以寫一句給對方的寄語，封好之前可以改。
+-- 每年 12 月 1 日至翌年 1 月 31 日（香港時間）可以寫一句給對方的寄語，封存之前可以改。
 -- 1 月 31 日之後封存，誰都看不到內容；到下一年 12 月 1 日年度卷宗開放時，才一起拆開。
 -- 1 月 15 日和 1 月 28 日早上十點，會提醒還沒寫的人（只是提醒，不寫也沒關係）。
 
@@ -42,7 +42,7 @@ language sql stable set search_path = '' as $$
     'sealed', public._hk_today() > make_date(y + 1, 1, 31),
     'revealed', public._note_revealed(y),
     'count', (select count(*) from public.year_notes n where n.couple_id = cid and n.year = y),
-    -- 自己寫的：封好之前看得到、改得到
+    -- 自己寫的：封存之前看得到、改得到
     'mine', case when public._hk_today() <= make_date(y + 1, 1, 31) or public._note_revealed(y)
                  then coalesce((select n.body from public.year_notes n where n.couple_id = cid and n.year = y and n.by_slot = slot), '')
                  else '' end,
@@ -99,7 +99,7 @@ begin
        and not exists (select 1 from public.year_notes x where x.couple_id = c.id and x.year = y and x.by_slot = m.slot)
   loop
     perform public._ping(r.cid, r.slot, '✉️ ' || y || ' 年度卷宗的寄語',
-      '寄語會在 1 月 31 日封好，想寫一句給對方的話，還來得及。', x'EE5F92'::int, 'review');
+      '寄語會在 1 月 31 日封存，想寫一句給對方的話，還來得及。', x'EE5F92'::int, 'review');
     n := n + 1;
   end loop;
   return n;

@@ -2202,7 +2202,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       '<div class="yr-vstamp">賴貓<br>法庭</div><img src="' + QQ + '" alt="">';
   }
   var YR_PAGES = [{ f: yrStats, cls: "yr-pstats" }, { f: yrTimeline }, { f: yrMost }, { f: yrVerdict, end: true }];
-  /* 寄語：12 月 1 日至 1 月 31 日寫，封好之後到下一年 12 月才一起拆開 */
+  /* 寄語：12 月 1 日至 1 月 31 日寫，封存之後到下一年 12 月才一起拆開 */
   function yrNoteList(n) {
     return '<div class="yr-notes">' + n.notes.map(function (x) {
       return '<div class="yr-note"><small>' + esc(nm(x.by)) + ' 寫給 ' + esc(nm(other(x.by))) + '</small><p>' + esc(x.body) + '</p></div>';
@@ -2219,10 +2219,10 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (n.open) {
       var v = YR.draft != null ? YR.draft : n.mine, same = v.trim() === n.mine;
       return h + '<textarea data-yr-note maxlength="500" placeholder="寫給明年打開卷宗的你們">' + esc(v) + '</textarea>' +
-        '<div class="yr-nbar"><span>' + (YR.saving ? '收好中…' : n.mine ? (same ? '已放進卷宗，1 月 31 日之前都可以改。' : '改好了記得再放進去。') : '1 月 31 日封好，明年 12 月才一起拆開。') + '</span>' +
+        '<div class="yr-nbar"><span>' + (YR.saving ? '收好中…' : n.mine ? (same ? '已放進卷宗，1 月 31 日之前都可以改。' : '改好了記得再放進去。') : '1 月 31 日封存，明年 12 月才一起拆開。') + '</span>' +
         '<button type="button" data-yr="note-save"' + (same || YR.saving ? ' disabled' : '') + '>' + (n.mine && !v.trim() ? '拿出來' : '放進卷宗') + '</button></div>';
     }
-    if (n.sealed) return h + '<div class="yr-seal"><b>已封存</b>' + (n.count ? n.count + ' 封寄語已經封好，<br>' + (n.year + 1) + ' 年 12 月 1 日一起拆開。' : '這一年沒有寫寄語。') + '</div>';
+    if (n.sealed) return h + '<div class="yr-seal"><b>已封存</b>' + (n.count ? n.count + ' 封寄語已經封存，<br>' + (n.year + 1) + ' 年 12 月 1 日一起拆開。' : '這一年沒有寫寄語。') + '</div>';
     return h + '<p class="yr-seal">' + n.year + ' 年 12 月 1 日開始，<br>可以寫一句給' + esc(op) + '。</p>';
   }
   function yrNoteRefresh() {
@@ -2235,7 +2235,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var pg = YR && YR.el.querySelector(".yr-pnote"); if (!pg || !YR.note) return;
     var v = YR.draft != null ? YR.draft : YR.note.mine, same = v.trim() === YR.note.mine, b = pg.querySelector('[data-yr="note-save"]'), sp = pg.querySelector(".yr-nbar span");
     if (b) { b.disabled = same || YR.saving; b.textContent = YR.note.mine && !v.trim() ? '拿出來' : '放進卷宗'; }
-    if (sp && !YR.saving) sp.textContent = YR.note.mine ? (same ? '已放進卷宗，1 月 31 日之前都可以改。' : '改好了記得再放進去。') : '1 月 31 日封好，明年 12 月才一起拆開。';
+    if (sp && !YR.saving) sp.textContent = YR.note.mine ? (same ? '已放進卷宗，1 月 31 日之前都可以改。' : '改好了記得再放進去。') : '1 月 31 日封存，明年 12 月才一起拆開。';
   }
   function yrNoteSave() {
     var Y = YR; if (!Y || !Y.note || Y.saving) return;
