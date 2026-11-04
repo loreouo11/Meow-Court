@@ -1001,11 +1001,6 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 .sp-go { margin-top: 16px; }
 .sp-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--muted); }
 .sp-meta button { min-height: 36px; padding: 0 4px; background: none; border: 0; color: var(--link); font-size: 14px; text-decoration: underline dotted; text-underline-offset: 4px; }
-.sp-last { margin: 8px 0 0; font-size: 13px; color: var(--muted); text-align: center; }
-.sp-last b { color: var(--ink); font-weight: 600; }
-.sp-warn { margin-top: 14px; padding: 10px 12px; border-radius: 12px; border: 2px dashed var(--dash); font-size: 13px; line-height: 19px; color: var(--muted); }
-.sp-hist li .l b { font-weight: 600; }
-.sp-hist li .l small { margin-left: 6px; font-size: 13px; color: var(--muted); }
 /* 判決書：實體的紙，深色模式下也保持淺色 */
 .sp-paper { position: relative; color: #3B2A33; transform: rotate(-1deg); filter: drop-shadow(0 18px 22px rgba(20,8,14,.45)); }
 .sp-ph { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 18px; border-radius: 10px 10px 0 0; background: #FFD15C; border: 2.5px solid #3B2A33; border-bottom: 0; }
@@ -1129,7 +1124,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       if (res.code === "auth") { logout("登入已過期，請重新登入"); return; }
       if (res.ok) {
         applyState(res.state);
-        if (S.paired) { syncPush(); loadMemories(); loadEvents(); loadSpin(); }
+        if (S.paired) { syncPush(); loadMemories(); loadEvents(); }
         if (typing()) return;            // 正在打字（例如設定頁），不要重畫打斷
         if (UI.sheet && UI.sheet !== "ticket" && UI.sheet !== "use" && UI.sheet !== "vote") { render(true); } else { render(); }
       }
@@ -2818,33 +2813,23 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
 
   /* ===================== 七七來決定（轉盤／抽籤） =====================
-     籤筒兩個人共用。內建三個預設籤筒，修改了才會存一份到後台；也可以自己開新籤筒。
-     先用 crypto 隨機選好結果，動畫只是把結果「轉」出來。
-     抽完按「就這樣決定」才會記錄並通知對方；再抽一次算「上訴」。 */
+     不用後台：籤筒存在這部手機（localStorage），判決抽完就算，不記錄。
+     內建三個預設籤筒，修改了才會存一份；也可以自己開新籤筒。
+     先用 crypto 隨機選好結果，動畫只是把結果「轉」出來；再抽一次算「上訴」。 */
   var SP_PRESETS = [
     { preset: "food", title: "今晚吃什麼", options: ["拉麵", "火鍋", "壽司", "茶餐廳", "韓式烤肉", "泰國菜", "漢堡", "自己煮"] },
     { preset: "date", title: "約會去哪裡", options: ["看電影", "去海邊", "行山", "逛街", "咖啡店", "看展覽", "公園野餐", "在家煲劇"] },
     { preset: "who", title: "誰來做", options: ["@a", "@b"] }
   ];
+  var SP_KEY = "meow-spin-wheels";
   var SP = {
-    wheels: [], spins: [], missing: false, sel: lsGet("meow-spin-sel") || "food", mode: lsGet("meow-spin-mode") || "",
+    wheels: spLoad(), sel: lsGet("meow-spin-sel") || "food", mode: lsGet("meow-spin-mode") || "",
     angle: 0, running: false, dirty: false, raf: 0, anims: [], appeals: 0, undecided: false, lastKey: "", lastResult: ""
   };
-  var spKey = "";
-  function spMissingErr(m) { return /PGRST202|Could not find the function|schema cache|does not exist/i.test(String(m || "")); }
-  function loadSpin() {
-    if (SP.missing) return Promise.resolve();
-    return sb.rpc("get_spin").then(function (r) {
-      if (r.error) { if (spMissingErr(r.error.message) || r.status === 404) { SP.missing = true; if (UI.tab === "spin" && !typing()) render(true); } return; }
-      if (!r.data || !Array.isArray(r.data.wheels)) return;
-      var k = JSON.stringify(r.data);
-      if (k === spKey) return;
-      spSet(r.data);
-      if (typing() || UI.tab !== "spin") return;
-      render(true);
-    }).catch(function () {});
+  function spLoad() {
+    try { var v = JSON.parse(lsGet(SP_KEY) || "[]"); return Array.isArray(v) ? v.filter(function (w) { return w && w.id && w.title && Array.isArray(w.options); }) : []; } catch (e) { return []; }
   }
-  function spSet(d) { SP.wheels = d.wheels || []; SP.spins = d.spins || []; spKey = JSON.stringify(d); }
+  function spStore() { lsSet(SP_KEY, JSON.stringify(SP.wheels)); }
   /* 預設籤筒（有存過就用存的那份）＋自己開的籤筒 */
   function spList() {
     var out = SP_PRESETS.map(function (p) {
@@ -2907,7 +2892,6 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
   function viewSpin() {
     var L = spList(), w = spCur(), mode = spModeFor(w), n = w.options.length;
-    var last = SP.spins.filter(function (x) { return x.title === w.title; })[0];
     var chips = '<div class="sp-chips chips" role="group" aria-label="籤筒">' + L.map(function (x) {
       return '<button type="button" class="chip" data-act="sp-pick" data-v="' + esc(x.key) + '" aria-pressed="' + (x.key === w.key) + '">' + esc(x.title) + '</button>';
     }).join('') + '<button type="button" class="chip add" data-act="sp-new">＋ 新籤筒</button></div>';
@@ -2915,16 +2899,11 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       '<button type="button" data-act="sp-mode" data-v="wheel" aria-pressed="' + (mode === "wheel") + '"' + (spWheelOk(w) ? '' : ' disabled') + '>轉盤</button>' +
       '<button type="button" data-act="sp-mode" data-v="tube" aria-pressed="' + (mode === "tube") + '">抽籤筒</button></div>';
     var stage = '<div class="sp-stage ' + mode + '">' + (mode === "wheel" ? spWheelSVG(w) : spTubeSVG(w)) + '</div>';
-    var hist = SP.spins.slice(0, 8);
     return hd("七七來決定", "選不了的事，交給七七", ["home", "回到首頁"]) +
       doc(chips + seg + (spWheelOk(w) ? '' : '<p class="note" style="margin-top:6px">選項超過 16 個，轉盤會太擠，用抽籤筒吧。</p>') + stage +
-        (last ? '<p class="sp-last">上次抽到 <b>' + esc(last.result) + '</b>（' + md(last.ts) + '）</p>' : '') +
         '<button type="button" class="btn primary sp-go" data-act="sp-go"' + (SP.running ? ' disabled' : '') + '>' + (SP.running ? '七七思考中…' : mode === "wheel" ? '轉一下' : '搖一搖') + '</button>' +
         '<div class="sp-meta"><span>「' + esc(w.title) + '」有 ' + n + ' 個選項</span><button type="button" data-act="sp-edit">修改籤筒</button></div>' +
-        (SP.missing ? '<p class="sp-warn">後台還沒更新：要在 Supabase 的 SQL Editor 執行一次 <b>011_spins.sql</b>，籤筒和判決才會存起來。現在仍然可以抽。</p>' : '') +
-        (hist.length ? RULE2 + '<section aria-labelledby="sp-h-h"><h2 class="h2" id="sp-h-h">最近的判決</h2><ul class="plain-list sp-hist">' + hist.map(function (x) {
-          return '<li><span class="l"><b>' + esc(x.result) + '</b><small>' + esc(x.title) + '</small></span><span class="r">' + md(x.ts) + ' · ' + (x.by === S.me ? '你' : esc(nm(x.by))) + '抽的' + (x.appeals ? ' · 上訴 ' + x.appeals + ' 次' : '') + '</span></li>';
-        }).join('') + '</ul></section>' : ''), "one");
+        '<p class="note" style="margin-top:12px;text-align:center">籤筒只存在這部手機，判決不會記錄，抽完就算。</p>', "one");
   }
 
   /* ---- 抽 ---- */
@@ -3023,35 +3002,18 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       '<button type="button" class="btn primary" data-act="sp-ok"' + busyAttr(true) + '>就這樣決定</button>' +
       (calOk ? '<button type="button" class="btn" data-act="sp-ok-cal"' + busyAttr(true) + '>決定，並加到日曆</button>' : '') +
       '<button type="button" class="btn flat" data-act="sp-appeal"' + busyAttr(true) + '>不服，上訴再抽</button></div>' +
-      '<p class="pop-note">按「就這樣決定」才會記下來，並通知' + esc(op) + '。</p>' + POP_CLOSE;
+      POP_CLOSE;
     return popWrap("七七判決", paper + hideIf(!!f.mark, acts));
   }
   function spDecide(withCal) {
-    var f = UI.form; if (UI.busy || f.mark) return;
-    var op = nm(other(S.me));
-    function fin(ok, msg, data) {
-      if (!ok) { UI.busy = false; toast(msg); renderLayer(); return; }
-      f.mark = ["定案", "red"]; renderLayer();
-      if (navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
-      setTimeout(function () {
-        UI.busy = false; if (data) spSet(data);
-        SP.undecided = false; SP.appeals = 0;
-        if (UI.form === f) { UI.sheet = null; UI.form = {}; }
-        if (withCal) { render(); openSheet("event", { title: f.result }); } else { render(); }
-        toast(msg);
-      }, calm() ? 350 : 1100);
-    }
-    UI.busy = true; renderLayer();
-    if (SP.missing) {
-      SP.spins.unshift({ id: "local-" + Date.now(), by: S.me, title: f.title, result: f.result, appeals: f.appeals, ts: new Date().toISOString() });
-      fin(true, "已決定（後台未更新，這次不會儲存）"); return;
-    }
-    sb.rpc("add_spin", { title: f.title, result: f.result, appeals: f.appeals || 0 }).then(function (r) {
-      var bad = rpcResult(r);
-      if (bad) { if (bad.code === "auth") { UI.busy = false; logout(bad.error); return; } if (spMissingErr(bad.error)) { SP.missing = true; UI.busy = false; spDecide(withCal); return; } fin(false, bad.error); return; }
-      if (!r.data || !r.data.ok) { fin(false, (r.data && r.data.error) || "儲存失敗，請再試一次"); return; }
-      fin(true, "定案！已通知" + op, r.data.data);
-    }).catch(function () { fin(false, "連線失敗，請檢查網絡後再試"); });
+    var f = UI.form; if (f.mark) return;
+    f.mark = ["定案", "red"]; renderLayer();
+    if (navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} }
+    SP.undecided = false; SP.appeals = 0;
+    setTimeout(function () {
+      if (UI.form === f) { UI.sheet = null; UI.form = {}; }
+      if (withCal) openSheet("event", { title: f.result }); else renderLayer();
+    }, calm() ? 350 : 1100);
   }
 
   /* ---- 新增／修改籤筒 ---- */
@@ -3077,44 +3039,33 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var del = "";
     if (f.preset && f.saved) del = '<button type="button" class="btn flat sm" data-act="sp-del"' + busyAttr(true) + '>還原成原本的選項</button>';
     else if (!isNew && !f.preset) del = f.confirmDel
-      ? '<div class="pop-box"><p class="note">確定要刪除「' + esc(f.wtitle) + '」這個籤筒？之前的判決紀錄會保留。</p><div class="grid2"><button type="button" class="btn" data-act="sp-del-cancel">不刪了</button><button type="button" class="btn danger" data-act="sp-del"' + busyAttr(true) + '>確定刪除</button></div></div>'
+      ? '<div class="pop-box"><p class="note">確定要刪除「' + esc(f.wtitle) + '」這個籤筒？</p><div class="grid2"><button type="button" class="btn" data-act="sp-del-cancel">不刪了</button><button type="button" class="btn danger" data-act="sp-del"' + busyAttr(true) + '>確定刪除</button></div></div>'
       : '<button type="button" class="btn flat sm danger" data-act="sp-del-ask">刪除這個籤筒</button>';
     return sheetWrap(isNew ? "開一個新籤筒" : "修改籤筒",
       '<label class="lab">籤筒名稱<input id="w-title" class="field" maxlength="20" data-bind="wtitle" value="' + esc(f.wtitle || "") + '" placeholder="例如：誰洗碗、週末做什麼"></label>' +
       '<label class="lab">選項（一行一個）<textarea id="w-opts" class="field" rows="8" data-bind="wopts" placeholder="' + esc("例如：\n看電影\n去海邊\n在家煲劇") + '">' + esc(f.wopts || "") + '</textarea></label>' +
       '<p class="note" id="w-count" style="margin-top:-6px">' + spCountText(f) + '</p>' +
-      '<p class="note" style="margin-top:-6px">寫上「' + esc(nm("a")) + '」或「' + esc(nm("b")) + '」，改名後也會跟著更新。' + (preset ? '這是預設籤筒，' + esc(nm(other(S.me))) + '也會看到你改的版本。' : '兩個人共用這個籤筒。') + '</p>' +
+      '<p class="note" style="margin-top:-6px">寫上「' + esc(nm("a")) + '」或「' + esc(nm("b")) + '」，改名後也會跟著更新。' + '籤筒只存在這部手機。' + '</p>' +
       (f.error ? '<p class="err" role="alert">' + esc(f.error) + '</p>' : '') +
-      '<button type="button" class="btn primary" data-act="sp-save"' + busyAttr(spFormReady(f)) + '>' + (UI.busy ? '儲存中…' : isNew ? '開籤筒' : '儲存') + '</button>' + del);
+      '<button type="button" class="btn primary" data-act="sp-save"' + (spFormReady(f) ? '' : ' disabled') + '>' + (isNew ? '開籤筒' : '儲存') + '</button>' + del);
   }
-  function spCall(fn, args, okMsg, after) {
-    var f = UI.form;
-    if (SP.missing) { f.error = "後台還沒更新：要先在 Supabase 執行 011_spins.sql 才能儲存籤筒。"; renderLayer(); return; }
-    UI.busy = true; f.error = ""; renderLayer();
-    sb.rpc(fn, args).then(function (r) {
-      UI.busy = false;
-      var bad = rpcResult(r);
-      if (bad) { if (bad.code === "auth") { logout(bad.error); return; } if (spMissingErr(bad.error)) { SP.missing = true; f.error = "後台還沒更新：要先在 Supabase 執行 011_spins.sql 才能儲存籤筒。"; } else f.error = bad.error; renderLayer(); return; }
-      if (!r.data || !r.data.ok) { f.error = (r.data && r.data.error) || "儲存失敗，請再試一次"; renderLayer(); return; }
-      spSet(r.data.data); if (after) after(r.data.data);
-      SP.undecided = false; SP.appeals = 0;
-      UI.sheet = null; UI.form = {}; render(); toast(okMsg);
-    }).catch(function () { UI.busy = false; f.error = "連線失敗，請檢查網絡後再試"; renderLayer(); });
-  }
+  function spDone(msg) { SP.undecided = false; SP.appeals = 0; spStore(); UI.sheet = null; UI.form = {}; render(); toast(msg); }
   function spSave() {
-    var f = UI.form; if (UI.busy || !spFormReady(f)) return;
-    var args = { title: String(f.wtitle).trim(), options: spLines(f) };
-    if (f.id) args.id = f.id; else if (f.preset) args.preset = f.preset;
-    spCall("save_wheel", args, f.key ? "籤筒已更新" : "新籤筒開好了", function (d) {
-      if (!f.key) { var nw = (d.wheels || []).filter(function (x) { return !x.preset; }).slice(-1)[0]; if (nw) { SP.sel = nw.id; lsSet("meow-spin-sel", nw.id); } }
-    });
+    var f = UI.form; if (!spFormReady(f)) return;
+    var title = String(f.wtitle).trim().slice(0, 20), opts = spLines(f).slice(0, 30), id = f.id;
+    if (id) SP.wheels.forEach(function (w) { if (w.id === id) { w.title = title; w.options = opts; } });
+    else {
+      id = "w" + Date.now().toString(36) + spRand(1e6).toString(36);
+      SP.wheels.push({ id: id, preset: f.preset || "", title: title, options: opts });
+      if (!f.preset) { SP.sel = id; lsSet("meow-spin-sel", id); }
+    }
+    spDone(f.key ? "籤筒已更新" : "新籤筒開好了");
   }
   function spDelete() {
-    var f = UI.form; if (UI.busy || !f.id) return;
-    var wasPreset = !!f.preset;
-    spCall("delete_wheel", { id: f.id }, wasPreset ? "已還原成原本的選項" : "籤筒已刪除", function () {
-      if (!wasPreset) { SP.sel = "food"; lsSet("meow-spin-sel", "food"); }
-    });
+    var f = UI.form; if (!f.id) return;
+    SP.wheels = SP.wheels.filter(function (w) { return w.id !== f.id; });
+    if (!f.preset) { SP.sel = "food"; lsSet("meow-spin-sel", "food"); }
+    spDone(f.preset ? "已還原成原本的選項" : "籤筒已刪除");
   }
 
   var SHEETS = { spinres: sheetSpinRes, wheel: sheetWheel, newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView, event: sheetEvent, eventview: sheetEventView };

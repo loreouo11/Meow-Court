@@ -15,7 +15,6 @@
 - `supabase/008_memories_big.sql`：回憶可以只寫一句不放相、可以標記「這是大事」
 - `supabase/009_year_notes.sql`：年度卷宗的寄語：`year_notes` 表、`get_year_notes` / `save_year_note`，1 月 15 日和 28 日用 pg_cron 提醒還沒寫的人
 - `supabase/010_events.sql`：日曆：`events` 表、`get_events` / `add_event` / `edit_event` / `delete_event`，約會前一天早上九點用 pg_cron 提醒
-- `supabase/011_spins.sql`：七七來決定（轉盤／抽籤）：`wheels` 籤筒表、`spins` 判決紀錄、`get_spin` / `save_wheel` / `delete_wheel` / `add_spin`，判決後通知對方
 - `supabase/functions/push`：發送手機通知的 Edge Function
 - `supabase/import_from_sheet.py`：把舊版 Google 試算表的資料搬進 Supabase
 - `next/`：測試版的舊網址，現在會自動跳回主網址
