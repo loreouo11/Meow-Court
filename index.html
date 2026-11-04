@@ -25,7 +25,7 @@
 <title>賴貓法庭</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link rel="preload" as="image" href="qiqi.svg">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=LXGW+WenKai+TC:wght@400;700&family=Fredoka:wght@500;600;700&family=Baloo+2:wght@600;800&family=Orbitron:wght@500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=LXGW+WenKai+TC:wght@400;700&family=Fredoka:wght@500;600;700&family=Baloo+2:wght@600;800&family=Orbitron:wght@500;600;700&family=Noto+Serif+TC:wght@400;500;600;700&family=Caveat:wght@400;600&family=Iansui&display=swap">
 <style>
 /* 賴貓法庭 · 方案四
    一欄手機版面（最闊 440px），內容放在「公文紙」上；底部五格選單；表單用底部抽屜，罰單／申請書／法規提案用置中的紙。
@@ -741,6 +741,173 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 :root[data-style="soft"] .code { border-width: 1.5px; }
 
 @media (prefers-reduced-motion: reduce) { .sheet, .paper, .paper.bump, .p-acts, .mark { animation: none; } .pstamp.thunk { animation: none; } }
+
+/* ===================== 年度卷宗（年度回顧） ===================== */
+.yr { position: fixed; inset: 0; z-index: 15; display: flex; flex-direction: column; isolation: isolate; background: var(--bg); color: var(--ink); overflow: hidden; -webkit-user-select: none; user-select: none; }
+.yr::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--bg-art); }
+.yr-hd { display: flex; align-items: center; gap: 10px; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 0; max-width: 520px; width: 100%; margin: 0 auto; }
+.yr-hd h1 { flex: 1; margin: 0; font-family: var(--serif); font-weight: 700; font-size: 21px; }
+.yr-stage { flex: 1; min-height: 0; display: grid; place-items: center; padding: 26px 0 0; }
+.yr-foot { padding: 6px 16px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.yr-say { margin: 0; min-height: 19px; font-size: 13px; color: var(--muted); text-align: center; }
+.yr-ctl { display: flex; gap: 10px; align-items: center; font-size: 14px; }
+.yr-ctl button { min-height: 40px; padding: 0 16px; border-radius: 999px; background: var(--surface); color: var(--ink); border: var(--bw) solid var(--line); box-shadow: var(--shadow-sm); font-size: 14px; }
+.yr-ctl button:disabled { opacity: .35; box-shadow: none; }
+.yr-ctl .yr-n { min-width: 44px; text-align: center; }
+
+/* 紙：兩款。粗邊（預設／貼紙／夜光）、柔和（信紙／珊瑚海） */
+.yr { --yp-paper: #FFFBF3; --yp-ink: #3B2A33; --yp-muted: #7A5F6B; --yp-edge: #3B2A33; --yp-line: #F6E3E8; --yp-pink: #E8546E; --yp-pink-ink: #C23A54;
+  --yp-serif: "LXGW WenKai TC", "Kaiti TC", serif; --yp-bw: 1.6px; --yp-r: 4px;
+  --yp-sh: 2px 2px 0 rgba(59,42,51,.85); --yp-sh-top: 3px 3px 0 rgba(59,42,51,.85); --yp-sh-lift: 7px 9px 0 rgba(59,42,51,.6); }
+.yr[data-paper="soft"] { --yp-paper: #fffaf6; --yp-ink: #4a2c2a; --yp-muted: #8a6a66; --yp-edge: #e2c6cb; --yp-line: #f1d9df; --yp-pink: #c9506f; --yp-pink-ink: #c9506f;
+  --yp-serif: "Noto Serif TC", "Songti TC", "PMingLiU", serif; --yp-bw: 1.5px; --yp-r: 3px;
+  --yp-sh: 0 1px 2px rgba(74,44,42,.06); --yp-sh-top: 0 2px 6px rgba(74,44,42,.10); --yp-sh-lift: 0 14px 28px rgba(74,44,42,.18), 0 3px 8px rgba(74,44,42,.10); }
+:root[data-style="coral"] .yr { --yp-r: 10px; }
+:root[data-style="neon"] .yr { --yp-sh: 0 0 0 1px rgba(255,92,138,.25), 0 0 18px rgba(255,92,138,.25); --yp-sh-top: 0 0 0 1px rgba(255,92,138,.3), 0 0 24px rgba(255,92,138,.32); --yp-sh-lift: 0 0 0 1px rgba(255,92,138,.35), 0 0 34px rgba(255,92,138,.45); }
+
+.yr-stack { position: relative; width: min(330px, 84vw, calc((100svh - 230px) * .75)); aspect-ratio: 3 / 4; touch-action: none; color: var(--yp-ink); font-family: var(--yp-serif); }
+.yr-sheet { position: absolute; inset: 0; overflow: hidden; border: var(--yp-bw) solid var(--yp-edge); border-radius: var(--yp-r); padding: 24px 24px 20px; will-change: transform;
+  background: linear-gradient(transparent 0 calc(100% - 1.5px), var(--yp-line) 0) 0 10px / 100% 30px repeat-y, var(--yp-paper);
+  background-origin: content-box, border-box; background-clip: content-box, border-box; box-shadow: var(--yp-sh); }
+.yr[data-paper="chunky"] .yr-sheet::before { content: ""; position: absolute; inset: 6px; pointer-events: none; box-shadow: inset 0 0 0 2px #E8546E, inset 0 0 0 5px var(--yp-paper), inset 0 0 0 6px #E8546E; }
+.yr-sheet > * { position: relative; }
+.yr-sheet.top { box-shadow: var(--yp-sh-top); }
+.yr-open .yr-sheet.top { cursor: grab; }
+.yr-sheet.lifted { box-shadow: var(--yp-sh-lift); }
+.yr-sheet.cover { background: var(--yp-paper); padding: 26px 58px 18px 24px; }
+.yr-en { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 10px; letter-spacing: .16em; color: var(--yp-muted); }
+.yr-court { font-weight: 700; font-size: 19px; letter-spacing: .2em; }
+.yr-ttl { margin-top: 6px; font-weight: 700; font-size: 23px; line-height: 30px; color: var(--yp-pink-ink); }
+.yr-rule { margin: 8px 0; width: 92%; border-top: 3px double var(--yp-ink); }
+.yr-row { display: flex; align-items: baseline; gap: 6px; font-size: 15px; line-height: 23px; overflow-wrap: anywhere; }
+.yr-row small { white-space: nowrap; width: 5.6em; flex: none; font-family: "Fredoka", sans-serif; font-size: 10px; letter-spacing: .1em; color: var(--yp-muted); }
+.yr-fake { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; width: 88%; }
+.yr-fake i { height: 3px; border-radius: 2px; background: var(--yp-line); }
+.yr-fee { position: absolute !important; left: 24px; bottom: 18px; transform: rotate(-6deg); line-height: 1.1; color: #3E50A8; font-family: "Caveat", "Iansui", cursive; }
+.yr-fee span { display: block; font-size: 17px; }
+.yr-fee b { font-family: "Caveat", "Iansui", cursive; font-weight: 400; font-size: 23px; }
+.yr-qq { position: absolute; z-index: 60; left: 42%; top: -72px; width: 96px; pointer-events: none; transition: transform .5s ease-in, opacity .4s; }
+.yr-open .yr-qq { transform: translate(90px, -10px) rotate(10deg); opacity: 0; }
+
+/* 壓喺最底、露出一半的東西 */
+.yr-peek { position: absolute; z-index: 0; border: var(--yp-bw) solid var(--yp-edge); box-shadow: var(--yp-sh); color: var(--yp-ink); }
+.yr-peek.photo { left: -44px; top: 18%; width: 90px; padding: 6px 6px 18px; background: #fff; transform: rotate(-11deg); }
+.yr-peek.photo img { display: block; width: 100%; height: 68px; object-fit: cover; background: var(--yp-line); }
+.yr-peek.req { left: -34px; bottom: 6%; width: 94px; height: 106px; background: var(--yp-paper); transform: rotate(9deg); padding: 8px; }
+.yr-peek.req::before { content: ""; position: absolute; inset: 5px; border: 1.5px solid #E0435B; outline: 1px solid #E0435B; outline-offset: -4px; opacity: .8; }
+.yr-peek.req b { position: relative; display: block; text-align: center; font-size: 13px; letter-spacing: .3em; margin-top: 6px; }
+.yr-peek.req span { position: relative; display: block; margin: 6px 4px 0; font-size: 11px; line-height: 15px; text-align: center; color: var(--yp-muted); overflow: hidden; max-height: 45px; }
+.yr-peek.card { right: -40px; bottom: 10%; width: 80px; height: 106px; border-radius: 12px; overflow: hidden; background: #fff; transform: rotate(13deg); }
+.yr-peek.card > span { display: grid; place-items: center; height: 62px; background: #FFE3A3; border-bottom: var(--yp-bw) solid var(--yp-edge); }
+.yr-peek.card img { width: 54px; }
+.yr-peek.card b { display: block; padding: 6px 6px 0 14px; font-size: 12px; line-height: 15px; }
+
+/* 棉帶 */
+.yr-rb { position: absolute; z-index: 70; overflow: visible; pointer-events: none; }
+.yr-rb .tr, .yr-rb .hit { pointer-events: all; cursor: grab; }
+.yr-rb .ll, .yr-rb .lr, .yr-rb .kn { transform-box: fill-box; }
+.yr-rb .ll { transform-origin: 100% 60%; } .yr-rb .lr { transform-origin: 0% 60%; } .yr-rb .kn { transform-origin: 50% 50%; }
+.yr-tip { position: absolute; z-index: 80; right: -6px; bottom: -34px; white-space: nowrap; padding: 3px 10px; border-radius: 999px; background: #3B2A33; color: #fff; font-family: var(--font); font-size: 12px; pointer-events: none; animation: yrbob 1.6s ease-in-out infinite; }
+@keyframes yrbob { 50% { transform: translateY(-4px); } }
+
+/* 內頁 */
+.yr-pg { display: flex; flex-direction: column; height: 100%; }
+.yr-k { margin: 0; font-size: 12px; color: var(--yp-pink-ink); letter-spacing: .15em; }
+.yr-pg h2 { margin: 0 0 8px; font-size: 20px; font-weight: 700; letter-spacing: .04em; }
+.yr-hrow { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px; }
+.yr-seg { flex: none; display: flex; gap: 2px; padding: 2px; border-radius: 999px; background: #fff; border: 1.4px solid var(--yp-edge); }
+.yr-seg button { min-height: 26px; padding: 0 9px; border: 0; border-radius: 999px; background: none; color: var(--yp-ink); font-family: var(--font); font-size: 12px; }
+.yr-seg button[aria-pressed="true"] { background: var(--yp-pink); color: #fff; }
+.yr-big { display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px; }
+.yr-big span { font-size: 15px; }
+.yr-big b { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 30px; color: var(--yp-pink-ink); }
+.yr-funds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; font-size: 12px; }
+.yr-fund div { display: flex; justify-content: space-between; gap: 4px; }
+.yr-fund div span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yr-fund .yr-fn { font-family: "Fredoka", sans-serif; }
+.yr-fbar { margin-top: 3px; height: 7px; border-radius: 999px; background: var(--yp-line); overflow: hidden; }
+.yr-fbar i { display: block; height: 100%; border-radius: 999px; background: var(--yp-pink); }
+.yr-fbar.t i { background: #6CC3A0; }
+.yr-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 12px; }
+.yr-stb { padding: 7px 4px 6px; border-radius: 10px; background: #fff; border: 1.4px solid var(--yp-edge); text-align: center; font-size: 12px; line-height: 16px; }
+.yr-stb b { display: block; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 22px; line-height: 26px; }
+.yr-stb:nth-child(1) { background: #fde6ec; } .yr-stb:nth-child(2) { background: #e3f4ec; } .yr-stb:nth-child(3) { background: #fff3cf; }
+.yr-tiny { margin: 8px 0 0; font-size: 11px; line-height: 16px; color: var(--yp-muted); }
+.yr-eh, .yr-er { display: grid; grid-template-columns: minmax(0, 1fr) 56px 56px; align-items: center; gap: 4px; }
+.yr-eh { text-align: center; font-size: 12px; margin-top: 2px; }
+.yr-ava { margin: 0 auto 2px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #FFE3A3; border: 1.4px solid var(--yp-edge); font-weight: 700; font-size: 15px; }
+.yr-ava.b { background: #CDEFE0; }
+.yr-er { padding: 6px 0; border-top: 1.5px dashed var(--yp-line); font-size: 13px; }
+.yr-er b { text-align: center; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 18px; }
+.yr-legend { display: flex; flex-wrap: wrap; gap: 2px 9px; font-size: 11px; color: var(--yp-muted); }
+.yr-legend span { display: inline-flex; align-items: center; gap: 3px; }
+.yr-legend i { width: 9px; height: 9px; border-radius: 50%; border: 1.4px solid var(--yp-ink); }
+.yr-tlw { flex: 1; min-height: 0; overflow-y: auto; margin: 6px -6px 0; padding: 2px 6px 8px; touch-action: pan-y; overscroll-behavior: contain; scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 10px, #000 calc(100% - 16px), transparent); mask-image: linear-gradient(transparent, #000 10px, #000 calc(100% - 16px), transparent); }
+.yr-tlw::-webkit-scrollbar { display: none; }
+.yr-tl { position: relative; padding: 4px 0; }
+.yr-tl::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: repeating-linear-gradient(var(--yp-pink) 0 7px, transparent 7px 12px); opacity: .7; }
+.yr-tm { position: relative; z-index: 1; width: max-content; margin: 6px auto; padding: 1px 10px; border-radius: 999px; background: var(--yp-ink); color: #fff; font-size: 11px; }
+.yr-ti { position: relative; display: flex; margin: 0 0 8px; }
+.yr-ti.r { justify-content: flex-end; }
+.yr-tc { width: calc(50% - 16px); padding: 5px 7px 6px; border-radius: 8px; background: #fff; border: 1.4px solid var(--yp-edge); text-align: left; font: inherit; font-size: 11px; line-height: 14px; color: var(--yp-ink); }
+.yr[data-paper="chunky"] .yr-tc { box-shadow: 1.5px 1.5px 0 rgba(59,42,51,.85); }
+.yr-tc .d { font-family: "Fredoka", sans-serif; font-size: 10px; color: var(--yp-muted); }
+.yr-tc b { display: block; font-size: 13px; line-height: 17px; margin: 1px 0; overflow-wrap: anywhere; }
+.yr-tc .th { display: block; height: 44px; margin-bottom: 4px; border-radius: 4px; overflow: hidden; border: 1px solid var(--yp-edge); background: var(--yp-line); }
+.yr-tc .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.yr-tc.big { background: #FFF6DA; }
+.yr-dot { position: absolute; left: 50%; top: 9px; width: 18px; height: 18px; margin-left: -9px; padding: 0; border-radius: 50%; border: 1.4px solid var(--yp-ink); display: grid; place-items: center; font: inherit; font-size: 9px; line-height: 1; z-index: 1; color: var(--yp-ink); }
+.yr-dot.req { background: var(--yp-pink); color: #fff; } .yr-dot.card { background: #8FD6B4; } .yr-dot.photo { background: #FFD15C; } .yr-dot.first { background: #fff; }
+.yr-dot.big { width: 24px; height: 24px; margin-left: -12px; top: 6px; background: #FFD15C; font-size: 13px; }
+.yr-tend { position: relative; z-index: 1; margin: 4px auto 0; width: max-content; padding: 1px 10px; border-radius: 999px; background: var(--yp-paper); border: 1.5px dashed var(--yp-edge); font-size: 11px; color: var(--yp-muted); }
+.yr-empty { margin: 20px 0; text-align: center; font-size: 14px; color: var(--yp-muted); }
+.yr-top3 { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.yr-top3 li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 16px; }
+.yr-top3 li > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yr-rk { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: #FFE3A3; border: 1.4px solid var(--yp-edge); font-family: "Fredoka", sans-serif; font-size: 12px; }
+.yr-top3 li:nth-child(2) .yr-rk { background: #CDEFE0; } .yr-top3 li:nth-child(3) .yr-rk { background: #fde6ec; }
+.yr-top3 .c { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 16px; color: var(--yp-pink-ink); }
+.yr-sub { margin: 14px 0 4px; font-size: 16px; font-weight: 700; }
+.yr-bars { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: 8px; height: 86px; padding: 0 6px; }
+.yr-bars div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; height: 100%; font-size: 11px; }
+.yr-bars i { width: 100%; max-width: 40px; border-radius: 6px 6px 2px 2px; background: #fde6ec; border: 1.4px solid var(--yp-edge); }
+.yr-bars .hi i { background: var(--yp-pink); }
+.yr-bars b { font-family: "Fredoka", sans-serif; font-size: 11px; }
+.yr-qsay { display: flex; align-items: flex-end; gap: 4px; margin-top: auto; }
+.yr-qsay img { width: 70px; flex: none; }
+.yr-bubble { margin-bottom: 14px; padding: 6px 10px; border-radius: 12px; background: #fff; border: 1.4px solid var(--yp-edge); font-size: 12px; line-height: 17px; }
+.yr-pg.yr-pend { align-items: center; text-align: center; }
+.yr-verdict { margin: 2px 0 0; font-size: 13.5px; line-height: 23px; }
+.yr-verdict em { display: block; margin-top: 4px; font-style: normal; font-weight: 700; font-size: 21px; line-height: 30px; color: var(--yp-pink-ink); }
+.yr-vstamp { margin-top: 6px; width: 84px; height: 84px; border-radius: 50%; border: 3.5px solid #E0435B; color: #E0435B; display: grid; place-items: center; font-weight: 700; font-size: 16px; line-height: 20px; transform: rotate(-14deg); opacity: 0; }
+.yr-vstamp.on { animation: yrthunk .5s cubic-bezier(.3,1.4,.5,1) .35s both; }
+@keyframes yrthunk { 0% { transform: scale(2.6) rotate(-30deg); opacity: 0; } 60% { transform: scale(.92) rotate(-14deg); opacity: 1; } 100% { transform: scale(1) rotate(-14deg); opacity: .85; } }
+.yr-pg.yr-pend > img { width: 72px; margin-top: auto; }
+/* 回憶相片卡 */
+.yr-ov { position: absolute; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(43,29,36,.55); }
+.yr-ov.on { display: flex; }
+.yr-ovc { width: 100%; max-width: 300px; }
+.yr-ovx { position: absolute; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: none; border: 0; color: #fff; font-size: 15px; text-decoration: underline dotted; text-underline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .yr-vstamp.on { animation: none; opacity: .85; } }
+
+/* 首頁入口 */
+.yr-entry { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 18px; padding: 14px 14px 14px 12px; text-align: left; border-radius: 18px; background: var(--paper); color: var(--ink); border: var(--bw) solid var(--line); box-shadow: var(--shadow-md); }
+.yr-mini { flex: none; position: relative; width: 52px; height: 68px; border-radius: 3px 7px 7px 3px; background: #FFFBF3; border: 2px solid #3B2A33; display: grid; place-items: center; font-family: "Fredoka", sans-serif; font-weight: 700; font-size: 13px; color: #C23A54; overflow: hidden; }
+.yr-mini::before { content: ""; position: absolute; left: 0; right: 0; top: 58%; height: 6px; background: #EE5F92; border-top: 1px solid #B03A68; border-bottom: 1px solid #B03A68; }
+.yr-mini::after { content: ""; position: absolute; top: 0; bottom: 0; left: 72%; width: 6px; background: #EE5F92; border-left: 1px solid #B03A68; border-right: 1px solid #B03A68; }
+.yr-entry-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.yr-entry-t small { font-size: 12px; color: var(--accent-ink); }
+.yr-entry-t b { font-family: var(--serif); font-size: 19px; line-height: 25px; }
+.yr-entry-t .go { font-size: 14px; text-decoration: underline dotted; text-underline-offset: 4px; color: var(--link); }
+/* 離開情侶空間時的回憶 */
+.leave-mem { display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: 18px; background: var(--surface); border: 2px dashed var(--dash); }
+.leave-mem .mem-pola { flex: none; width: 118px; padding: 6px 6px 8px; transform: rotate(-4deg); }
+.leave-mem .mem-pola img, .leave-mem .mem-pola .memo-art { height: 84px; min-height: 0; object-fit: cover; }
+.leave-mem .mem-pola .memo-art img { width: 64px; height: auto; }
+.leave-mem .mem-pola p { font-size: 13px; line-height: 18px; margin-top: 4px; }
+.leave-mem .mem-pola .d { margin-top: 4px; font-size: 11px; }
+.leave-mem .say { font-size: 14px; line-height: 21px; }
 </style>
 </head>
 <body>
@@ -1283,7 +1450,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var n = inboxTodo();
     return '<header class="hd"><div class="hd-t"><span class="pt">賴貓法庭' + I.star + '</span><span class="hd-sub">' + esc(nm("a")) + '和' + esc(nm("b")) + '</span></div>' +
         '<button type="button" class="circle" aria-label="設定" data-act="tab" data-tab="settings">' + I.dots + '</button></header>' +
-      doc(top + body, "hero", qq("perch", "七七趴在公文上睡覺")) +
+      doc(top + body, "hero", qq("perch", "七七趴在公文上睡覺")) + yrEntry() +
       '<button type="button" class="quiet" data-act="tab" data-tab="inbox">' + I.env + (n ? '案件匣裡有 ' + n + ' 件等你回覆' : '案件匣裡沒有要回覆的事') + '</button>';
   }
 
@@ -1390,7 +1557,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     return hd("設定", "", ["home", "回到首頁"]) +
       doc('<section class="set-sec" aria-labelledby="us-h"><h2 class="h2" id="us-h">我們</h2>' +
           '<div class="grid2">' + inp("第一位", "nameA", ' maxlength="20"') + inp("第二位", "nameB", ' maxlength="20"') + '</div>' +
-          inp("在一起的日子", "start", ' type="date"') + '</section>' + RULE2 +
+          inp("在一起的日子", "start", ' type="date"') +
+          yrPastYears().map(function (y) { return '<button type="button" class="link-row" data-act="yr-open" data-v="' + y + '">重溫 ' + y + ' 年度卷宗</button>'; }).join('') + '</section>' + RULE2 +
         '<section class="set-sec" aria-labelledby="fund-h"><h2 class="h2" id="fund-h">基金</h2>' +
           '<div style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:10px">' +
           inp("第一個基金", "weddingName", ' maxlength="12"') + inp("目標", "weddingTarget", ' type="number" inputmode="numeric" min="1"') +
@@ -1472,12 +1640,13 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   function render(keepLayer) {
     applyLook();
     var app = document.getElementById("app");
-    function bare(html) { app.className = "app bare"; app.innerHTML = html; renderLayer(); }
+    function bare(html) { if (YR) closeReview(); app.className = "app bare"; app.innerHTML = html; renderLayer(); }
     if (booting) return bare(loadingView());
     if (!auth) return bare(viewLogin());
     if (UI.login.step === "who") return bare(viewWho());
     if (S.loaded && !S.paired) return bare(viewPair());
     if (!S.loaded) return bare(loadingView());
+    if (yrPending) { var yp = yrPending; yrPending = 0; setTimeout(function () { openReview(yp); }, 0); }
     if (UI.tab !== "settings") UI.set = null;
     var cur = UI.tab === "history" ? "inbox" : UI.tab;
     var tabs = '<div class="tabbar"><nav aria-label="主選單">' +
@@ -1567,14 +1736,14 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
   function sheetLeave() {
     var op = nm(other(S.me));
-    return sheetWrap("離開情侶空間",
-      '<div class="pop-box" style="font-size:14px;line-height:1.7">離開之後，你就看不到這裡的規則、罰單和卡片了。<br><br>' +
+    return sheetWrap("離開情侶空間", leaveMemHTML(UI.form.memPick) +
+      '<div class="pop-box" style="font-size:14px;line-height:1.7' + (UI.form.memPick ? ';margin-top:12px' : '') + '"><div>離開之後，你就看不到這裡的規則、罰單和卡片了。<br><br>' +
       '紀錄會留給 ' + esc(op) + '，' + esc(op) + ' 會拿到新的邀請碼，可以再邀請別人加入。' +
-      '<br><br>如果 ' + esc(op) + ' 之前已經離開，或之後也離開，<b>這個空間的所有紀錄都會永久刪除</b>，沒辦法復原。</div>' +
+      '<br><br>如果 ' + esc(op) + ' 之前已經離開，或之後也離開，<b>這個空間的所有紀錄都會永久刪除</b>，沒辦法復原。</div></div>' +
       '<label class="lab">確定要離開的話，請在下面輸入「離開」。<input class="field" maxlength="4" autocomplete="off" data-bind="confirmText" value="' + esc(UI.form.confirmText || "") + '"></label>' +
       (UI.form.error ? '<p class="err" role="alert">' + esc(UI.form.error) + '</p>' : '') +
-      '<button type="button" class="btn primary" data-act="leave-confirm"' + busyAttr(true) + '>' + (UI.busy ? '處理中…' : '確定離開') + '</button>' +
-      '<button type="button" class="btn flat" data-act="close">取消</button>');
+      '<div class="grid2"><button type="button" class="btn" data-act="close">取消</button>' +
+      '<button type="button" class="btn danger" data-act="leave-confirm"' + busyAttr(true) + '>' + (UI.busy ? '處理中…' : '確定離開') + '</button></div>');
   }
 
   function amountBox(id, key, val, act) {
@@ -1837,6 +2006,448 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var old = document.querySelector(".toast"); if (old) old.remove();
     if (UI.toast) { var d = document.createElement("div"); d.className = "toast"; d.setAttribute("role", "status"); d.textContent = UI.toast; document.getElementById("layer").appendChild(d); }
   }
+
+  /* ===================== 年度卷宗（年度回顧） =====================
+     封面用棉帶綁住：拉右邊條尾解結 → 變成一疊散紙，推走最面一張就看下一頁。
+     所有數字都由現有資料即場計算，不另外存。 */
+  var YR_BOW = {"ll": "<path d=\"M97 66 C84 50 58 50 50 60 C44 70 74 76 97 68\" fill=\"none\" stroke=\"#B03A68\" stroke-width=\"10.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M97 66 C84 50 58 50 50 60 C44 70 74 76 97 68\" fill=\"none\" stroke=\"#EE5F92\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "lr": "<path d=\"M103 66 C118 46 146 42 152 54 C158 66 124 74 103 68\" fill=\"none\" stroke=\"#B03A68\" stroke-width=\"10.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M103 66 C118 46 146 42 152 54 C158 66 124 74 103 68\" fill=\"none\" stroke=\"#EE5F92\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "kn": "<path d=\"M97.0 62.0 C98 59.0 102 59.0 103.0 62.0 C107.0 63 107.0 71 103.0 72.0 C102 75.0 98 75.0 97.0 72.0 C93.0 71 93.0 63 97.0 62.0Z\" fill=\"#C9416F\" stroke=\"#B03A68\" stroke-width=\"1.3\" stroke-linejoin=\"round\"/>", "tl": {"seg": [[97, 70], [90, 100], [84, 130], [70, 176]], "w": 8, "taper": 1, "fill": "#EE5F92", "sw": 2}, "tr": {"seg": [[103, 70], [112, 92], [110, 118], [122, 150]], "w": 8, "taper": 1, "fill": "#EE5F92", "sw": 2}};
+  var YR_INK = "#B03A68", YR_PINK = "#EE5F92", YR_S = .85, YR_MAX = 70;
+  var YR = null;
+  function inYear(ts, Y) { return !!ts && String(ts).slice(0, 4) === String(Y); }
+  function ymd(ts) { return String(ts || "").slice(0, 10); }
+  function addDays(dateStr, n) { var d = new Date(dateStr + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+  function okReq(q) { return q.status === "approved" || q.status === "done"; }
+  /* 12 月和 1 月首頁會出現入口；12 月看今年，1 月看上一年 */
+  function yrSeason() { var t = todayHK(), y = +t.slice(0, 4), m = +t.slice(5, 7); return m === 12 ? y : m === 1 ? y - 1 : 0; }
+  function yrHas(Y) {
+    return S.requests.some(function (q) { return q.status !== "declined" && inYear(q.ts, Y); }) || S.cards.some(function (c) { return inYear(c.ts, Y); }) ||
+      S.tickets.some(function (t) { return inYear(t.ts, Y); }) || S.memories.some(function (m) { return inYear(m.date, Y); });
+  }
+  function yrPastYears() {
+    var now = +todayHK().slice(0, 4), seen = {}, out = [];
+    [].concat(S.requests.map(function (q) { return q.ts; }), S.cards.map(function (c) { return c.ts; }), S.tickets.map(function (t) { return t.ts; }), S.memories.map(function (m) { return m.date; }))
+      .forEach(function (ts) { var y = +String(ts || "").slice(0, 4); if (y && y < now && !seen[y]) { seen[y] = 1; out.push(y); } });
+    return out.filter(yrHas).sort(function (a, b) { return b - a; });
+  }
+  function yrFirstEver() {
+    var all = [].concat(S.rules.map(function (r) { return r.createdAt; }), S.tickets.map(function (t) { return t.ts; }), S.requests.map(function (q) { return q.ts; }),
+      S.cards.map(function (c) { return c.ts; }), S.memories.map(function (m) { return m.date; })).filter(Boolean).map(ymd).sort();
+    return all[0] || "";
+  }
+
+  function yrData(Y) {
+    var today = todayHK();
+    var reqs = S.requests.filter(function (q) { return q.status !== "declined" && inYear(q.ts, Y); });
+    var ok = S.requests.filter(function (q) { return okReq(q) && inYear(q.answeredTs, Y); });
+    var done = S.requests.filter(function (q) { return q.status === "done" && inYear(q.doneTs, Y); });
+    var cards = S.cards.filter(function (c) { return inYear(c.ts, Y); });
+    var tix = S.tickets.filter(function (t) { return inYear(t.ts, Y); });
+    var saved = tix.filter(function (t) { return t.status === "waived" && t.card; }).length;
+    var mems = S.memories.filter(function (m) { return inYear(m.date, Y); });
+    var fund = { wedding: 0, travel: 0 };
+    S.tickets.forEach(function (t) { if (paid(t) && inYear(t.updatedAt || t.ts, Y)) fund[t.fund === "travel" ? "travel" : "wedding"] += Number(t.final) || 0; });
+    function each(p) {
+      return [reqs.filter(function (q) { return q.from === p; }).length, ok.filter(function (q) { return q.to === p; }).length,
+        cards.filter(function (c) { return c.from === p; }).length, done.filter(function (q) { return q.to === p; }).length, mems.filter(function (m) { return m.by === p; }).length];
+    }
+    /* 最常遞上的申請書 */
+    var cnt = {}, order = [];
+    reqs.forEach(function (q) { var k = (q.title || "").trim(); if (!k) return; if (!cnt[k]) { cnt[k] = 0; order.push(k); } cnt[k]++; });
+    var top = order.sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 3).map(function (k) { return { t: k, n: cnt[k] }; });
+    /* 每個月有幾件事 */
+    var months = {};
+    function bump(ts) { if (!inYear(ts, Y)) return; var m = +String(ts).slice(5, 7); months[m] = (months[m] || 0) + 1; }
+    reqs.forEach(function (q) { bump(q.ts); }); cards.forEach(function (c) { bump(c.ts); }); tix.forEach(function (t) { bump(t.ts); }); mems.forEach(function (m) { bump(m.date); });
+    var mlist = Object.keys(months).map(Number).sort(function (a, b) { return a - b; }).map(function (m) { return { m: m, n: months[m] }; });
+    var busy = mlist.slice().sort(function (a, b) { return b.n - a.n || a.m - b.m; })[0] || null;
+
+    /* ---- 時間線 ---- */
+    var items = [], byRef = {};
+    function push(o) { if (!o.d || o.d > today || !inYear(o.d, Y)) return null; items.push(o); if (o.ref) byRef[o.ref] = o; return o; }
+    mems.forEach(function (m) {
+      push({ d: m.date, k: m.big ? "big" : "photo", ic: m.big ? "★" : "相", title: m.caption || (m.path ? "一張相片" : "一個回憶"), line: (m.big ? "大事・" : "") + nm(m.by) + " 記下的", mem: m, ref: "m" + m.id, ord: m.ts || "" });
+    });
+    var many = ok.length + cards.length > 40;   // 太多就只放里程碑，免得時間線太長
+    if (!many) {
+      ok.forEach(function (q) { push({ d: ymd(q.answeredTs), k: "req", ic: "申", title: q.title, line: nm(q.to) + " 准了" + (q.status === "done" ? "，說到做到" : ""), ref: "q" + q.id, ord: q.answeredTs }); });
+      cards.forEach(function (c) { push({ d: ymd(c.ts), k: "card", ic: "卡", title: "「" + c.title + "」", line: nm(c.from) + " 送給 " + nm(c.owner), ref: "c" + c.id, ord: c.ts }); });
+    }
+    /* 里程碑：如果那件事已經在時間線上，就在那張卡上加一個標記；否則另外加一點 */
+    function mile(o) {
+      if (o.ref && byRef[o.ref]) { byRef[o.ref].badge = o.title; return; }
+      push({ d: o.d, k: "first", ic: o.ic || "★", title: o.title, line: o.line || "", ord: o.ord || o.d, mem: o.mem });
+    }
+    var ever = yrFirstEver();
+    if (ever) mile({ d: ever, title: "賴貓法庭成立", line: "本庭今日正式開庭", ord: "0" });
+    var allCards = S.cards.slice().sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
+    var fc = allCards.filter(function (c) { return c.kind === "cat"; })[0] || allCards[0];
+    if (fc) mile({ d: ymd(fc.ts), title: "第一張賴貓卡", line: nm(fc.from) + " 送給 " + nm(fc.owner), ref: "c" + fc.id, ord: fc.ts });
+    var allOk = S.requests.filter(function (q) { return okReq(q) && q.answeredTs; }).sort(function (a, b) { return a.answeredTs < b.answeredTs ? -1 : 1; });
+    if (allOk[0]) mile({ d: ymd(allOk[0].answeredTs), title: "第一份被准的申請書", line: "「" + allOk[0].title + "」", ref: "q" + allOk[0].id, ord: allOk[0].answeredTs });
+    var allMem = S.memories.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.ts < b.ts ? -1 : 1); });
+    var fp = allMem.filter(function (m) { return m.path; })[0];
+    if (fp) mile({ d: fp.date, title: "第一張相片", line: fp.caption || "", ref: "m" + fp.id, mem: fp });
+    function counts(list, dateOf, unit, refOf, lineOf) {
+      list.forEach(function (x, i) {
+        var n = i + 1;
+        if (n === 10 || n === 50 || n % 100 === 0) mile({ d: ymd(dateOf(x)), title: "第 " + n + " " + unit, line: lineOf(x), ref: refOf(x), ord: dateOf(x) });
+      });
+    }
+    counts(allOk, function (q) { return q.answeredTs; }, "份被准的申請書", function (q) { return "q" + q.id; }, function (q) { return "「" + q.title + "」"; });
+    counts(allCards, function (c) { return c.ts; }, "張卡", function (c) { return "c" + c.id; }, function (c) { return "「" + c.title + "」"; });
+    counts(allMem, function (m) { return m.date; }, "個回憶", function (m) { return "m" + m.id; }, function (m) { return m.caption || ""; });
+    /* 基金每過一千 */
+    var sum = 0, step = 1;
+    S.tickets.filter(paid).sort(function (a, b) { return (a.updatedAt || a.ts) < (b.updatedAt || b.ts) ? -1 : 1; }).forEach(function (t) {
+      sum += Number(t.final) || 0;
+      while (sum >= step * 1000) { mile({ d: ymd(t.updatedAt || t.ts), ic: "$", title: "基金突破 " + money(step * 1000), line: "罰款加起來，一起存的", ord: t.updatedAt || t.ts }); step++; }
+    });
+    /* 週年和每一百天 */
+    if (S.start) {
+      for (var a = 1; a < 100; a++) { var ad = (Number(S.start.slice(0, 4)) + a) + S.start.slice(4); if (+ad.slice(0, 4) > Y) break; if (inYear(ad, Y)) mile({ d: ad, ic: "♥", title: "在一起 " + a + " 週年", line: "" }); }
+      for (var k = 1; k < 400; k++) { var dd = addDays(S.start, k * 100 - 1); if (+dd.slice(0, 4) > Y) break; if (inYear(dd, Y)) mile({ d: dd, ic: "♥", title: "在一起第 " + (k * 100) + " 天", line: "" }); }
+    }
+    items.sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : (String(a.ord) < String(b.ord) ? -1 : 1); });
+
+    var first = !ever || +ever.slice(0, 4) >= Y;
+    var peekPhoto = mems.filter(function (m) { return m.path && m.big; })[0] || mems.filter(function (m) { return m.path; })[0] || null;
+    var peekReq = ok[ok.length - 1] || null;
+    var peekCard = cards[cards.length - 1] || null;
+    return { Y: Y, reqs: reqs, ok: ok, done: done, cards: cards, tix: tix, saved: saved, mems: mems, fund: fund, each: { a: each("a"), b: each("b") },
+      top: top, months: mlist, busy: busy, items: items, first: first, bigs: mems.filter(function (m) { return m.big && m.caption; }),
+      peek: { photo: peekPhoto, req: peekReq, card: peekCard } };
+  }
+
+  /* ---- 頁面 ---- */
+  function yrCover(D) {
+    return '<span class="yr-en">IN THE MEOW COURT</span><div class="yr-court">賴貓法庭</div><div class="yr-ttl">' + D.Y + ' 年度案卷</div><div class="yr-rule"></div>' +
+      '<div class="yr-row"><small>BETWEEN</small>' + esc(nm("a")) + '</div><div class="yr-row"><small>AND</small>' + esc(nm("b")) + '</div>' +
+      '<div class="yr-row" style="margin-top:6px"><small>BRIEF TO</small>七七大法官</div>' +
+      '<div class="yr-fake"><i></i><i style="width:80%"></i><i style="width:90%"></i></div>' +
+      '<div class="yr-fee"><span>Fee:</span><b>貓條 ×1</b></div>';
+  }
+  function yrStats(D) {
+    var us = YR.who === "us";
+    var head = '<div class="yr-hrow"><p class="yr-k">第一頁・總結</p><div class="yr-seg" role="group" aria-label="顯示">' +
+      '<button type="button" data-yr="who" data-v="us" aria-pressed="' + us + '">我們</button><button type="button" data-yr="who" data-v="each" aria-pressed="' + !us + '">各自</button></div></div>' +
+      '<h2>' + (us ? '這一年，我們一起' : '這一年，各自做了') + '</h2>';
+    if (us) {
+      var gw = S.goals.wedding, gt = S.goals.travel, w = D.fund.wedding, t = D.fund.travel;
+      var bar = function (g, v, cls) { return '<div class="yr-fund"><div><span>' + esc(g.name) + '</span><span class="yr-fn">' + money(v) + '</span></div><div class="yr-fbar' + cls + '"><i style="width:' + Math.min(100, v / g.target * 100) + '%"></i></div></div>'; };
+      return head + '<div class="yr-big"><span>存進基金</span><b>' + money(w + t) + '</b></div><div class="yr-funds">' + bar(gw, w, "") + bar(gt, t, " t") + '</div>' +
+        '<div class="yr-stats"><div class="yr-stb"><b>' + D.ok.length + '</b>份申請書被准</div><div class="yr-stb"><b>' + D.cards.length + '</b>張卡送出</div>' +
+        '<div class="yr-stb"><b>' + D.done.length + '</b>次說到做到</div><div class="yr-stb"><b>' + D.tix.length + '</b>張罰單' + (D.saved ? '<br><small>' + D.saved + ' 張用賴貓卡免了</small>' : '') + '</div></div>' +
+        '<p class="yr-tiny">按右上角「各自」看兩個人分別的數字。</p>';
+    }
+    var lab = ["遞出的申請書", "准了對方的申請", "送出的卡", "說到做到", "記下的回憶"];
+    return head + '<div class="yr-eh"><span></span><span><span class="yr-ava">' + esc(nm("a").slice(0, 1)) + '</span>' + esc(nm("a")) + '</span><span><span class="yr-ava b">' + esc(nm("b").slice(0, 1)) + '</span>' + esc(nm("b")) + '</span></div>' +
+      lab.map(function (l, i) { return '<div class="yr-er"><span>' + l + '</span><b>' + D.each.a[i] + '</b><b>' + D.each.b[i] + '</b></div>'; }).join('') +
+      '<p class="yr-tiny">各自只顯示為對方做的好事；罰單和基金只算一起的總數。</p>';
+  }
+  function yrTimeline(D) {
+    var h = '<p class="yr-k">第二頁・回憶</p><h2>今年的回憶</h2><div class="yr-legend"><span><i style="background:#E8546E"></i>申請書</span><span><i style="background:#8FD6B4"></i>卡</span><span><i style="background:#FFD15C"></i>相片</span><span><i style="background:#fff"></i>里程碑</span></div>';
+    if (!D.items.length) return h + '<p class="yr-empty">今年的時間線還是空的。<br>記下一個回憶，這裡就會有第一點。</p>';
+    h += '<div class="yr-tlw"><div class="yr-tl">';
+    var lastM = 0;
+    D.items.forEach(function (x, i) {
+      var m = +x.d.slice(5, 7);
+      if (m !== lastM) { h += '<div class="yr-tm">' + m + '月</div>'; lastM = m; }
+      var th = x.mem && x.mem.path ? '<span class="th">' + photoImg(x.mem.path, "", "") + '</span>' : '';
+      h += '<div class="yr-ti' + (i % 2 ? ' r' : '') + '"><button type="button" class="yr-dot ' + x.k + '" data-yr="item" data-v="' + i + '" aria-label="' + esc(x.title) + '">' + esc(x.ic) + '</button>' +
+        '<button type="button" class="yr-tc' + (x.k === "big" ? ' big' : '') + '" data-yr="item" data-v="' + i + '">' + th + '<span class="d">' + Number(x.d.slice(5, 7)) + '/' + Number(x.d.slice(8, 10)) + (x.badge ? '・' + esc(x.badge) : '') + '</span>' +
+        '<b>' + esc(x.title) + '</b>' + esc(x.line) + '</button></div>';
+    });
+    return h + '<div class="yr-tend">' + (D.Y >= +todayHK().slice(0, 4) ? '待續…' : '這一年完') + '</div></div></div>';
+  }
+  function yrMost(D) {
+    var h = '<p class="yr-k">第三頁・最常</p><h2>最常遞上的申請書</h2>';
+    h += D.top.length ? '<ol class="yr-top3">' + D.top.map(function (x, i) { return '<li><span class="yr-rk">' + (i + 1) + '</span><span>' + esc(x.t) + '</span><span class="c">×' + x.n + '</span></li>'; }).join('') + '</ol>'
+      : '<p class="yr-empty" style="margin:8px 0">今年還沒有遞過申請書。</p>';
+    if (D.months.length) {
+      var mx = Math.max.apply(null, D.months.map(function (x) { return x.n; }));
+      h += '<p class="yr-sub">最熱鬧的一個月</p><div class="yr-bars">' + D.months.map(function (x) {
+        return '<div' + (D.busy && x.m === D.busy.m ? ' class="hi"' : '') + '><b>' + x.n + '</b><i style="height:' + Math.max(6, x.n / mx * 78) + '%"></i>' + x.m + '月</div>';
+      }).join('') + '</div>';
+    }
+    var say = D.busy ? D.busy.m + ' 月本庭最忙，<br>一共有 ' + D.busy.n + ' 件事。' : '今年本庭很清閒。';
+    if (D.top[0] && D.top[0].n > 1) say += '<br>「' + esc(D.top[0].t) + '」申請了 ' + D.top[0].n + ' 次。';
+    return h + '<div class="yr-qsay"><img src="qiqi-yarn.svg" alt=""><span class="yr-bubble">' + say + '</span></div>';
+  }
+  function yrEnding(D) {
+    if (D.first) return "本案押後至明年再審。";
+    if (D.top[0] && D.top[0].n >= 5) return "本庭明年加開「" + D.top[0].t + "」專窗。";
+    if (D.done.length >= 10) return "說到的都做到了，明年照舊。";
+    return "本案押後至明年再審。";
+  }
+  function yrVerdict(D) {
+    var n = D.reqs.length + D.tix.length + D.cards.length + D.mems.length, L = [];
+    L.push("本庭今年共審理 " + n + " 件事。");
+    if (D.top[0] && D.top[0].n > 1) L.push("其中「" + esc(D.top[0].t) + "」最多，共 " + D.top[0].n + " 次。");
+    if (D.saved) L.push("賴貓卡救了 " + D.saved + " 張罰單。");
+    if (D.bigs.length) L.push("還一起記下了：" + D.bigs.slice(0, 2).map(function (m) { return "「" + esc(m.caption) + "」"; }).join("、") + "。");
+    L.push("現裁定如下：");
+    return '<p class="yr-k">最後一頁・判決</p><h2>七七的判決</h2><p class="yr-verdict">' + L.join("<br>") + '<em>' + esc(yrEnding(D)) + '</em></p>' +
+      '<div class="yr-vstamp">賴貓<br>法庭</div><img src="' + QQ + '" alt="">';
+  }
+  var YR_PAGES = [{ f: yrStats, cls: "yr-pstats" }, { f: yrTimeline }, { f: yrMost }, { f: yrVerdict, end: true }];
+  function yrPeeks(D) {
+    var p = D.peek, h = "";
+    if (p.photo) h += '<div class="yr-peek photo">' + photoImg(p.photo.path, "", "") + '</div>';
+    if (p.req) h += '<div class="yr-peek req"><b>申請書</b><span>' + esc(p.req.title) + '</span></div>';
+    if (p.card) h += '<div class="yr-peek card"><span><img src="' + QQ + '" alt=""></span><b>' + esc(p.card.title) + '</b></div>';
+    return h;
+  }
+  function yrPola(x) {
+    var m = x.mem, d = x.d.split("-");
+    var img = m && m.path ? photoImg(m.path, "", m.caption || "相片") : '<div class="memo-art"><img src="' + (x.k === "card" ? "qiqi-yarn.svg" : QQ) + '" alt=""></div>';
+    return '<div class="mem-pola' + (m && m.path ? '' : ' memo') + '">' + img + (x.k === "big" ? '<span class="big-stamp">大事</span>' : '') +
+      '<div class="d">' + d[0] + ' 年 ' + Number(d[1]) + ' 月 ' + Number(d[2]) + ' 日' + (x.badge ? '・' + esc(x.badge) : '') + '</div>' +
+      '<p>' + esc(x.title) + '</p>' + (x.line ? '<small>' + esc(x.line) + '</small>' : '') + '</div>';
+  }
+
+  /* ---- 開／關 ---- */
+  function openReview(Y) {
+    if (YR) closeReview(true);
+    var D = yrData(Y), paper = S.style === "soft" || S.style === "coral" ? "soft" : "chunky";
+    var el = document.createElement("div");
+    el.className = "yr"; el.id = "yr"; el.setAttribute("data-paper", paper);
+    el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", Y + " 年度卷宗");
+    el.innerHTML = '<div class="yr-hd"><h1>' + Y + ' 年度卷宗</h1><button type="button" class="circle" aria-label="關閉" data-yr="close">' + I.close + '</button></div>' +
+      '<div class="yr-stage"><div class="yr-stack">' + yrPeeks(D) + '<img class="yr-qq" src="' + QQ + '" alt=""></div></div>' +
+      '<div class="yr-foot"><p class="yr-say" aria-live="polite"></p><div class="yr-ctl"><button type="button" data-yr="prev">上一頁</button><span class="yr-n"></span><button type="button" data-yr="next">下一頁</button></div></div>' +
+      '<div class="yr-ov"><div class="yr-ovc"></div><button type="button" class="yr-ovx">關閉</button></div>';
+    document.body.appendChild(el);
+    document.documentElement.style.overflow = "hidden";
+    YR = { Y: Y, D: D, el: el, who: "us", stack: el.querySelector(".yr-stack"), say: el.querySelector(".yr-say"), sheets: [], rest: [], cur: 0, st: { phase: "tied" } };
+    yrBuildSheets(); yrBuildRibbon(); yrUI(); hydratePhotos();
+    yrSay("棉帶還綁著。按住蝴蝶結右邊的條尾向外拉，或者點一下。");
+    el.addEventListener("pointerdown", yrDown); el.addEventListener("pointermove", yrMove);
+    el.addEventListener("pointerup", yrEnd); el.addEventListener("pointercancel", yrEnd);
+    el.addEventListener("click", yrClick);
+    document.addEventListener("keydown", yrKey);
+    try { el.querySelector(".yr-hd .circle").focus({ preventScroll: true }); } catch (e) {}
+  }
+  function closeReview(quiet) {
+    if (!YR) return;
+    document.removeEventListener("keydown", yrKey);
+    YR.el.remove(); YR = null;
+    document.documentElement.style.overflow = "";
+    if (/^#review/.test(location.hash) && history.replaceState) history.replaceState(null, "", location.pathname + location.search);
+  }
+  function yrSay(t) { if (YR) YR.say.textContent = t || ""; }
+  function yrBuildSheets() {
+    var data = [{ cover: true }].concat(YR_PAGES), N = data.length;
+    YR.N = N;
+    YR.rest = data.map(function (_, i) { return { x: ((i * 37) % 7 - 3) * 1.2, y: ((i * 53) % 5 - 2) * 1.2, r: ((i * 29) % 9 - 4) * .45 }; });
+    YR.rest[0] = { x: 0, y: 0, r: 0 };   // 綁著的時候封面是正的
+    YR.sheets = data.map(function (d, i) {
+      var s = document.createElement("div");
+      s.className = "yr-sheet" + (d.cover ? " cover" : "");
+      s.innerHTML = d.cover ? yrCover(YR.D) : '<div class="yr-pg' + (d.end ? ' yr-pend' : '') + (d.cls ? ' ' + d.cls : '') + '">' + d.f(YR.D) + '</div>';
+      s.style.zIndex = 10 + N - i; YR.stack.appendChild(s);
+      s._st = { x: YR.rest[i].x, y: YR.rest[i].y, r: YR.rest[i].r, s: 1, o: 1 }; s._out = null; yrDraw(s);
+      return s;
+    });
+  }
+  var yclamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); }, ylerp = function (a, b, t) { return a + (b - a) * t; };
+  function yrDraw(el) { var s = el._st; el.style.transform = "translate(" + s.x + "px," + s.y + "px) rotate(" + s.r + "deg) scale(" + s.s + ")"; el.style.opacity = s.o; el.style.visibility = s.o <= .01 ? "hidden" : ""; }
+  function yrTween(el, to, ms, done) {
+    cancelAnimationFrame(el._raf);
+    if (calm()) ms = Math.min(ms, 160);
+    var from = {}, k; for (k in el._st) from[k] = el._st[k]; var t0 = performance.now();
+    var step = function (now) { var t = yclamp((now - t0) / ms, 0, 1), e = 1 - Math.pow(1 - t, 3); for (var k in to) el._st[k] = ylerp(from[k], to[k], e); yrDraw(el); if (t < 1) el._raf = requestAnimationFrame(step); else if (done) done(); };
+    el._raf = requestAnimationFrame(step);
+  }
+  function yrUI() {
+    var Y = YR, ready = Y.st.phase === "open";
+    Y.sheets.forEach(function (el, i) { el.classList.toggle("top", i === Y.cur); });
+    var vs = Y.sheets[Y.N - 1].querySelector(".yr-vstamp"); if (vs) vs.classList.toggle("on", Y.cur === Y.N - 1);
+    Y.el.querySelector(".yr-ctl .yr-n").textContent = (Y.cur + 1) + " / " + Y.N;
+    Y.el.querySelector('[data-yr="prev"]').disabled = !ready || Y.cur === 0;
+    Y.el.querySelector('[data-yr="next"]').disabled = ready ? Y.cur >= Y.N - 1 : Y.st.phase !== "tied";
+  }
+  function yrThrow(dx, dy) {
+    var Y = YR; if (!Y || Y.st.phase !== "open" || Y.cur >= Y.N - 1) return;
+    var el = Y.sheets[Y.cur], len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len, dist = Math.max(innerWidth, innerHeight) * .7;
+    el._out = { ux: ux, uy: uy }; el.classList.add("lifted");
+    yrTween(el, { x: el._st.x + ux * dist, y: el._st.y + uy * dist, r: el._st.r + ux * 18 + uy * 4, s: 1.02, o: 0 }, 520, function () { el.classList.remove("lifted"); });
+    Y.cur++; yrUI();
+    yrSay(Y.cur >= Y.N - 1 ? "最後一頁。按「上一頁」可以把紙拿回來。" : "");
+  }
+  function yrBack() {
+    var Y = YR; if (!Y || Y.st.phase !== "open" || Y.cur === 0) return;
+    Y.cur--; var i = Y.cur, el = Y.sheets[i], o = el._out || { ux: -1, uy: 0 }, dist = Math.max(innerWidth, innerHeight) * .5, R = Y.rest[i];
+    el._st = { x: R.x + o.ux * dist, y: R.y + o.uy * dist, r: R.r + o.ux * 14, s: 1.02, o: 0 }; yrDraw(el);
+    el.classList.add("lifted");
+    yrTween(el, { x: R.x, y: R.y, r: R.r, s: 1, o: 1 }, 480, function () { el.classList.remove("lifted"); });
+    yrUI(); yrSay("");
+  }
+  function yrKey(e) {
+    if (!YR) return;
+    var ov = YR.el.querySelector(".yr-ov.on");
+    if (e.key === "Escape") { if (ov) ov.classList.remove("on"); else closeReview(); e.stopPropagation(); return; }
+    if (ov) return;
+    if (e.key === "ArrowRight") { if (YR.st.phase === "tied") YR.autoUntie(); else yrThrow(-1, -.25); }
+    if (e.key === "ArrowLeft") yrBack();
+  }
+  /* 捉住最面一張：上半張和下半張轉的方向不同；拉遠過 90px 或用力掃就飛走 */
+  var ydrag = null, ypend = null, yjust = false;
+  function yrDown(e) {
+    var Y = YR; if (!Y || Y.st.phase !== "open" || Y.cur >= Y.N - 1) return;
+    var el = Y.sheets[Y.cur]; if (!el.contains(e.target)) return;
+    ypend = { el: el, x0: e.clientX, y0: e.clientY, inScroll: !!e.target.closest(".yr-tlw") };
+  }
+  function yrStart(e) {
+    var el = ypend.el; cancelAnimationFrame(el._raf);
+    var box = el.getBoundingClientRect(), base = {}, k; for (k in el._st) base[k] = el._st[k];
+    ydrag = { el: el, x0: ypend.x0, y0: ypend.y0, base: base, gy: (ypend.y0 - box.top) / box.height, hist: [{ x: e.clientX, y: e.clientY, t: performance.now() }] };
+    el.classList.add("lifted"); try { el.setPointerCapture(e.pointerId); } catch (er) {}
+    ypend = null;
+  }
+  function yrMove(e) {
+    if (ypend) {
+      var mx = e.clientX - ypend.x0, my = e.clientY - ypend.y0;
+      if (ypend.inScroll) { if (Math.abs(my) > 8 && Math.abs(my) > Math.abs(mx)) { ypend = null; return; } if (Math.abs(mx) > 10) yrStart(e); }
+      else if (Math.hypot(mx, my) > 6) yrStart(e);
+    }
+    if (!ydrag) return;
+    var dx = e.clientX - ydrag.x0, dy = e.clientY - ydrag.y0, s = ydrag.el._st;
+    s.x = ydrag.base.x + dx; s.y = ydrag.base.y + dy; s.r = ydrag.base.r + dx * .06 * (ydrag.gy < .5 ? 1 : -1); s.s = 1.02; yrDraw(ydrag.el);
+    ydrag.hist.push({ x: e.clientX, y: e.clientY, t: performance.now() }); if (ydrag.hist.length > 6) ydrag.hist.shift();
+  }
+  function yrEnd(e) {
+    ypend = null;
+    if (!ydrag || !YR) { ydrag = null; return; }
+    yjust = true; setTimeout(function () { yjust = false; }, 50);
+    var el = ydrag.el, dx = e.clientX - ydrag.x0, dy = e.clientY - ydrag.y0, h0 = ydrag.hist[0], h1 = ydrag.hist[ydrag.hist.length - 1], dt = Math.max(16, h1.t - h0.t);
+    var vx = (h1.x - h0.x) / dt, vy = (h1.y - h0.y) / dt; ydrag = null;
+    if (Math.hypot(dx, dy) > 90 || Math.hypot(vx, vy) > .6) yrThrow(dx + vx * 200, dy + vy * 200);
+    else { var R = YR.rest[YR.sheets.indexOf(el)]; yrTween(el, { x: R.x, y: R.y, r: R.r, s: 1, o: 1 }, 300, function () { el.classList.remove("lifted"); }); }
+  }
+  function yrClick(e) {
+    var Y = YR; if (!Y) return;
+    var ov = Y.el.querySelector(".yr-ov");
+    if (ov.classList.contains("on")) { if (e.target === ov || e.target.closest(".yr-ovx")) ov.classList.remove("on"); return; }
+    var b = e.target.closest("[data-yr]"); if (!b || yjust) return;
+    var k = b.getAttribute("data-yr"), v = b.getAttribute("data-v");
+    if (k === "close") closeReview();
+    else if (k === "next") { if (Y.st.phase === "tied") Y.autoUntie(); else yrThrow(-1, -.25); }
+    else if (k === "prev") yrBack();
+    else if (Y.st.phase !== "open") return;
+    else if (k === "who") { Y.who = v; var pg = Y.el.querySelector(".yr-pg.yr-pstats"); if (pg) pg.innerHTML = yrStats(Y.D); }
+    else if (k === "item") { var x = Y.D.items[+v]; if (!x) return; Y.el.querySelector(".yr-ovc").innerHTML = yrPola(x); ov.classList.add("on"); hydratePhotos(); }
+  }
+
+  /* ---- 棉帶與解結 ---- */
+  function ybz(s, t) { var u = 1 - t; return [u*u*u*s[0][0] + 3*u*u*t*s[1][0] + 3*u*t*t*s[2][0] + t*t*t*s[3][0], u*u*u*s[0][1] + 3*u*u*t*s[1][1] + 3*u*t*t*s[2][1] + t*t*t*s[3][1]]; }
+  function yrib(s, w, taper) {
+    var n = 50, P = [], L = [], R = [], i;
+    for (i = 0; i <= n; i++) P.push(ybz(s, i / n));
+    for (i = 0; i <= n; i++) {
+      var a = P[Math.max(i - 1, 0)], b = P[Math.min(i + 1, n)], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1, hw = w / 2 * (1 - (1 - taper) * i / n);
+      L.push([P[i][0] - dy / d * hw, P[i][1] + dx / d * hw]); R.push([P[i][0] + dy / d * hw, P[i][1] - dx / d * hw]);
+    }
+    var e = P[n], q = P[n - 4], ex = e[0] - q[0], ey = e[1] - q[1], el = Math.hypot(ex, ey) || 1, k = w * .55;
+    var f = function (p) { return p[0].toFixed(1) + " " + p[1].toFixed(1); };
+    return "M" + L.map(f).join(" L") + " L" + f([e[0] - ex / el * k, e[1] - ey / el * k]) + " L" + R.reverse().map(f).join(" L") + "Z";
+  }
+  function ytail(t, dx, dy) { var s = t.seg; return yrib([s[0], s[1], [s[2][0] + dx * .7, s[2][1] + dy * .7], [s[3][0] + dx, s[3][1] + dy]], t.w, t.taper); }
+  function yrBuildRibbon() {
+    var stack = YR.stack, W = stack.offsetWidth, H = stack.offsetHeight, CX = W * .8, CY = H * .66, S_ = YR_S;
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "yr-rb"); svg.setAttribute("viewBox", "-60 -60 " + (W + 120) + " " + (H + 120)); svg.setAttribute("aria-hidden", "true");
+    svg.style.left = "-60px"; svg.style.top = "-60px"; svg.style.width = (W + 120) + "px"; svg.style.height = (H + 120) + "px";
+    svg.innerHTML = '<g class="tapes"><path class="th" fill="none" stroke="' + YR_INK + '" stroke-width="10.4"/><path class="th2" fill="none" stroke="' + YR_PINK + '" stroke-width="8"/>' +
+      '<path class="tv" fill="none" stroke="' + YR_INK + '" stroke-width="10.4"/><path class="tv2" fill="none" stroke="' + YR_PINK + '" stroke-width="8"/></g>' +
+      '<g transform="translate(' + (CX - 100 * S_) + ' ' + (CY - 67 * S_) + ') scale(' + S_ + ')"><g class="slide">' +
+      '<path class="tl" fill="' + YR_PINK + '" stroke="' + YR_INK + '" stroke-width="1.3" stroke-linejoin="round"/><path class="tr" fill="' + YR_PINK + '" stroke="' + YR_INK + '" stroke-width="1.3" stroke-linejoin="round"/>' +
+      '<path class="hit" fill="none" stroke="transparent" stroke-width="30" stroke-linejoin="round"/>' +
+      '<g class="ll">' + YR_BOW.ll + '</g><g class="lr">' + YR_BOW.lr + '</g><g class="kn">' + YR_BOW.kn + '</g></g></g>';
+    stack.appendChild(svg);
+    var tip = document.createElement("span"); tip.className = "yr-tip"; tip.textContent = "按住條尾拉 ↘"; stack.appendChild(tip);
+    var q = function (c) { return svg.querySelector(c); };
+    var st = YR.st;
+    st.W = W; st.H = H; st.CX = CX; st.CY = CY; st.svg = svg; st.tip = tip; st.hit = q(".hit"); st.tr = q(".tr"); st.tl = q(".tl"); st.ll = q(".ll"); st.lr = q(".lr"); st.kn = q(".kn");
+    st.slide = q(".slide"); st.tapes = q(".tapes"); st.th = [q(".th"), q(".th2")]; st.tv = [q(".tv"), q(".tv2")]; st.pull = [0, 0]; st.phase = "tied";
+    yrTapes(0, 0, 0); yrDrawBow(0, 0); yrBindBow();
+  }
+  function yrTapes(sag, sh, sv) {
+    var st = YR.st;
+    var h = "M" + (-5 + sh) + " " + st.CY + " Q" + (st.W / 2 + sh) + " " + (st.CY + sag) + " " + (st.W + 5 + sh) + " " + st.CY;
+    var v = "M" + st.CX + " " + (-5 + sv) + " Q" + (st.CX + sag) + " " + (st.H / 2 + sv) + " " + st.CX + " " + (st.H + 5 + sv);
+    st.th.forEach(function (p) { p.setAttribute("d", h); }); st.tv.forEach(function (p) { p.setAttribute("d", v); });
+  }
+  function yrDrawBow(dx, dy, tlx) {
+    var st = YR.st, dd = ytail(YR_BOW.tr, dx, dy); st.tr.setAttribute("d", dd); st.hit.setAttribute("d", dd);
+    st.tl.setAttribute("d", ytail(YR_BOW.tl, tlx ? tlx[0] : 0, tlx ? tlx[1] : 0));
+    if (st.phase === "tied") st.ll.style.transform = "scale(" + Math.max(.1, 1 - Math.min(Math.hypot(dx, dy), YR_MAX) / YR_MAX * .85) + ")";
+  }
+  function yrAnim(ms, fn, done) {
+    var t0 = performance.now(), me = YR; if (calm()) ms = Math.min(ms, 120);
+    requestAnimationFrame(function f(now) { if (YR !== me) return; var t = Math.min(1, (now - t0) / ms), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; fn(e); if (t < 1) requestAnimationFrame(f); else if (done) done(); });
+  }
+  /* 左圈縮小、穿過個結 → 右圈拉直 → 棉帶鬆開、順著方向滑走 → 變成一疊散紙 */
+  function yrUntie() {
+    var st = YR.st; st.phase = "pop"; st.tip.style.display = "none"; yrSay("");
+    var p = st.pull, l = Math.hypot(p[0], p[1]) || 1, ux = p[0] / l, uy = p[1] / l, s0 = parseFloat((st.ll.style.transform.match(/[\d.]+/) || [1])[0]);
+    YR.el.classList.add("yr-open");
+    yrAnim(180, function (e) { st.ll.style.transform = "rotate(" + (-40 * e) + "deg) scale(" + (s0 * (1 - e)) + ")"; st.kn.style.transform = "scale(" + (1 + .25 * Math.sin(e * Math.PI)) + ")"; yrDrawBow(p[0] + ux * 10 * e, p[1] + uy * 10 * e); }, function () {
+      st.ll.style.opacity = 0; var p1 = [p[0] + ux * 10, p[1] + uy * 10];
+      yrAnim(240, function (e) { st.lr.style.transform = "scale(" + (1 - e) + "," + (1 - .6 * e) + ")"; st.kn.style.opacity = 1 - e; st.kn.style.transform = "scale(" + (1 - .6 * e) + ")"; yrDrawBow(p1[0] + ux * 26 * e, p1[1] + uy * 26 * e, [ux * 34 * e, -14 * e]); }, function () {
+        st.lr.style.opacity = 0;
+        yrAnim(260, function (e) { yrTapes(14 * Math.sin(e * Math.PI / 2), 0, 0); }, function () {
+          yrAnim(560, function (e) { yrTapes(14, 300 * e * e, 420 * e * e); st.tapes.style.opacity = 1 - e; st.slide.style.transform = "translate(" + (ux * 140 * e) + "px," + (uy * 140 * e + 60 * e) + "px)"; st.slide.style.opacity = 1 - e; }, function () {
+            st.svg.remove(); st.tip.remove(); st.phase = "open";
+            YR.rest[0] = { x: -1.8, y: 1.2, r: -1.2 }; yrTween(YR.sheets[0], { x: -1.8, y: 1.2, r: -1.2 }, 300);
+            yrUI(); yrSay("鬆開了。捉住最面那張推走，向哪個方向都可以。");
+          });
+        });
+      });
+    });
+  }
+  function yrBindBow() {
+    var st = YR.st, down = null, moved = false;
+    st.hit.addEventListener("pointerdown", function (e) { if (st.phase !== "tied") return; down = { x: e.clientX, y: e.clientY }; moved = false; try { st.hit.setPointerCapture(e.pointerId); } catch (er) {} e.preventDefault(); e.stopPropagation(); });
+    st.hit.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      var dx = (e.clientX - down.x) / YR_S, dy = (e.clientY - down.y) / YR_S, l = Math.hypot(dx, dy);
+      if (l > 3) { moved = true; st.tip.style.display = "none"; }
+      if (l > YR_MAX) { dx = dx / l * YR_MAX; dy = dy / l * YR_MAX; }
+      st.pull = [dx, dy]; yrDrawBow(dx, dy);
+    });
+    function auto() { st.phase = "auto"; st.tip.style.display = "none"; yrUI(); yrAnim(520, function (e) { st.pull = [28 * e, 56 * e]; st.phase = "tied"; yrDrawBow(st.pull[0], st.pull[1]); st.phase = "auto"; }, yrUntie); }
+    function end() {
+      if (!down) return; down = null;
+      if (!moved) { auto(); return; }
+      if (Math.hypot(st.pull[0], st.pull[1]) > YR_MAX * .7) yrUntie();
+      else { var p = st.pull.slice(); yrAnim(220, function (e) { st.pull = [p[0] * (1 - e), p[1] * (1 - e)]; yrDrawBow(st.pull[0], st.pull[1]); }); }
+    }
+    st.hit.addEventListener("pointerup", end); st.hit.addEventListener("pointercancel", end);
+    /* 點封面其他地方，或者用鍵盤按「下一頁」，都幫忙自動拉開 */
+    YR.sheets[0].addEventListener("click", function () { if (st.phase === "tied") auto(); });
+    YR.autoUntie = function () { if (st.phase === "tied") auto(); };
+  }
+
+  /* 首頁入口（12 月至 1 月）與離開時的回憶 */
+  function yrEntry() {
+    var Y = yrSeason();
+    if (!Y || !yrHas(Y)) return "";
+    return '<button type="button" class="yr-entry" data-act="yr-open" data-v="' + Y + '"><span class="yr-mini" aria-hidden="true">' + Y + '</span>' +
+      '<span class="yr-entry-t"><small>七七大法官整理好了</small><b>' + Y + ' 年度卷宗</b><span class="go">拆開看看</span></span></button>';
+  }
+  function leavePick() {
+    var ph = S.memories.filter(function (m) { return m.path; }), pool = ph.length ? ph : S.memories;
+    if (pool.length) { var m = pool[Math.floor(Math.random() * pool.length)]; return { d: m.date, k: m.big ? "big" : "photo", title: m.caption || "一張相片", line: nm(m.by) + " 記下的", mem: m }; }
+    var oks = S.requests.filter(okReq);
+    if (oks.length) { var q = oks[Math.floor(Math.random() * oks.length)]; return { d: ymd(q.answeredTs || q.ts), k: "req", title: "「" + q.title + "」", line: nm(q.to) + " 准了" + nm(q.from) + "的申請" }; }
+    if (S.cards.length) { var c = S.cards[Math.floor(Math.random() * S.cards.length)]; return { d: ymd(c.ts), k: "card", title: "「" + c.title + "」", line: nm(c.from) + " 送給 " + nm(c.owner) }; }
+    return null;
+  }
+  function leaveMemHTML(x) {
+    if (!x || !x.d) return "";
+    return '<div class="leave-mem">' + yrPola(x) + '<span class="say">七七從卷宗裡找到了這一刻。</span></div>';
+  }
+
   var SHEETS = { newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView };
   function renderLayer() {
     var s = UI.sheet, html = "";
@@ -1857,7 +2468,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       var er = extra && extra.ruleId ? S.rules.filter(function (x) { return x.id === extra.ruleId; })[0] : null;
       f = er ? { ruleId: er.id, rtitle: er.title, ramt: er.amount } : { rtitle: "", ramt: 20 };
     }
-    if (name === "leave") f = { confirmText: "", error: "" };
+    if (name === "leave") f = { confirmText: "", error: "", memPick: leavePick() };
     if (name === "request") f = { preset: 0, qtitle: "", icon: "heart", qnote: "" };
     if (name === "paper") {
       var pq = S.requests.filter(function (x) { return x.id === (extra && extra.id); })[0];
@@ -1949,6 +2560,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var id = el.getAttribute("data-id"), v = el.getAttribute("data-v"), f = UI.form, opn = nm(other(S.me));
     switch (act) {
       case "pick-who": pickWho(v); break;
+      case "yr-open": openReview(+v); break;
       case "pair-create": pairCall("create_couple"); break;
       case "leave-confirm":
         if ((f.confirmText || "").trim() !== "離開") { f.error = "請輸入「離開」兩個字"; renderLayer(); break; }
@@ -2105,8 +2717,11 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
   setInterval(refresh, 30000);
 
+  var yrPending = 0;
   function tabFromHash() {
     var h = (location.hash || "").replace("#", "");
+    var rv = /^review(?:-(\d{4}))?$/.exec(h);
+    if (rv) { yrPending = rv[1] ? +rv[1] : (yrSeason() || +todayHK().slice(0, 4)); return true; }
     h = { tickets: "inbox", me: "home" }[h] || h;
     if (VIEWS[h]) { UI.tab = h; UI.sheet = null; UI.set = null; return true; }
     return false;
