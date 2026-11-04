@@ -1581,7 +1581,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       doc(top + body, "hero", qq("perch", "七七趴在公文上睡覺")) + yrEntry() +
       '<button type="button" class="quiet" data-act="tab" data-tab="inbox">' + I.env + (n ? '案件匣裡有 ' + n + ' 件等你回覆' : '案件匣裡沒有要回覆的事') + '</button>' +
       '<button type="button" class="quiet" style="margin-top:0" data-act="tab" data-tab="cards">' + I.card.replace('width="24" height="24"', 'width="20" height="20"') + '我的卡包' + (myCards(S.me).length ? '（' + myCards(S.me).length + ' 張）' : '') + '</button>' +
-      '<button type="button" class="quiet" style="margin-top:0" data-act="tab" data-tab="spin">' + I.wheel + '選不了？讓七七抽籤</button>';
+      '<button type="button" class="quiet" style="margin-top:0" data-act="tab" data-tab="spin">' + I.wheel + '有世紀懸案？交給七七裁決</button>';
   }
 
   function viewInbox() {
@@ -2949,7 +2949,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
           (p.mine ? '<button type="button" class="sp-pre-x" aria-label="刪除「' + esc(p.title) + '」" data-act="sp-unsave" data-v="' + esc(p.id) + '">' + I.close + '</button>' : '') + '</div>';
       }).join('') +
       '<button type="button" class="sp-link sp-pre-save" data-act="sp-store">＋ 把現在的清單存成預設</button></div>' : '';
-    return hd("七七來決定", "選不了的事，交給七七", ["home", "回到首頁"]) +
+    return hd("七七來決定", "遇上世紀懸案，交給七七裁決", ["home", "回到首頁"]) +
       doc('<label class="sp-title-lab"><span class="tk-k">案由</span><input class="sp-title" data-bind-sp="title" maxlength="20" placeholder="要決定什麼？（可不填）" value="' + esc(SP.title) + '"></label>' +
         '<div id="sp-live">' + spStageHTML(o) + '</div>' +
         RULE2 +
