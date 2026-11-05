@@ -1032,6 +1032,49 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 :root[data-style="neon"] .sp-stage svg { filter: drop-shadow(0 0 14px rgba(255,92,138,.28)); }
 :root[data-style="neon"] .sp-txt, :root[data-style="neon"] .sp-tube-label { fill: #F4F1FF; }
 #sp-live { display: flex; flex-direction: column; }
+.sp-tabs { margin-bottom: 14px; }
+/* 爬梯子 */
+.lad-stage { width: min(100%, 320px); margin: 14px auto 0; }
+.lad-stage svg { display: block; width: 100%; height: auto; overflow: visible; }
+.lad-pole { stroke: var(--line); stroke-width: 3; stroke-linecap: round; }
+.lad-rung { stroke: var(--line); stroke-width: 3; stroke-linecap: round; }
+:root[data-style="coral"] .lad-pole, :root[data-style="coral"] .lad-rung, :root[data-style="neon"] .lad-pole, :root[data-style="neon"] .lad-rung, :root[data-style="soft"] .lad-pole, :root[data-style="soft"] .lad-rung { stroke: var(--muted); }
+.lad-trail { fill: none; stroke: var(--accent); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+.lad-dot { fill: var(--gold); stroke: var(--line); stroke-width: 2.5; }
+.lad-start { cursor: pointer; }
+.lad-start circle { fill: var(--surface); stroke: var(--line); stroke-width: 2.5; }
+.lad-start text { fill: var(--ink); font-family: var(--num); font-weight: 700; font-size: 16px; pointer-events: none; }
+.lad-start.on circle { fill: var(--accent); }
+.lad-start.on text { fill: var(--on-accent); }
+.lad-card rect { fill: var(--surface-2); stroke: var(--line); stroke-width: 2; stroke-dasharray: 5 4; }
+.lad-card text { fill: var(--muted); font-family: var(--serif); font-weight: 700; font-size: 15px; }
+.lad-card.open rect { fill: var(--soft-gold); stroke-dasharray: none; }
+.lad-card.open text { fill: var(--ink); }
+.lad-card.hit rect { fill: var(--gold); stroke-width: 3; }
+.lad-card.hit text { fill: #3B2A33; }
+.lad-note { margin-top: 10px; text-align: center; }
+.lad-new { align-self: center; margin-top: 10px; }
+/* 擲骰：骰子是實體，深色模式也是象牙色 */
+.dice-n { margin-top: 8px; }
+.dice-row, .dice-duel { display: flex; justify-content: center; align-items: flex-end; gap: 26px; min-height: 200px; padding-top: 110px; }
+.dice-duel { gap: 48px; }
+.dice-lane { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.dice-who { font-family: var(--serif); font-weight: 700; font-size: 17px; }
+.die-sc { position: relative; width: 64px; height: 64px; perspective: 520px; }
+.die { position: relative; z-index: 1; width: 64px; height: 64px; transform-style: preserve-3d; }
+.die .face { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 8px; background: #FFFBF3; border: 2.5px solid #3B2A33; border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.die .f1 { transform: rotateY(0deg) translateZ(32px); } .die .f6 { transform: rotateY(180deg) translateZ(32px); }
+.die .f2 { transform: rotateY(90deg) translateZ(32px); } .die .f5 { transform: rotateY(-90deg) translateZ(32px); }
+.die .f3 { transform: rotateX(90deg) translateZ(32px); } .die .f4 { transform: rotateX(-90deg) translateZ(32px); }
+.die .pip { place-self: center; width: 11px; height: 11px; border-radius: 50%; background: #3B2A33; }
+.die .pip.r { background: #E0435B; }
+.die .pip.big { width: 19px; height: 19px; }
+.die-sh { position: absolute; left: 6px; right: 6px; bottom: -12px; height: 10px; border-radius: 50%; background: rgba(40,20,30,.22); filter: blur(2px); }
+:root[data-mode="dark"] .die-sh, :root[data-style="neon"] .die-sh { background: rgba(0,0,0,.5); }
+.dice-res { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 62px; margin-top: 26px; text-align: center; }
+.dice-sum { font-family: var(--num); font-weight: 700; font-size: 30px; line-height: 36px; color: var(--accent-ink); }
+.dice-say { font-size: 16px; } .dice-say b { color: var(--accent-ink); }
+.dice-hint { font-size: 14px; color: var(--muted); }
 .sp-go { width: 100%; margin-top: 16px; }
 /* 判決書：實體的紙，深色模式下也保持淺色 */
 .sp-paper { position: relative; color: #3B2A33; transform: rotate(-1deg); filter: drop-shadow(0 18px 22px rgba(20,8,14,.45)); }
@@ -2952,6 +2995,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   var SP_KEY = "meow-spin";
   var SP = {
     title: "", text: "", hidden: [], saved: [], mode: lsGet("meow-spin-mode") || "", showPre: false,
+    tab: lsGet("meow-spin-tab") || "wheel", lad: null, dmode: lsGet("meow-dice-mode") || "roll", dcount: +lsGet("meow-dice-n") || 2, dang: [], dvals: null, dres: null,
     angle: 0, running: false, dirty: false, raf: 0, anims: [], appeals: 0, undecided: false, lastKey: "", lastResult: ""
   };
   (function () {
@@ -3042,7 +3086,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   }
   function spRefresh() {
     var o = spOpts(), st = document.getElementById("sp-live"), ct = document.getElementById("sp-count");
-    if (st) st.innerHTML = spStageHTML(o);
+    if (st) st.innerHTML = SP.tab === "ladder" ? ladHTML(o) : spStageHTML(o);
     if (ct) ct.innerHTML = spCountHTML(o);
   }
   function spInput(k, v) {
@@ -3062,9 +3106,14 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
           (p.mine ? '<button type="button" class="sp-pre-x" aria-label="刪除「' + esc(p.title) + '」" data-act="sp-unsave" data-v="' + esc(p.id) + '">' + I.close + '</button>' : '') + '</div>';
       }).join('') +
       '<button type="button" class="sp-link sp-pre-save" data-act="sp-store">＋ 把現在的清單存成預設</button></div>' : '';
+    var tab = { wheel: 1, ladder: 1, dice: 1 }[SP.tab] ? SP.tab : "wheel";
+    var tabs = '<div class="seg sp-tabs" style="--n:3" role="group" aria-label="玩法">' + [["wheel", "轉盤"], ["ladder", "爬梯子"], ["dice", "擲骰"]].map(function (t) {
+      return '<button type="button" data-act="sp-tab" data-v="' + t[0] + '" aria-pressed="' + (tab === t[0]) + '">' + t[1] + '</button>';
+    }).join('') + '</div>';
+    if (tab === "dice") return hd("七七來決定", "遇上世紀懸案，交給七七裁決", ["home", "回到首頁"]) + doc(tabs + spDiceHTML(), "one");
     return hd("七七來決定", "遇上世紀懸案，交給七七裁決", ["home", "回到首頁"]) +
-      doc('<label class="sp-title-lab"><span class="tk-k">案由</span><input class="sp-title" data-bind-sp="title" maxlength="20" placeholder="要決定什麼？（可不填）" value="' + esc(SP.title) + '"></label>' +
-        '<div id="sp-live">' + spStageHTML(o) + '</div>' +
+      doc(tabs + '<label class="sp-title-lab"><span class="tk-k">案由</span><input class="sp-title" data-bind-sp="title" maxlength="20" placeholder="要決定什麼？（可不填）" value="' + esc(SP.title) + '"></label>' +
+        '<div id="sp-live">' + (tab === "ladder" ? ladHTML(o) : spStageHTML(o)) + '</div>' +
         RULE2 +
         '<div class="sp-opts-h"><label for="sp-text" class="lab-t">選項（一行一個）</label>' +
           '<button type="button" class="sp-pre-tog" data-act="sp-presets" aria-expanded="' + SP.showPre + '" aria-controls="sp-pre">預設清單<span aria-hidden="true">' + (SP.showPre ? '▴' : '▾') + '</span></button></div>' +
@@ -3190,8 +3239,191 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var f = UI.form;
     if (f.opt && SP.hidden.indexOf(f.opt) < 0) SP.hidden.push(f.opt);
     SP.undecided = false; SP.appeals = 0; spStore();
-    UI.sheet = null; UI.form = {}; render();
+    UI.sheet = null; UI.form = {};
+    if (SP.tab === "ladder") { ladNew("拿走了「" + f.result + "」，再選一個起點"); return; }
+    render();
     setTimeout(spGo, 250);
+  }
+
+  /* ===================== 爬梯子 =====================
+     和轉盤共用同一份選項。終點的選項先蓋住，選一個起點，七七沿著梯子走下去，走到才揭曉。
+     一個人也可以玩：因為終點蓋住了，不會「看著答案選起點」。 */
+  function ladMake(o) {
+    var n = o.length, key = o.join("\n"), lad = { key: key, n: n, id: Date.now() + spRand(1e6), start: -1, landed: -1, seen: {} };
+    if (n < 2 || n > 8) { lad.bad = true; return lad; }
+    var R = n <= 3 ? 7 : n <= 5 ? 9 : 10, rungs = [], r, j;
+    for (r = 0; r < R; r++) { rungs.push([]); for (j = 0; j < n - 1; j++) rungs[r].push(!rungs[r][j - 1] && spRand(100) < 48); }
+    /* 每一格中間最少兩條橫線，免得有直落到底的路 */
+    for (j = 0; j < n - 1; j++) {
+      var cnt = 0; for (r = 0; r < R; r++) if (rungs[r][j]) cnt++;
+      for (var tries = 0; cnt < 2 && tries < 40; tries++) {
+        r = spRand(R);
+        if (!rungs[r][j] && !rungs[r][j - 1] && !rungs[r][j + 1]) { rungs[r][j] = true; cnt++; }
+      }
+    }
+    var perm = []; for (j = 0; j < n; j++) perm.push(j);
+    for (j = n - 1; j > 0; j--) { var k = spRand(j + 1), t = perm[j]; perm[j] = perm[k]; perm[k] = t; }
+    var jit = []; for (r = 0; r < R; r++) { jit.push([]); for (j = 0; j < n - 1; j++) jit[r].push(spRand(9) - 4); }
+    lad.R = R; lad.rungs = rungs; lad.perm = perm; lad.jit = jit; lad.opts = o.slice();
+    return lad;
+  }
+  function ladGet(o) { var key = o.join("\n"); if (!SP.lad || SP.lad.key !== key) SP.lad = ladMake(o); return SP.lad; }
+  var LAD_W = 320, LAD_Y0 = 58, LAD_ROW = 28;
+  function ladX(lad, i) { return (i + 0.5) * LAD_W / lad.n; }
+  function ladY(lad, r, j) { return LAD_Y0 + (r + 0.5) * LAD_ROW + (lad.jit[r][j] || 0); }
+  function ladBottom(lad) { return LAD_Y0 + lad.R * LAD_ROW; }
+  /* 從起點走到終點的路線（一串點），和落在第幾個終點 */
+  function ladPath(lad, start) {
+    var c = start, pts = [[ladX(lad, c), LAD_Y0]];
+    for (var r = 0; r < lad.R; r++) {
+      if (c > 0 && lad.rungs[r][c - 1]) { var y = ladY(lad, r, c - 1); pts.push([ladX(lad, c), y], [ladX(lad, c - 1), y]); c--; }
+      else if (c < lad.n - 1 && lad.rungs[r][c]) { var y2 = ladY(lad, r, c); pts.push([ladX(lad, c), y2], [ladX(lad, c + 1), y2]); c++; }
+    }
+    pts.push([ladX(lad, c), ladBottom(lad)]);
+    return { d: "M" + pts.map(function (p) { return p[0].toFixed(1) + " " + p[1].toFixed(1); }).join("L"), end: c };
+  }
+  function ladCard(lad, i) {
+    var x = ladX(lad, i), w = Math.min(36, LAD_W / lad.n - 8), y = ladBottom(lad) + 10, open = !!lad.seen[i];
+    var txt = open ? Array.from(spClip(spOpt(lad.opts[lad.perm[i]]), 5)) : ["？"];
+    return '<g class="lad-card' + (open ? ' open' : '') + (lad.landed === i ? ' hit' : '') + '" id="lad-c' + i + '"><rect x="' + (x - w / 2).toFixed(1) + '" y="' + y + '" width="' + w.toFixed(1) + '" height="94" rx="8"/>' +
+      txt.map(function (c, k) { return '<text x="' + x.toFixed(1) + '" y="' + (open ? y + 18 + k * 17 : y + 52) + '" text-anchor="middle">' + esc(c) + '</text>'; }).join('') + '</g>';
+  }
+  function ladHTML(o) {
+    if (o.length < 2) return '<p class="note lad-note">最少要兩個選項。</p>';
+    if (o.length > 8) return '<p class="note lad-note">爬梯子最多 8 個選項（現在 ' + o.length + ' 個）。刪減一些，或改用轉盤。</p>';
+    var lad = ladGet(o), n = lad.n, b = ladBottom(lad), g = "", r, j;
+    for (j = 0; j < n; j++) g += '<line class="lad-pole" x1="' + ladX(lad, j).toFixed(1) + '" y1="' + LAD_Y0 + '" x2="' + ladX(lad, j).toFixed(1) + '" y2="' + b + '"/>';
+    for (r = 0; r < lad.R; r++) for (j = 0; j < n - 1; j++) if (lad.rungs[r][j]) {
+      var y = ladY(lad, r, j).toFixed(1);
+      g += '<line class="lad-rung" x1="' + ladX(lad, j).toFixed(1) + '" y1="' + y + '" x2="' + ladX(lad, j + 1).toFixed(1) + '" y2="' + y + '"/>';
+    }
+    var trail = lad.start >= 0 ? ladPath(lad, lad.start).d : "";
+    var tops = "";
+    for (j = 0; j < n; j++) tops += '<g class="lad-start' + (lad.start === j ? ' on' : '') + '" data-act="lad-go" data-v="' + j + '" role="button" aria-label="從第 ' + (j + 1) + ' 條開始"><circle cx="' + ladX(lad, j).toFixed(1) + '" cy="24" r="17"/><text x="' + ladX(lad, j).toFixed(1) + '" y="24" text-anchor="middle" dominant-baseline="central">' + (j + 1) + '</text></g>';
+    var cards = ""; for (j = 0; j < n; j++) cards += ladCard(lad, j);
+    var end = lad.start >= 0 ? ladPath(lad, lad.start).d.split("L").pop().split(" ") : null;
+    return '<div class="lad-stage"><svg viewBox="0 0 ' + LAD_W + ' ' + (b + 112) + '" role="group" aria-label="爬梯子，' + n + ' 個起點">' + g +
+      '<path id="lad-trail" class="lad-trail" d="' + trail + '"/>' + tops + cards +
+      '<circle id="lad-dot" class="lad-dot" r="9" cx="' + (end ? end[0] : -50) + '" cy="' + (end ? end[1] : -50) + '"' + (end ? '' : ' style="opacity:0"') + '/></svg></div>' +
+      '<p class="note lad-note">' + (SP.running ? '七七正在爬…' : '選一個起點，七七會沿著梯子走下去。') + '</p>' +
+      '<button type="button" class="btn sm lad-new" data-act="lad-new"' + (SP.running ? ' disabled' : '') + '>重新畫梯子</button>';
+  }
+  function ladGo(i) {
+    if (SP.running || UI.tab !== "spin" || SP.tab !== "ladder") return;
+    var o = spOpts(), lad = ladGet(o); if (lad.bad) return;
+    var key = "lad|" + lad.key;
+    if (SP.undecided && SP.lastKey === key) SP.appeals++; else SP.appeals = 0;
+    var p = ladPath(lad, i), opt = lad.opts[lad.perm[p.end]], result = spOpt(opt);
+    var res = { title: SP.title.trim() || "抽一個", opt: opt, result: result, appeals: SP.appeals, same: SP.appeals > 0 && result === SP.lastResult, left: o.length, mark: null };
+    SP.lastKey = key; SP.lastResult = result; SP.undecided = true;
+    lad.start = i; lad.landed = -1; SP.running = true;
+    Array.prototype.forEach.call(document.querySelectorAll(".lad-start"), function (el, k) { el.classList.toggle("on", k === i); });
+    var nb = document.querySelector(".lad-note"); if (nb) nb.textContent = "七七正在爬…";
+    var lb = document.querySelector(".lad-new"); if (lb) lb.disabled = true;
+    var trail = document.getElementById("lad-trail"), dot = document.getElementById("lad-dot");
+    function finish() {
+      lad.landed = p.end; lad.seen[p.end] = true;
+      var c = document.getElementById("lad-c" + p.end);
+      if (c) c.outerHTML = ladCard(lad, p.end);
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+      setTimeout(function () {
+        SP.running = false;
+        if (UI.tab !== "spin") return;
+        SP.dirty = false; render(true);
+        openSheet("spinres", res);
+      }, 650);
+    }
+    if (!trail || !dot || !trail.getTotalLength || calm()) { if (trail) trail.setAttribute("d", p.d); finish(); return; }
+    trail.setAttribute("d", p.d);
+    var len = trail.getTotalLength(), speed = 0.2, t0 = 0;   // 每毫秒走 0.2 單位，速度固定，不會忽快忽慢
+    trail.style.strokeDasharray = len; trail.style.strokeDashoffset = len; dot.style.opacity = 1;
+    function frame(t) {
+      if (!SP.running) return;
+      if (!t0) t0 = t;
+      var d = Math.min(len, (t - t0) * speed), pt = trail.getPointAtLength(d);
+      dot.setAttribute("cx", pt.x.toFixed(1)); dot.setAttribute("cy", pt.y.toFixed(1));
+      trail.style.strokeDashoffset = (len - d).toFixed(1);
+      if (d < len) SP.raf = requestAnimationFrame(frame); else { SP.raf = 0; finish(); }
+    }
+    SP.raf = requestAnimationFrame(frame);
+  }
+  function ladNew(msg) { SP.lad = null; SP.undecided = false; SP.appeals = 0; render(); if (msg) toast(msg); }
+
+  /* ===================== 擲骰 =====================
+     骰子是實體的小立方體（深色模式也保持象牙色）；中式骰子的一點和四點是紅色。
+     擲骰：1 至 3 粒加起來。比大小：兩個人各擲一粒，大的贏。 */
+  var DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+  /* 每一面朝向觀眾時，骰子要轉的角度 [rotateX, rotateY] */
+  var DIE_FACE = { 1: [0, 0], 6: [0, 180], 2: [0, -90], 5: [0, 90], 3: [-90, 0], 4: [90, 0] };
+  function dieFace(v) {
+    var pips = "";
+    for (var k = 0; k < 9; k++) pips += DIE_PIPS[v].indexOf(k) >= 0 ? '<b class="pip' + (v === 1 || v === 4 ? ' r' : '') + (v === 1 ? ' big' : '') + '"></b>' : '<span></span>';
+    return '<i class="face f' + v + '">' + pips + '</i>';
+  }
+  function dieHTML(idx) {
+    var a = SP.dang[idx] || DIE_FACE[SP.dvals ? SP.dvals[idx] : [1, 3, 5][idx % 3]];
+    return '<div class="die-sc" id="die-sc' + idx + '"><div class="die" id="die' + idx + '" style="transform:rotateX(' + a[0] + 'deg) rotateY(' + a[1] + 'deg)">' +
+      [1, 2, 3, 4, 5, 6].map(dieFace).join('') + '</div><span class="die-sh" id="die-sh' + idx + '"></span></div>';
+  }
+  function diceResHTML() {
+    var v = SP.dres; if (!v) return '<span class="dice-hint">' + (SP.dmode === "duel" ? '兩個人各擲一粒，點數大的贏' : '按下面的按鈕擲骰子') + '</span>';
+    if (v.mode === "duel") {
+      var a = v.vals[0], b = v.vals[1];
+      return '<span class="dice-sum">' + a + ' : ' + b + '</span><span class="dice-say">' + (a === b ? '平手！七七說：再擲一次。' : '七七宣判：<b>' + esc(nm(a > b ? "a" : "b")) + '</b> 勝！') + '</span>';
+    }
+    var sum = v.vals.reduce(function (s, x) { return s + x; }, 0);
+    return '<span class="dice-sum">' + (v.vals.length > 1 ? v.vals.join(' + ') + ' = ' : '') + sum + ' 點</span>';
+  }
+  function spDiceHTML() {
+    var duel = SP.dmode === "duel", n = duel ? 2 : SP.dcount, dice = "";
+    if (duel) dice = '<div class="dice-duel">' + ["a", "b"].map(function (s, i) { return '<div class="dice-lane"><span class="dice-who">' + esc(nm(s)) + '</span>' + dieHTML(i) + '</div>'; }).join('') + '</div>';
+    else { for (var i = 0; i < n; i++) dice += dieHTML(i); dice = '<div class="dice-row">' + dice + '</div>'; }
+    return '<div class="seg ink sp-mode" role="group" aria-label="擲骰方式"><button type="button" data-act="dice-mode" data-v="roll" aria-pressed="' + !duel + '">擲骰</button><button type="button" data-act="dice-mode" data-v="duel" aria-pressed="' + duel + '">比大小</button></div>' +
+      (duel ? '' : '<div class="seg sp-mode dice-n" style="--n:3" role="group" aria-label="骰子數目">' + [1, 2, 3].map(function (k) { return '<button type="button" data-act="dice-n" data-v="' + k + '" aria-pressed="' + (SP.dcount === k) + '">' + k + ' 粒</button>'; }).join('') + '</div>') +
+      dice + '<div class="dice-res" id="dice-res" aria-live="polite">' + diceResHTML() + '</div>' +
+      '<button type="button" class="btn primary sp-go" data-act="dice-go"' + (SP.running ? ' disabled' : '') + '>' + (SP.running ? '骰子轉緊…' : '擲骰子') + '</button>';
+  }
+  function diceGo() {
+    if (SP.running || UI.tab !== "spin" || SP.tab !== "dice") return;
+    var duel = SP.dmode === "duel", n = duel ? 2 : SP.dcount, vals = [];
+    for (var i = 0; i < n; i++) vals.push(spRand(6) + 1);
+    SP.running = true; SP.dres = null;
+    var resEl = document.getElementById("dice-res"); if (resEl) resEl.innerHTML = '<span class="dice-hint">…</span>';
+    var b = document.querySelector('.sp-go'); if (b) { b.disabled = true; b.textContent = "骰子轉緊…"; }
+    var dur = 0;
+    vals.forEach(function (v, i) {
+      var from = SP.dang[i] || DIE_FACE[SP.dvals ? SP.dvals[i] : [1, 3, 5][i % 3]] || [0, 0];
+      var f = DIE_FACE[v], to = [f[0] + 360 * (2 + spRand(2)) * (spRand(2) ? 1 : -1), f[1] + 360 * (1 + spRand(2)) * (spRand(2) ? 1 : -1)];
+      var die = document.getElementById("die" + i), sc = document.getElementById("die-sc" + i), sh = document.getElementById("die-sh" + i);
+      var d = 1250 + spRand(350) + i * 90; dur = Math.max(dur, d);
+      SP.dang[i] = [f[0], f[1]];
+      if (!die || !die.animate || calm()) { if (die) die.style.transform = "rotateX(" + f[0] + "deg) rotateY(" + f[1] + "deg)"; return; }
+      /* 先往上拋，落地彈兩下；骰子在空中轉，落地前轉完 */
+      SP.anims.push(die.animate([{ transform: "rotateX(" + from[0] + "deg) rotateY(" + from[1] + "deg)" }, { transform: "rotateX(" + to[0] + "deg) rotateY(" + to[1] + "deg)" }],
+        { duration: d * 0.78, easing: "cubic-bezier(.25,.6,.35,1)", fill: "forwards" }));
+      var h = 64 + spRand(24), dx = (spRand(21) - 10);
+      SP.anims.push(sc.animate([
+        { transform: "translate(0,0)" }, { transform: "translate(" + dx * .5 + "px," + -h + "px)", offset: .32, easing: "ease-in" },
+        { transform: "translate(" + dx + "px,0)", offset: .62, easing: "ease-out" }, { transform: "translate(" + dx + "px," + -h * .22 + "px)", offset: .76, easing: "ease-in" },
+        { transform: "translate(" + dx + "px,0)", offset: .88, easing: "ease-out" }, { transform: "translate(" + dx + "px," + -h * .05 + "px)", offset: .94 }, { transform: "translate(" + dx + "px,0)" }
+      ], { duration: d, fill: "forwards" }));
+      /* 影子：骰子越高，影子越小越淡 */
+      if (sh) SP.anims.push(sh.animate([
+        { transform: "translateY(0) scale(1)", opacity: 1 }, { transform: "translateY(" + h + "px) scale(.45)", opacity: .35, offset: .32, easing: "ease-in" },
+        { transform: "translateY(0) scale(1)", opacity: 1, offset: .62 }, { transform: "translateY(" + h * .22 + "px) scale(.85)", opacity: .8, offset: .76 },
+        { transform: "translateY(0) scale(1)", opacity: 1, offset: .88 }, { transform: "translateY(0) scale(1)", opacity: 1 }
+      ], { duration: d, fill: "forwards" }));
+    });
+    setTimeout(function () {
+      if (!SP.running) return;
+      SP.running = false; SP.anims = [];
+      SP.dvals = vals; SP.dres = { mode: duel ? "duel" : "roll", vals: vals };
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+      if (UI.tab !== "spin") return;
+      if (SP.dirty) { SP.dirty = false; render(true); return; }
+      var re = document.getElementById("dice-res"); if (re) re.innerHTML = diceResHTML();
+      var bb = document.querySelector('.sp-go'); if (bb) { bb.disabled = false; bb.textContent = "擲骰子"; }
+    }, calm() ? 150 : dur + 80);
   }
 
   /* ---- 預設清單 ---- */
@@ -3470,7 +3702,16 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       case "mem-del": deleteMemory(id); break;
       case "sp-mode": if (!SP.running) { SP.mode = v; lsSet("meow-spin-mode", v); render(); } break;
       case "sp-go": spGo(); break;
-      case "sp-appeal": UI.sheet = null; UI.form = {}; renderLayer(); spGo(); break;
+      case "sp-appeal":
+        UI.sheet = null; UI.form = {}; renderLayer();
+        if (SP.tab === "ladder") { var keepU = SP.undecided, keepA = SP.appeals; ladNew("梯子重新畫好了，再選一個起點"); SP.undecided = keepU; SP.appeals = keepA; } else spGo();
+        break;
+      case "sp-tab": if (!SP.running) { SP.tab = v; lsSet("meow-spin-tab", v); SP.undecided = false; SP.appeals = 0; render(); } break;
+      case "lad-go": ladGo(+v); break;
+      case "lad-new": if (!SP.running) ladNew("梯子重新畫好了"); break;
+      case "dice-go": diceGo(); break;
+      case "dice-mode": if (!SP.running) { SP.dmode = v; lsSet("meow-dice-mode", v); SP.dres = null; SP.dvals = null; SP.dang = []; render(); } break;
+      case "dice-n": if (!SP.running) { SP.dcount = +v; lsSet("meow-dice-n", v); SP.dres = null; SP.dvals = null; SP.dang = []; render(); } break;
       case "sp-ok": spDecide(false); break;
       case "sp-ok-cal": spDecide(true); break;
       case "sp-drop": spDrop(); break;
