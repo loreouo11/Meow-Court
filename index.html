@@ -313,7 +313,10 @@ img { display: block; }
 .overlay.leaving { pointer-events: none; animation: ovout .2s ease-in both; }
 .overlay.leaving .sheet { animation: sheetout .2s cubic-bezier(.4,0,.9,.6) both; }
 .overlay.leaving .pop, .overlay.leaving .paper-stage { animation: popout .16s ease-in both; }
-.handle { flex: none; align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--handle); }
+.handle { position: relative; flex: none; align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--handle); touch-action: none; cursor: grab; }
+.handle::before { content: ""; position: absolute; inset: -14px -60px; }
+.sheet-h { touch-action: none; }
+.sheet.dragging { cursor: grabbing; }
 .sheet-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .sheet-h h2 { margin: 0; font-family: var(--serif); font-weight: 700; font-size: 24px; line-height: 30px; overflow-wrap: anywhere; }
 .sheet-h .circle { background: var(--surface); }
@@ -3526,6 +3529,34 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     }
   });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && UI.sheet && !(UI.form && (UI.form.stamping || UI.form.mark))) closeSheet(); });
+  /* 抽屜：按住上面的橫線（或標題）向下拉，抽屜跟著手指走；拉夠遠或者用力一掃就關閉 */
+  var sdrag = null;
+  document.addEventListener("pointerdown", function (e) {
+    var h = e.target.closest && e.target.closest("#layer .sheet .handle, #layer .sheet .sheet-h");
+    if (!h || e.target.closest("button, input, textarea, select, a")) return;
+    if (UI.busy || (UI.form && (UI.form.stamping || UI.form.mark))) return;
+    var sh = h.closest(".sheet");
+    sdrag = { sh: sh, h: h, y0: e.clientY, dy: 0, hist: [{ y: e.clientY, t: performance.now() }] };
+    sh.style.transition = "none"; sh.classList.add("dragging");
+    try { h.setPointerCapture(e.pointerId); } catch (er) {}
+  });
+  document.addEventListener("pointermove", function (e) {
+    if (!sdrag) return;
+    var dy = e.clientY - sdrag.y0;
+    if (dy < 0) dy = -Math.sqrt(-dy) * 2;   // 向上拉只動一點點
+    sdrag.dy = dy; sdrag.sh.style.transform = "translateY(" + dy + "px)";
+    sdrag.hist.push({ y: e.clientY, t: performance.now() }); if (sdrag.hist.length > 6) sdrag.hist.shift();
+  });
+  function sheetDragEnd() {
+    if (!sdrag) return;
+    var d = sdrag; sdrag = null; d.sh.classList.remove("dragging");
+    var h0 = d.hist[0], h1 = d.hist[d.hist.length - 1], v = (h1.y - h0.y) / Math.max(16, h1.t - h0.t);
+    if (d.dy > Math.min(140, d.sh.offsetHeight * .25) || (v > .6 && d.dy > 20)) { closeSheet(); return; }
+    d.sh.style.transition = "transform .25s cubic-bezier(.2,.9,.3,1)"; d.sh.style.transform = "";
+    setTimeout(function () { d.sh.style.transition = ""; }, 260);
+  }
+  document.addEventListener("pointerup", sheetDragEnd);
+  document.addEventListener("pointercancel", sheetDragEnd);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
   setInterval(refresh, 30000);
 
