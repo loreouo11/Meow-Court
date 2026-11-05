@@ -1033,6 +1033,56 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 .sp-acts { display: flex; flex-direction: column; gap: 10px; }
 :root[data-style="coral"] .sp-ph { background: linear-gradient(90deg, #FFC7A8, #FFD15C); }
 @media (prefers-reduced-motion: reduce) { .sp-paper .mark { animation: none; } }
+
+/* ===================== 卡包：演唱會門票 ===================== */
+.tkt { position: relative; display: flex; width: 100%; height: 150px; color: #3B2A33; filter: drop-shadow(3px 3px 0 rgba(59,42,51,.9)); text-align: left; }
+:root[data-style="coral"] .tkt, :root[data-style="soft"] .tkt { filter: drop-shadow(0 6px 12px rgba(59,42,51,.18)); }
+:root[data-style="neon"] .tkt { filter: drop-shadow(0 0 10px rgba(255,92,138,.45)); }
+.tkt-main, .tkt-stub { position: relative; height: 100%; background: #FFFBF3; border: 2px solid #3B2A33; }
+.tkt-main { flex: 1; min-width: 0; border-right: 0; border-radius: 12px 0 0 12px; overflow: hidden;
+  -webkit-mask: radial-gradient(circle at 100% 0, #0000 11px, #000 11.5px) top / 100% 51% no-repeat, radial-gradient(circle at 100% 100%, #0000 11px, #000 11.5px) bottom / 100% 51% no-repeat;
+          mask: radial-gradient(circle at 100% 0, #0000 11px, #000 11.5px) top / 100% 51% no-repeat, radial-gradient(circle at 100% 100%, #0000 11px, #000 11.5px) bottom / 100% 51% no-repeat; }
+.tkt-stub { flex: none; width: 86px; border-left: 2px dashed #3B2A33; border-radius: 0 12px 12px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--c1);
+  -webkit-mask: radial-gradient(circle at 0 0, #0000 11px, #000 11.5px) top / 100% 51% no-repeat, radial-gradient(circle at 0 100%, #0000 11px, #000 11.5px) bottom / 100% 51% no-repeat;
+          mask: radial-gradient(circle at 0 0, #0000 11px, #000 11.5px) top / 100% 51% no-repeat, radial-gradient(circle at 0 100%, #0000 11px, #000 11.5px) bottom / 100% 51% no-repeat; }
+.tkt-band { position: absolute; left: 0; top: 0; bottom: 0; width: 14px; background: var(--c1); border-right: 2px solid #3B2A33; }
+.tkt-in { position: absolute; left: 26px; right: 12px; top: 12px; bottom: 10px; display: flex; flex-direction: column; }
+.tkt-k { font-family: "Fredoka", sans-serif; font-weight: 700; font-size: 10px; letter-spacing: .18em; color: #C23A54; }
+.tkt-t { margin-top: 2px; font-family: var(--serif); font-weight: 700; font-size: 22px; line-height: 28px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tkt-d { font-size: 12px; line-height: 17px; color: #7A5F6B; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.tkt-g { margin-top: auto; display: flex; gap: 14px; font-family: "Fredoka", sans-serif; font-size: 9px; letter-spacing: .12em; color: #7A5F6B; }
+.tkt-g span { display: flex; flex-direction: column; min-width: 0; }
+.tkt-g b { font-family: var(--font); font-weight: 400; font-size: 13px; letter-spacing: 0; color: #3B2A33; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tkt-stub img, .tkt-stub svg { width: 46px; height: 46px; }
+.tkt-stub .no { font-family: "Fredoka", sans-serif; font-weight: 700; font-size: 12px; letter-spacing: .08em; }
+.tkt-bar { width: 56px; height: 18px; background: repeating-linear-gradient(90deg, #3B2A33 0 2px, transparent 2px 3px, #3B2A33 3px 4px, transparent 4px 7px, #3B2A33 7px 10px, transparent 10px 11px); }
+.tkt-stamp { position: absolute; right: 16px; bottom: 16px; z-index: 3; padding: 2px 8px; border: 2.5px solid #E0435B; border-radius: 6px; color: #E0435B; font-family: var(--serif); font-weight: 700; font-size: 16px; letter-spacing: .15em; transform: rotate(-12deg); opacity: 0; }
+.tkt.torn { width: calc(100% - 86px); }
+.tkt.torn .tkt-stub { display: none; }
+.tkt.torn .tkt-main { -webkit-mask: none; mask: none; clip-path: polygon(0 0, 100% 0, 96% 6%, 100% 12%, 96% 18%, 100% 24%, 96% 30%, 100% 36%, 96% 42%, 100% 48%, 96% 54%, 100% 60%, 96% 66%, 100% 72%, 96% 78%, 100% 84%, 96% 90%, 100% 96%, 97% 100%, 0 100%); }
+.tkt.torn .tkt-stamp { opacity: .9; }
+.tkt.torn.fresh .tkt-stamp { animation: tkthunk .45s cubic-bezier(.3,1.4,.5,1) both; }
+@keyframes tkthunk { 0% { transform: scale(2.2) rotate(-25deg); opacity: 0; } 100% { transform: scale(1) rotate(-12deg); opacity: .9; } }
+.tkt.old { filter: grayscale(.75) drop-shadow(3px 3px 0 rgba(59,42,51,.45)); }
+.tkt-fall { position: fixed; z-index: 60; pointer-events: none; filter: drop-shadow(3px 3px 0 rgba(59,42,51,.9)); }
+.tkt-list { display: flex; flex-direction: column; gap: 6px; }
+.tkt-act { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+.tkt-act .grid2 { flex: none; }
+.tkt-act .btn { min-height: 40px; }
+.tkt-confirm { flex: 1; display: flex; align-items: center; gap: 8px; }
+.tkt-confirm span { flex: 1; color: var(--ink); }
+.tkt-confirm .btn { flex: none; width: auto; padding: 0 14px; }
+.tkt-sec { margin: 18px 0 8px; }
+/* 首頁入口 */
+.tkt-entry { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 14px; padding: 10px 12px; border-radius: 16px; background: var(--surface); border: var(--bw) solid var(--line); box-shadow: var(--shadow-sm); color: var(--ink); text-align: left; }
+.tkt-entry > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tkt-entry b { font-family: var(--serif); font-size: 18px; line-height: 24px; }
+.tkt-entry small { font-size: 13px; color: var(--muted); }
+.tkt-mini { flex: none; position: relative; width: 62px; height: 34px; border-radius: 5px; background: #FFD15C; border: 1.8px solid #3B2A33;
+  -webkit-mask: radial-gradient(circle at 44px 0, #0000 5px, #000 5.5px) top / 100% 51% no-repeat, radial-gradient(circle at 44px 100%, #0000 5px, #000 5.5px) bottom / 100% 51% no-repeat;
+          mask: radial-gradient(circle at 44px 0, #0000 5px, #000 5.5px) top / 100% 51% no-repeat, radial-gradient(circle at 44px 100%, #0000 5px, #000 5.5px) bottom / 100% 51% no-repeat; }
+.tkt-mini::before { content: ""; position: absolute; left: 42px; top: 6px; bottom: 6px; border-left: 1.8px dashed #3B2A33; }
+.tkt-mini::after { content: "ADMIT"; position: absolute; left: 5px; top: 9px; font-family: "Fredoka", sans-serif; font-size: 9px; font-weight: 700; letter-spacing: .05em; color: #3B2A33; }
 </style>
 </head>
 <body>
@@ -1337,11 +1387,23 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     '<path d="M100 101c-18 0-31 13-31 26 0 10 9 14 16 12 6-1 10-4 15-4s9 3 15 4c7 2 16-2 16-12 0-13-13-26-31-26z"/></g></svg>';
   var ENVELOPE = '<div class="env" aria-hidden="true"><div class="env-back"></div><div class="env-flap"></div><div class="env-front"></div><div class="env-seal">' + PAW + '</div></div>';
 
-  function cardHTML(c, foot, wide) {
-    var col = CARD_COLORS[c.color] || CARD_COLORS.gold;
-    return '<article class="gc' + (wide ? ' wide' : '') + '"><div class="gc-cover" style="--c1:' + col[0] + '">' + iconFor(c) + '</div>' +
-      '<div class="gc-b"><h3>' + esc(c.title) + '</h3><span class="gc-d">' + esc(c.desc) + '</span>' +
-      '<span class="gc-m">' + esc(you(c.from)) + ' 送的' + (c.reason ? '：' + esc(c.reason) : '') + '</span>' + (foot || '') + '</div></article>';
+  /* 每張卡是一張演唱會門票：左邊正票、右邊存根。使用時撕走存根 */
+  function cardSeat(c) {
+    var mine = S.cards.filter(function (x) { return x.owner === c.owner; }).sort(function (a, b) { return String(a.ts).localeCompare(String(b.ts)); });
+    var i = mine.map(function (x) { return x.id; }).indexOf(c.id);
+    return i < 0 ? mine.length + 1 : i + 1;
+  }
+  function tktDate(ts) { var d = String(ts || todayHK()).slice(0, 10).split("-"); return +d[1] + "/" + +d[2]; }
+  function cardHTML(c, foot, wide, opt) {
+    opt = opt || {};
+    var col = CARD_COLORS[c.color] || CARD_COLORS.gold, seat = cardSeat(c), no = ("000" + seat).slice(-4);
+    var to = c.owner || other(S.me), d = c.desc || (c.kind === "cat" ? "收到罰單時可以用來免罰一次。" : "");
+    return '<article class="tkt' + (opt.torn ? ' torn' : '') + (opt.old ? ' old' : '') + '" data-tkt="' + esc(c.id || "") + '" style="--c1:' + col[0] + '" aria-label="' + esc(c.title) + '，' + esc(nm(c.from)) + '送的' + (opt.torn ? '，已兌現' : '') + '">' +
+      '<div class="tkt-main"><span class="tkt-band"></span><div class="tkt-in"><span class="tkt-k">ADMIT ONE・' + (c.kind === "cat" ? '賴貓卡' : '賴貓法庭 LIVE') + '</span>' +
+        '<span class="tkt-t">' + esc(c.title) + '</span><span class="tkt-d">' + esc(d) + (c.reason ? (d ? '・' : '') + esc(c.reason) : '') + '</span>' +
+        '<div class="tkt-g"><span>FROM<b>' + esc(nm(c.from)) + '</b></span><span>TO<b>' + esc(nm(to)) + '</b></span><span>DATE<b>' + tktDate(c.ts) + '</b></span><span>SEAT<b>第 ' + seat + ' 張</b></span></div></div></div>' +
+      '<div class="tkt-stub" aria-hidden="true">' + iconFor(c) + '<span class="no">No.' + no + '</span><span class="tkt-bar"></span></div>' +
+      '<span class="tkt-stamp" aria-hidden="true">已兌現</span></article>' + (foot || '');
   }
 
   function paid(t) { return t.status === "paid"; }
@@ -1578,9 +1640,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var n = inboxTodo();
     return '<header class="hd"><div class="hd-t"><span class="pt">賴貓法庭' + I.star + '</span><span class="hd-sub">' + esc(nm("a")) + '和' + esc(nm("b")) + '</span></div>' +
         '<button type="button" class="circle" aria-label="設定" data-act="tab" data-tab="settings">' + I.dots + '</button></header>' +
-      doc(top + body, "hero", qq("perch", "七七趴在公文上睡覺")) + yrEntry() +
+      doc(top + body, "hero", qq("perch", "七七趴在公文上睡覺")) + yrEntry() + walletEntry() +
       '<button type="button" class="quiet" data-act="tab" data-tab="inbox">' + I.env + (n ? '案件匣裡有 ' + n + ' 件等你回覆' : '案件匣裡沒有要回覆的事') + '</button>' +
-      '<button type="button" class="quiet" style="margin-top:0" data-act="tab" data-tab="cards">' + I.card.replace('width="24" height="24"', 'width="20" height="20"') + '我的卡包' + (myCards(S.me).length ? '（' + myCards(S.me).length + ' 張）' : '') + '</button>' +
       '<button type="button" class="quiet" style="margin-top:0" data-act="tab" data-tab="spin">' + I.wheel + '有世紀懸案？交給七七裁決</button>';
   }
 
@@ -1659,22 +1720,58 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       '<button type="button" class="btn soft mt" data-act="sheet" data-sheet="rule">' + I.plusSm + '提議新規則</button>';
   }
 
-  function viewCards() {
-    var me = S.me, op = nm(other(me));
+  function sheetWallet() {
+    var me = S.me, op = nm(other(me)), f = UI.form;
     var mine = myCards(me).sort(byNew), used = myCards(me, true).sort(function (a, b) { return String(b.usedTs).localeCompare(String(a.usedTs)); });
     var given = S.cards.filter(function (c) { return c.from === me; }).sort(byNew);
-    return hd("我的卡包", esc(op) + "送你的卡都收在這裡", ["home", "回到首頁"]) +
-      (mine.length ? '<div class="gcards">' + mine.map(function (c) {
-        return cardHTML(c, c.kind === "cat" ? '<span class="gc-m gc-foot">收到罰單時就能用</span>' : '<button type="button" class="btn mint sm" data-act="use-card" data-id="' + esc(c.id) + '">使用</button>');
-      }).join('') + '</div>' : '<div class="empty-note mt">卡包還是空的。卡片只能由' + esc(op) + '送給你。</div>') +
-      (used.length ? '<section class="mt" aria-labelledby="used-h"><h2 class="h2" id="used-h">用過的</h2><ul class="plain-list">' + used.map(function (c) {
-        return '<li><span class="l">' + esc(c.title) + '</span><span class="r">' + md(c.usedTs) + (c.kind === "cat" ? ' 免了一張罰單' : ' 兌現了') + '</span></li>';
-      }).join('') + '</ul></section>' : '') +
-      (given.length ? '<section class="mt" aria-labelledby="given-h"><h2 class="h2" id="given-h">你送出的</h2><ul class="plain-list">' + given.map(function (c) {
+    return sheetWrap("卡包",
+      '<p class="note" style="margin:-6px 0 0">' + esc(op) + '送你的票都收在這裡。使用時撕走右邊的存根。</p>' +
+      (mine.length ? '<div class="tkt-list">' + mine.map(function (c) {
+        var act;
+        if (c.kind === "cat") act = '<span>收到罰單時，在罰單上就能用</span>';
+        else if (f.confirmUse === c.id) act = '<span class="tkt-confirm"><span>撕走存根就算使用了，確定嗎？</span><button type="button" class="btn sm" data-act="tkt-no">先不要</button><button type="button" class="btn mint sm" data-act="tkt-use" data-id="' + esc(c.id) + '"' + busyAttr(true) + '>撕開</button></span>';
+        else act = '<span>' + tktDate(c.ts) + ' 收到</span><button type="button" class="btn mint sm" style="width:auto;padding:0 18px" data-act="tkt-ask" data-id="' + esc(c.id) + '">使用</button>';
+        return cardHTML(c, '<div class="tkt-act">' + act + '</div>');
+      }).join('') + '</div>' : '<div class="empty-note">卡包還是空的。門票只能由' + esc(op) + '送給你。</div>') +
+      (used.length ? '<h3 class="h2 tkt-sec">用過的</h3><div class="tkt-list">' + used.map(function (c) {
+        return cardHTML(c, '<div class="tkt-act"><span>' + md(c.usedTs) + (c.kind === "cat" ? ' 免了一張罰單' : ' 兌現了') + '</span></div>', false, { torn: true, old: true });
+      }).join('') + '</div>' : '') +
+      (given.length ? '<h3 class="h2 tkt-sec">你送出的</h3><ul class="plain-list">' + given.map(function (c) {
         return '<li><span class="l">' + esc(c.title) + '</span><span class="r">' + md(c.ts) + ' 送出 · ' + (c.used ? '用掉了' : '還沒用') + '</span></li>';
-      }).join('') + '</ul></section>' : '') +
-      '<button type="button" class="btn gold mt" data-act="sheet" data-sheet="reward">' + I.gift + '送一張卡給' + esc(op) + '</button>';
+      }).join('') + '</ul>' : '') +
+      '<button type="button" class="btn gold mt" data-act="sheet" data-sheet="reward">' + I.gift + '送一張票給' + esc(op) + '</button>');
   }
+  /* 先問後台；成功了才撕存根（存根順著撕開的方向掉出畫面） */
+  function tearCard(id) {
+    if (UI.busy) return;
+    UI.busy = true; renderLayer();
+    api("useCard", { id: id }).then(function (res) {
+      UI.busy = false;
+      if (res.code === "auth") { logout("登入已過期，請重新登入"); return; }
+      if (!res.ok) { if (res.state) applyState(res.state); UI.form.confirmUse = null; toast(res.error || "儲存失敗，請再試一次"); render(); return; }
+      var t = document.querySelector('#layer .tkt[data-tkt="' + id + '"]'), stub = t && t.querySelector(".tkt-stub");
+      function done() { if (res.state) applyState(res.state); if (UI.sheet === "wallet") UI.form = {}; render(); toast("已使用，記得找" + nm(other(S.me)) + "兌現"); }
+      if (!stub || calm()) { done(); return; }
+      var r = stub.getBoundingClientRect(), fall = stub.cloneNode(true);
+      fall.className = "tkt-stub tkt-fall"; fall.style.cssText += ";left:" + r.left + "px;top:" + r.top + "px;width:" + r.width + "px;height:" + r.height + "px;--c1:" + getComputedStyle(t).getPropertyValue("--c1");
+      document.body.appendChild(fall);
+      t.classList.add("torn", "fresh");
+      var act = t.nextElementSibling; if (act && act.classList.contains("tkt-act")) act.innerHTML = '<span>兌現中…</span>';
+      if (navigator.vibrate) { try { navigator.vibrate(25); } catch (e) {} }
+      var t0 = performance.now();
+      requestAnimationFrame(function step(now) {
+        var k = Math.min(1, (now - t0) / 900), e = k * k, lift = Math.min(1, k / .2);
+        fall.style.transform = "translate(" + (8 * lift + 30 * k) + "px," + (-6 * lift + innerHeight * .8 * e) + "px) rotate(" + (14 * lift + 40 * e) + "deg)";
+        if (k < 1) requestAnimationFrame(step); else { fall.remove(); setTimeout(done, 450); }
+      });
+    }).catch(function () { UI.busy = false; toast("連線失敗，請檢查網絡後再試"); renderLayer(); });
+  }
+  function walletEntry() {
+    var n = myCards(S.me).filter(function (c) { return c.kind !== "cat"; }).length, cats = catCount(S.me);
+    return '<button type="button" class="tkt-entry" data-act="sheet" data-sheet="wallet"><span class="tkt-mini" aria-hidden="true"></span>' +
+      '<span><b>卡包</b><small>' + (n || cats ? (n ? n + ' 張門票可以用' : '') + (n && cats ? '・' : '') + (cats ? cats + ' 張賴貓卡' : '') : '還沒有門票') + '</small></span>' + I.next + '</button>';
+  }
+
 
   function setInit() {
     UI.set = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target, weddingName: S.goals.wedding.name, travelName: S.goals.travel.name, discord: (S.discord || {})[S.me] || "" };
@@ -1765,7 +1862,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (darkMQ.addEventListener) darkMQ.addEventListener("change", onScheme); else if (darkMQ.addListener) darkMQ.addListener(onScheme);
   }
 
-  var VIEWS = { home: viewHome, inbox: viewInbox, history: viewHistory, rules: viewRules, cards: viewCards, cal: viewCal, settings: viewSettings, spin: viewSpin };
+  var VIEWS = { home: viewHome, inbox: viewInbox, history: viewHistory, rules: viewRules, cal: viewCal, settings: viewSettings, spin: viewSpin };
   function loadingView() { return '<div class="loading">' + qq("", "") + '<span>載入中…</span></div>'; }
   function render(keepLayer) {
     /* 轉盤正在轉：先不要重畫（會打斷動畫），轉完再畫；換到別的頁面就直接停 */
@@ -1779,6 +1876,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (S.loaded && !S.paired) return bare(viewPair());
     if (!S.loaded) return bare(loadingView());
     if (yrPending) { var yp = yrPending; yrPending = 0; setTimeout(function () { openReview(yp); }, 0); }
+    if (walletPending) { walletPending = false; setTimeout(function () { openSheet("wallet"); }, 0); }
     if (UI.tab !== "settings") UI.set = null;
     var cur = UI.tab === "history" ? "inbox" : UI.tab;
     var tabs = '<div class="tabbar"><nav aria-label="主選單">' +
@@ -2018,8 +2116,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   function rewardReady(f) { return (f.reason || "").trim() && (f.kind === "cat" || (f.ctitle || "").trim()); }
   function rewardPreview(f) {
     return f.kind === "cat"
-      ? { kind: "cat", title: "賴貓卡", desc: "免除一張罰單", color: "gold", from: S.me, reason: f.reason || "" }
-      : { kind: "custom", title: f.ctitle || "自訂卡名稱", desc: f.cdesc || "寫下這張卡可以做什麼", color: f.color, icon: f.icon, from: S.me, reason: f.reason || "" };
+      ? { kind: "cat", title: "賴貓卡", desc: "免除一張罰單", color: "gold", from: S.me, owner: other(S.me), reason: f.reason || "" }
+      : { kind: "custom", title: f.ctitle || "自訂卡名稱", desc: f.cdesc || "寫下這張卡可以做什麼", color: f.color, icon: f.icon, from: S.me, owner: other(S.me), reason: f.reason || "" };
   }
   var COLOR_NAMES = { pink: "粉紅", mint: "薄荷綠", sky: "天空藍", lilac: "薰衣草紫" };
   function sheetReward() {
@@ -3099,7 +3197,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   }
   function spUnsave(id) { SP.saved = SP.saved.filter(function (x) { return x.id !== id; }); spStore(); render(); toast("已從預設清單刪除"); }
 
-  var SHEETS = { spinres: sheetSpinRes, newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView, event: sheetEvent, eventview: sheetEventView };
+  var SHEETS = { spinres: sheetSpinRes, newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, wallet: sheetWallet, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView, event: sheetEvent, eventview: sheetEventView };
   function renderLayer() {
     var s = UI.sheet, html = "";
     if (auth && S.loaded && S.paired && SHEETS[s]) html = SHEETS[s]();
@@ -3313,6 +3411,9 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       case "w-icon": f.icon = v; renderLayer(); break;
       case "submit-reward": send("giveCard", { kind: f.kind, title: f.ctitle, desc: f.cdesc, color: f.color, icon: f.icon, reason: f.reason }, "已把卡放進" + opn + "的卡包"); break;
       case "use-card": openSheet("use", { id: id }); break;
+      case "tkt-ask": f.confirmUse = id; renderLayer(); break;
+      case "tkt-no": f.confirmUse = null; renderLayer(); break;
+      case "tkt-use": tearCard(id); break;
       case "confirm-use": send("useCard", { id: id }, "已使用，記得找" + opn + "兌現"); break;
       case "submit-settings":
         var u = UI.set || {};
@@ -3405,11 +3506,12 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
   setInterval(refresh, 30000);
 
-  var yrPending = 0;
+  var yrPending = 0, walletPending = false;
   function tabFromHash() {
     var h = (location.hash || "").replace("#", "");
     var rv = /^review(?:-(\d{4}))?$/.exec(h);
     if (rv) { yrPending = rv[1] ? +rv[1] : (yrSeason() || +todayHK().slice(0, 4)); return true; }
+    if (h === "cards") { UI.tab = "home"; UI.set = null; walletPending = true; return true; }
     h = { tickets: "inbox", me: "home" }[h] || h;
     if (VIEWS[h]) { UI.tab = h; UI.sheet = null; UI.set = null; return true; }
     return false;
