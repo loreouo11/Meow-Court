@@ -1141,6 +1141,45 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
           mask: radial-gradient(circle at 44px 0, #0000 5px, #000 5.5px) top / 100% 51% no-repeat, radial-gradient(circle at 44px 100%, #0000 5px, #000 5.5px) bottom / 100% 51% no-repeat; }
 .tkt-mini::before { content: ""; position: absolute; left: 42px; top: 6px; bottom: 6px; border-left: 1.8px dashed #3B2A33; }
 .tkt-mini::after { content: "ADMIT"; position: absolute; left: 5px; top: 9px; font-family: "Fredoka", sans-serif; font-size: 9px; font-weight: 700; letter-spacing: .05em; color: #3B2A33; }
+.mk-b { position: absolute; top: 3px; right: 5px; width: 11px; height: 9px; border: 1.5px solid var(--line); border-radius: 2px; background: #FFF0C2; transform: rotate(8deg); }
+.mk-day { display:flex; flex-direction:column; gap:6px; margin:8px 0 2px; padding:8px 10px; border:1.5px dashed var(--dash); border-radius:12px; }
+.mk-lab { font-size: 13px; color: var(--muted); }
+.todo-card { display:flex; align-items:center; gap:12px; width:100%; margin-top:14px; padding:12px 14px; border-radius:16px; background: var(--soft-accent); border: var(--bw) solid var(--line); color: var(--ink); text-align:left; }
+.todo-card .todo-t { flex:1; display:flex; flex-direction:column; gap:2px; }
+.todo-card b { font-size:17px; }
+.todo-card .todo-t span { font-size:13px; color: var(--muted); }
+.todo-none { display:flex; align-items:center; gap:6px; margin:14px 0 0; font-size:14px; color: var(--muted); }
+.todo-none svg { width:16px; height:16px; }
+.gap-rule { height: 18px; }
+.tiles2 { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; margin-top:18px; }
+.tile2 { display:flex; align-items:center; gap:10px; padding:12px; border-radius:16px; background: var(--paper); border: var(--bw) solid var(--line); box-shadow: var(--shadow-sm); color: var(--ink); text-align:left; }
+.tile2 span { display:flex; flex-direction:column; min-width:0; }
+.tile2 b { font-size:15px; } .tile2 small { font-size:12px; color: var(--muted); }
+.seg-n { display:inline-grid; place-items:center; min-width:18px; height:18px; padding:0 5px; border-radius:9px; background: var(--ink); color: var(--paper); font-size:11px; }
+.chips { display:flex; gap:6px; margin-bottom:10px; }
+.chips button { padding:4px 12px; min-height:32px; border-radius:999px; border:1.5px solid var(--dash); background:none; font-size:14px; color: var(--ink); }
+.chips button[aria-pressed="true"] { background: var(--soft-accent); border-color: var(--line); }
+.sm-c { width:34px !important; height:34px !important; min-height:0 !important; }
+.yr-wait { display:flex; align-items:center; gap:12px; padding:10px 12px; border:1.5px dashed var(--dash); border-radius:14px; }
+.yr-wait span:last-child { display:flex; flex-direction:column; gap:2px; } .yr-wait b { font-size:15px; } .yr-wait small { font-size:13px; color: var(--muted); }
+.month-line { margin:4px 0 6px; font-size:13px; color: var(--muted); } .month-line b { color: var(--ink); }
+button.empty-note { width:100%; text-align:left; }
+.count-card { margin-top: 10px; padding: 7px 10px; gap: 10px; border: 1.5px dashed var(--dash); border-radius: 12px; background: transparent; }
+.count-n { min-width: 0; display: flex; align-items: baseline; gap: 2px; font-size: 13px; line-height: 20px; white-space: nowrap; }
+.count-n b { display: inline; font-size: 18px; line-height: 20px; }
+.count-t { flex-direction: row; align-items: baseline; gap: 8px; }
+.count-t b { font-size: 15px; flex: none; max-width: 50%; }
+.count-t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.count-card > svg { width: 18px; height: 18px; flex: none; }
+.tiles2 .tkt-entry { margin-top: 0; padding: 10px; gap: 8px; height: 100%; }
+.tiles2 .tkt-entry > svg:last-child { display: none; }
+.tiles2 .tkt-entry b { font-size: 15px; line-height: 20px; }
+.tiles2 .tkt-entry small { font-size: 12px; line-height: 16px; }
+.tiles2 .tkt-mini { width: 52px; height: 30px; }
+.tiles2 .tile2 { background: var(--surface); }
+.yr-box { flex: none; }
+.yr-wait .yr-box, .yr-entry .yr-box { width: 56px; height: 56px; }
+.tk2 { flex: none; }
 </style>
 </head>
 <body>
@@ -1471,6 +1510,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 
   var I = {
     wheel: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 5v16M4 13h16M6.3 7.3l11.4 11.4M17.7 7.3L6.3 18.7"/><path d="M10 2h4l-2 3z" fill="currentColor"/></svg>',
+    mem: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3.5" width="15" height="17" rx="2"/><rect x="7" y="6" width="10" height="9" rx="1"/></svg>',
     home: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/></svg>',
     inbox: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16v12H4z"/><path d="M7 8V5h10v3"/><path d="M9 13h6"/></svg>',
     rules: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><path d="M6 4h12v16H6zM9 9h6M9 13h6"/></svg>',
@@ -1645,6 +1685,20 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   function doc(inner, cls, extra) { return '<div class="stack' + (cls ? ' ' + cls : '') + '">' + (extra || '') + '<div class="doc"><div class="doc-in">' + inner + '</div></div></div>'; }
   var RULE2 = '<div class="rule2" aria-hidden="true"></div>';
 
+
+  function caseSeg(cur) {
+    var t = [["inbox", "待回覆"], ["history", "全部紀錄"], ["rules", "本庭法規"]];
+    return '<div class="seg" role="group" aria-label="案件" style="--n:3;margin-top:14px">' + t.map(function (x) { return '<button type="button" aria-pressed="' + (cur === x[0]) + '" data-act="tab" data-tab="' + x[0] + '">' + x[1] + (x[0] === "inbox" && inboxTodo() ? ' <b class="seg-n">' + inboxTodo() + '</b>' : '') + '</button>'; }).join('') + '</div>';
+  }
+  function goodEvents() {
+    var ev = [];
+    S.requests.forEach(function (q) {
+      if ((q.status === "approved" || q.status === "done") && q.answeredTs) ev.push({ ts: q.answeredTs, t: (q.to === S.me ? '你' : esc(nm(q.to)) + ' ') + '准了「' + esc(q.title) + '」' });
+      if (q.status === "done" && q.doneTs) ev.push({ ts: q.doneTs, t: '「' + esc(q.title) + '」說到做到，已實現' });
+    });
+    S.cards.forEach(function (c) { ev.push({ ts: c.ts, t: (c.from === S.me ? '你' : esc(nm(c.from)) + ' ') + '送了' + esc(c.owner === S.me ? '你' : nm(c.owner)) + '一張「' + esc(c.title) + '」' }); });
+    ev.sort(byNew); return ev;
+  }
   function viewHome() {
     var w = fundTotal("wedding"), tr = fundTotal("travel"), gw = S.goals.wedding, gt = S.goals.travel;
     var days = daysTogether(), now = new Date();
@@ -1653,8 +1707,12 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       return '<div class="fund"><span class="f-name">' + esc(g.name) + '</span><span class="f-amt">' + money(v) + '</span>' +
         '<span class="bar ' + cls + '" role="img" aria-label="' + esc(g.name) + ' ' + money(v) + '，目標 ' + money(g.target) + '"><i style="width:' + Math.min(100, v / g.target * 100) + '%"></i></span></div>';
     }
+    var n = inboxTodo();
     var top = '<div class="rowb"><h2 class="ttl">' + (fresh ? '本庭剛成立' : '本庭現況') + '</h2><span class="today">' + (now.getMonth() + 1) + '月' + now.getDate() + '日</span></div>' +
       (days ? '<p class="days">在一起第 <b>' + days + '</b> 天</p>' : '') + (fresh ? '' : homeCountdown());
+    var todo = fresh ? '' : n
+      ? '<button type="button" class="todo-card" data-act="tab" data-tab="inbox">' + I.env + '<span class="todo-t"><b>有 ' + n + ' 件等你回覆</b><span>罰單、申請書和表決都在案件</span></span>' + I.next + '</button>'
+      : '<p class="todo-none">' + I.check + '沒有要你回覆的事</p>';
     var funds = '<section class="funds" aria-label="基金"><div class="rowb"><h2 class="h2">我們一起存了</h2><span class="total">' + money(w + tr) + '</span></div>' +
       '<div class="fund-list">' + fund("w", gw, w) + fund("t", gt, tr) + '</div></section>';
     var body;
@@ -1668,50 +1726,27 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
         steps.map(function (s, i) {
           return '<button type="button" class="step' + (s[0] ? ' done' : '') + '" ' + s[3] + '><span class="step-n">' + (s[0] ? '✓' : i + 1) + '</span>' +
             '<span class="li-b"><span class="li-t">' + s[1] + '</span><span class="li-m">' + s[2] + '</span></span>' + I.next + '</button>';
-        }).join('') + RULE2 + funds +
-        '<p class="note" style="margin-top:6px">罰款會存進「' + esc(gw.name) + '」和「' + esc(gt.name) + '」，名字和目標都可以在設定裡改。</p>';
-    } else {
-      var approved = S.requests.filter(function (q) { return (q.status === "approved" || q.status === "done") && sameMonth(q.answeredTs); }).length;
-      var cardsN = S.cards.filter(function (c) { return sameMonth(c.ts); }).length;
-      var doneN = S.requests.filter(function (q) { return q.status === "done" && sameMonth(q.doneTs); }).length;
-      var ev = [];
-      S.requests.forEach(function (q) {
-        if ((q.status === "approved" || q.status === "done") && q.answeredTs) ev.push({ ts: q.answeredTs, t: (q.to === S.me ? '你' : esc(nm(q.to)) + ' ') + '准了「' + esc(q.title) + '」' });
-        if (q.status === "done" && q.doneTs) ev.push({ ts: q.doneTs, t: '「' + esc(q.title) + '」說到做到，已實現' });
-      });
-      S.cards.forEach(function (c) { ev.push({ ts: c.ts, t: (c.from === S.me ? '你' : esc(nm(c.from)) + ' ') + '送了' + esc(c.owner === S.me ? '你' : nm(c.owner)) + '一張「' + esc(c.title) + '」' }); });
-      S.memories.forEach(function (m) {
-        ev.push({ ts: m.date + "T23:59:59", sort: m.date + "T23:59:59|" + m.ts, d: m.date, h: '<button type="button" class="good-mem' + (m.big ? ' big' : '') + '" data-act="mem-open" data-id="' + esc(m.id) + '">' + memThumb(m, "") +
-          '<span>' + (m.big ? '<b class="big-tag">大事</b>' : '') + (m.caption ? esc(m.caption) : (m.by === S.me ? '你' : esc(nm(m.by)) + ' ') + '記下了一張相片') + '</span></button>' });
-      });
-      ev.sort(byNew); ev = ev.slice(0, 5);
-      body = RULE2 + funds + RULE2 +
-        '<section aria-labelledby="month-h"><h2 class="h2" id="month-h">這個月我們</h2><div class="stats">' +
-          '<div class="stat"><b>' + approved + '</b>份申請被准</div><div class="stat"><b>' + cardsN + '</b>張卡片</div><div class="stat"><b>' + doneN + '</b>次說到做到</div></div></section>' +
-        RULE2 +
-        '<section aria-labelledby="good-h"><h2 class="h2" id="good-h">最近的好事</h2>' +
-          (ev.length ? '<ol class="good">' + ev.map(function (e) { return '<li><span class="d">' + md(e.d ? e.d + "T12:00:00" : e.ts) + '</span>' + (e.h || '<span>' + e.t + '</span>') + '</li>'; }).join('') + '</ol>'
-            : '<p class="note" style="margin-top:4px">還沒有好事紀錄。遞一份申請書、送對方一張卡，或記下一個回憶吧。</p>') +
-          (S.memories.length ? '<button type="button" class="mem-all" data-act="sheet" data-sheet="memories">看全部回憶（' + S.memories.length + '）</button>' : '') + '</section>';
-    }
+        }).join('') + RULE2 + funds;
+    } else body = todo + '<div class="gap-rule" aria-hidden="true"></div>' + funds;
     if (!days && !fresh) top += '<button type="button" class="days-set" data-act="tab" data-tab="settings">在設定填上在一起的日子</button>';
-    var n = inboxTodo();
+    var cn = myCards(S.me).length;
     return '<header class="hd"><div class="hd-t"><span class="pt">賴貓法庭' + I.star + '</span><span class="hd-sub">' + esc(nm("a")) + '和' + esc(nm("b")) + '</span></div>' +
         '<button type="button" class="circle" aria-label="設定" data-act="tab" data-tab="settings">' + I.dots + '</button></header>' +
-      doc(top + body, "hero", qq("perch", "七七趴在公文上睡覺")) + yrEntry() + walletEntry() +
-      '<button type="button" class="quiet" data-act="tab" data-tab="inbox">' + I.env + (n ? '案件匣裡有 ' + n + ' 件等你回覆' : '案件匣裡沒有要回覆的事') + '</button>' +
-      '<button type="button" class="quiet" style="margin-top:0" data-act="tab" data-tab="spin">' + I.wheel + '有世紀懸案？交給七七裁決</button>';
+      doc(top + body, "hero", qq("perch", "七七趴在公文上睡覺")) + yrEntry() +
+      '<div class="tiles2">' +
+        walletEntry() +
+        '<button type="button" class="tile2" data-act="tab" data-tab="spin">' + I.wheel.replace('width="20" height="20"', 'width="24" height="24"') + '<span><b>七七裁決</b><small>有世紀懸案？</small></span></button>' +
+      '</div>';
   }
 
   function viewInbox() {
     var L = inboxLists(), op = nm(other(S.me));
     var mine = L.mine.length ? L.mine.join('') : '<div class="calm"><img src="qiqi.svg#svgView(viewBox(84,108,368,356))" alt="" aria-hidden="true"><span>現在沒有要你回覆的事。<br>七七在睡覺，你也休息一下。</span></div>';
-    return hd("案件匣", "要回覆的都在這裡，有空再看就好") +
+    return hd("案件匣", "") + caseSeg("inbox") + '<div style="height:6px"></div>' +
       doc('<section aria-labelledby="mine-h"><h2 class="h2 lg" id="mine-h" style="margin-bottom:6px">等你回覆</h2>' + mine + '</section>' +
         (L.kept.length ? RULE2 + '<section aria-labelledby="kept-h"><h2 class="h2" id="kept-h" style="margin-bottom:6px">說好的事</h2>' + L.kept.join('') + '</section>' : '') +
         RULE2 + '<section aria-labelledby="theirs-h"><h2 class="h2" id="theirs-h" style="margin-bottom:6px">等' + esc(op) + '回覆</h2>' +
-          (L.theirs.length ? L.theirs.join('') : '<div class="calm"><img src="qiqi-yarn.svg" alt="" aria-hidden="true"><span>沒有在等' + esc(op) + '的事。<br>七七在玩毛線，不用等。</span></div>') + '</section>' +
-        RULE2 + '<button type="button" class="quiet" style="margin:0" data-act="tab" data-tab="history">看全部的罰單和申請書</button>', "") ;
+          (L.theirs.length ? L.theirs.join('') : '<div class="calm"><img src="qiqi-yarn.svg" alt="" aria-hidden="true"><span>沒有在等' + esc(op) + '的事。<br>七七在玩毛線，不用等。</span></div>') + '</section>', "") ;
   }
 
   function tkState(t) {
@@ -1746,11 +1781,10 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       g.items.push(it.h);
     });
     var tabs = [["all", "全部"], ["tix", "罰單"], ["req", "申請書"]];
-    return hd("全部紀錄", "罰單和申請書都收在這裡", ["inbox", "回到案件匣"]) +
-      '<div class="seg" role="group" aria-label="篩選" style="--n:3;margin-top:18px">' + tabs.map(function (t) { return '<button type="button" aria-pressed="' + (f === t[0]) + '" data-act="hist" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>' +
-      doc(groups.length ? groups.map(function (g, i) { return '<section style="display:flex;flex-direction:column;padding-bottom:6px"><h2 class="h2" style="margin:' + (i ? 10 : 0) + 'px 0 2px">' + esc(g.k) + '</h2>' + g.items.join('') + '</section>'; }).join('') +
+    return hd("案件匣", "") + caseSeg("history") + '<div style="height:6px"></div>' +
+      doc('<div class="chips" role="group" aria-label="篩選">' + tabs.map(function (t) { return '<button type="button" aria-pressed="' + (f === t[0]) + '" data-act="hist" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>' + (groups.length ? groups.map(function (g, i) { return '<section style="display:flex;flex-direction:column;padding-bottom:6px"><h2 class="h2" style="margin:' + (i ? 10 : 0) + 'px 0 2px">' + esc(g.k) + '</h2>' + g.items.join('') + '</section>'; }).join('') +
           '<p class="end">以上是全部紀錄</p>'
-        : '<p class="note" style="text-align:center;padding:18px 0">還沒有紀錄。</p>', "one");
+        : '<p class="note" style="text-align:center;padding:18px 0">還沒有紀錄。</p>'), "one");
   }
 
   function viewRules() {
@@ -1771,7 +1805,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
         ? liRow({ t: esc(r.title), m: '你提議，每次 ' + money(r.amount) + '，等' + esc(op) + '同意', act: "rule-edit", id: r.id, btn: smallBtn("撤回", "rule-no", r.id) })
         : liRow({ t: esc(r.title), m: esc(nm(r.by)) + ' 提議，每次 ' + money(r.amount), act: "vote-open", id: r.id, pill: "表決" });
     }).join('');
-    return hd("本庭法規", "兩個人都同意的規則才算數") +
+    return hd("案件匣", "") + caseSeg("rules") + '<div style="height:6px"></div>' +
       doc('<section aria-labelledby="act-h"><div class="rowb" style="padding-bottom:6px"><h2 class="h2 lg" id="act-h">生效中</h2><span class="note">每次違反要罰</span></div>' + list + '</section>' +
         (votes ? RULE2 + '<section aria-labelledby="vote-h"><h2 class="h2" id="vote-h" style="margin-bottom:6px">表決中</h2>' + votes + '</section>' : '') +
         '<p class="note" style="margin-top:10px;padding-top:10px;border-top:1.5px dashed var(--dash)">想改金額或刪掉一條，點那條規則就好。要對方同意才會生效，之前會先照舊；刪除規則不會刪掉以前的罰單。</p>', "one") +
@@ -1782,7 +1816,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     var me = S.me, op = nm(other(me)), f = UI.form;
     var mine = myCards(me).sort(byNew), used = myCards(me, true).sort(function (a, b) { return String(b.usedTs).localeCompare(String(a.usedTs)); });
     var given = S.cards.filter(function (c) { return c.from === me; }).sort(byNew);
-    return sheetWrap("卡包",
+    return sheetWrap("票夾",
       '<p class="note" style="margin:-6px 0 0">' + esc(op) + '送你的票都收在這裡。使用時撕走右邊的存根。</p>' +
       (mine.length ? '<div class="tkt-list">' + mine.map(function (c) {
         var act;
@@ -1790,7 +1824,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
         else if (f.confirmUse === c.id) act = '<span class="tkt-confirm"><span>撕走存根就算使用了，確定嗎？</span><button type="button" class="btn sm" data-act="tkt-no">先不要</button><button type="button" class="btn mint sm" data-act="tkt-use" data-id="' + esc(c.id) + '"' + busyAttr(true) + '>撕開</button></span>';
         else act = '<span>' + tktDate(c.ts) + ' 收到</span><button type="button" class="btn mint sm" style="width:auto;padding:0 18px" data-act="tkt-ask" data-id="' + esc(c.id) + '">使用</button>';
         return cardHTML(c, '<div class="tkt-act">' + act + '</div>');
-      }).join('') + '</div>' : '<div class="empty-note">卡包還是空的。門票只能由' + esc(op) + '送給你。</div>') +
+      }).join('') + '</div>' : '<div class="empty-note">票夾還是空的。門票只能由' + esc(op) + '送給你。</div>') +
       (used.length ? '<h3 class="h2 tkt-sec">用過的</h3><div class="tkt-list">' + used.map(function (c) {
         return cardHTML(c, '<div class="tkt-act"><span>' + md(c.usedTs) + (c.kind === "cat" ? ' 免了一張罰單' : ' 兌現了') + '</span></div>', false, { torn: true, old: true });
       }).join('') + '</div>' : '') +
@@ -1826,11 +1860,39 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   }
   function walletEntry() {
     var n = myCards(S.me).filter(function (c) { return c.kind !== "cat"; }).length, cats = catCount(S.me);
-    return '<button type="button" class="tkt-entry" data-act="sheet" data-sheet="wallet"><span class="tkt-mini" aria-hidden="true"></span>' +
-      '<span><b>卡包</b><small>' + (n || cats ? (n ? n + ' 張門票可以用' : '') + (n && cats ? '・' : '') + (cats ? cats + ' 張賴貓卡' : '') : '還沒有門票') + '</small></span>' + I.next + '</button>';
+    return '<button type="button" class="tkt-entry" data-act="sheet" data-sheet="wallet"><svg class="tk2" width="46" height="40" viewBox="0 0 46 40" aria-hidden="true"><g transform="rotate(-10 20 20)"><path d="M4 10h32v5a3 3 0 0 0 0 6v5H4z" fill="#F7A1B5" stroke="#3B2A33" stroke-width="1.8" stroke-linejoin="round"/><path d="M28 11v14" stroke="#3B2A33" stroke-width="1.4" stroke-dasharray="2 2"/></g><g transform="rotate(8 24 24)"><path d="M8 16h32v5a3 3 0 0 0 0 6v5H8z" fill="#FFD15C" stroke="#3B2A33" stroke-width="1.8" stroke-linejoin="round"/><path d="M32 17v14" stroke="#3B2A33" stroke-width="1.4" stroke-dasharray="2 2"/><circle cx="19" cy="24" r="3" fill="none" stroke="#3B2A33" stroke-width="1.5"/></g></svg>' +
+      '<span><b>票夾</b><small>' + (n + cats ? (n + cats) + ' 張可以用' : '還沒有票') + '</small></span>' + I.next + '</button>';
   }
 
 
+  function viewMem() {
+    var list = S.memories, past = yrPastYears(), season = yrSeason(), today = todayHK();
+    var yr;
+    if ((season && yrHas(season)) || past.length) {
+      yr = (season && yrHas(season) ? yrEntry() : '') + past.map(function (y) { return '<button type="button" class="link-row" data-act="yr-open" data-v="' + y + '">' + y + ' 年度卷宗</button>'; }).join('');
+    } else {
+      var y = +today.slice(0, 4), dl = dayDiff(today, y + "-12-01");
+      yr = '<div class="yr-wait"><svg class="yr-box" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><g transform="rotate(-8 32 20)"><rect x="18" y="12" width="28" height="15" rx="2" fill="#FFF6E3" stroke="#3B2A33" stroke-width="2"/><text x="32" y="23.6" text-anchor="middle" font-family="Fredoka,sans-serif" font-weight="700" font-size="10" fill="#3B2A33">12/1</text></g><rect x="6" y="30" width="52" height="27" rx="3" fill="#7A4B2C" stroke="#3B2A33" stroke-width="2.6"/><path d="M7.5 36h49" stroke="#3B2A33" stroke-width="2"/><rect x="28" y="40" width="8" height="8" rx="1.5" fill="#D2AE5E" stroke="#3B2A33" stroke-width="1.8"/></svg><span><b>第一份卷宗 12 月 1 日開庭</b><small>每年 12 月，七七會把你們這一年整理成一份卷宗。' + (dl > 0 ? '還有 ' + dl + ' 天。' : '') + '</small></span></div>';
+    }
+    var ev = goodEvents(), more = UI.goodAll ? ev : ev.slice(0, 3);
+    var approved = S.requests.filter(function (q) { return (q.status === "approved" || q.status === "done") && sameMonth(q.answeredTs); }).length;
+    var cardsN = S.cards.filter(function (c) { return sameMonth(c.ts); }).length;
+    var doneN = S.requests.filter(function (q) { return q.status === "done" && sameMonth(q.doneTs); }).length;
+    var inSeason = !!(season && yrHas(season));
+    var yrSec = '<section aria-labelledby="yr-h"><h2 class="h2" id="yr-h" style="margin-bottom:8px">年度卷宗</h2>' + yr + '</section>';
+    return hd("我們的回憶", "") +
+      doc((inSeason ? yrSec + RULE2 : '') +
+        '<section aria-labelledby="mem-h"><div class="rowb" style="margin-bottom:8px"><h2 class="h2" id="mem-h">相片和小事</h2><button type="button" class="circle sm-c" aria-label="記下回憶" data-act="sheet" data-sheet="memory">' + I.plusSm + '</button></div>' +
+          (list.length ? '<div class="mem-grid">' + list.map(function (m) {
+            return '<button type="button" class="mem-cell' + (m.path ? '' : ' memo') + '" data-act="mem-open" data-id="' + esc(m.id) + '">' +
+              (m.path ? photoImg(m.path, "", "") : '<em>' + esc(m.caption) + '</em>') + (m.big ? '<i class="big-star" aria-hidden="true">★</i>' : '') + '<span>' + md(m.date + "T12:00:00") + '</span></button>';
+          }).join('') + '</div>' : '<button type="button" class="empty-note" data-act="sheet" data-sheet="memory">還沒有回憶。記下第一張相片，或者寫一句今天的小事。</button>') + '</section>' + RULE2 +
+        '<section aria-labelledby="good-h"><h2 class="h2" id="good-h">最近的好事</h2>' +
+          '<p class="month-line">這個月：<b>' + approved + '</b> 份申請被准・<b>' + cardsN + '</b> 張卡・<b>' + doneN + '</b> 次說到做到</p>' +
+          (ev.length ? '<ol class="good">' + more.map(function (e) { return '<li><span class="d">' + md(e.ts) + '</span><span>' + e.t + '</span></li>'; }).join('') + '</ol>' +
+            (ev.length > 3 ? '<button type="button" class="mem-all" data-act="good-more">' + (UI.goodAll ? '收起' : '顯示更多（' + (ev.length - 3) + '）') + '</button>' : '')
+            : '<p class="note" style="margin-top:4px">還沒有好事紀錄。</p>') + '</section>' + (inSeason ? '' : RULE2 + yrSec), "one");
+  }
   function setInit() {
     UI.set = { nameA: S.names.a, nameB: S.names.b, start: S.start, weddingTarget: S.goals.wedding.target, travelTarget: S.goals.travel.target, weddingName: S.goals.wedding.name, travelName: S.goals.travel.name, discord: (S.discord || {})[S.me] || "" };
   }
@@ -1843,7 +1905,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       doc('<section class="set-sec" aria-labelledby="us-h"><h2 class="h2" id="us-h">我們</h2>' +
           '<div class="grid2">' + inp("第一位", "nameA", ' maxlength="20"') + inp("第二位", "nameB", ' maxlength="20"') + '</div>' +
           inp("在一起的日子", "start", ' type="date"') +
-          yrPastYears().map(function (y) { return '<button type="button" class="link-row" data-act="yr-open" data-v="' + y + '">重溫 ' + y + ' 年度卷宗</button>'; }).join('') + '</section>' + RULE2 +
+          '</section>' + RULE2 +
         '<section class="set-sec" aria-labelledby="fund-h"><h2 class="h2" id="fund-h">基金</h2>' +
           '<div style="display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:10px">' +
           inp("第一個基金", "weddingName", ' maxlength="12"') + inp("目標", "weddingTarget", ' type="number" inputmode="numeric" min="1"') +
@@ -1920,7 +1982,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (darkMQ.addEventListener) darkMQ.addEventListener("change", onScheme); else if (darkMQ.addListener) darkMQ.addListener(onScheme);
   }
 
-  var VIEWS = { home: viewHome, inbox: viewInbox, history: viewHistory, rules: viewRules, cal: viewCal, settings: viewSettings, spin: viewSpin };
+  var VIEWS = { mem: viewMem, home: viewHome, inbox: viewInbox, history: viewHistory, rules: viewRules, cal: viewCal, settings: viewSettings, spin: viewSpin };
   function loadingView() { return '<div class="loading">' + qq("", "") + '<span>載入中…</span></div>'; }
   function render(keepLayer) {
     /* 轉盤正在轉：先不要重畫（會打斷動畫），轉完再畫；換到別的頁面就直接停 */
@@ -1936,11 +1998,11 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     if (yrPending) { var yp = yrPending; yrPending = 0; setTimeout(function () { openReview(yp); }, 0); }
     if (walletPending) { walletPending = false; setTimeout(function () { openSheet("wallet"); }, 0); }
     if (UI.tab !== "settings") UI.set = null;
-    var cur = UI.tab === "history" ? "inbox" : UI.tab;
+    var cur = UI.tab === "history" || UI.tab === "rules" ? "inbox" : UI.tab;
     var tabs = '<div class="tabbar"><nav aria-label="主選單">' +
-      tabBtn("home", I.home, "首頁", cur) + tabBtn("inbox", I.inbox, "案件匣", cur, inboxTodo() > 0) +
+      tabBtn("home", I.home, "首頁", cur) + tabBtn("inbox", I.inbox, "案件", cur, inboxTodo() > 0) +
       '<button type="button" class="fab-btn" aria-label="新增：開罰單、遞申請書、送卡、記下回憶或加到日曆" data-act="sheet" data-sheet="newmenu"><span class="fab">' + I.plus + '</span>新增</button>' +
-      tabBtn("rules", I.rules, "法規", cur) + tabBtn("cal", I.cal, "日曆", cur) +
+      tabBtn("mem", I.mem, "回憶", cur) + tabBtn("cal", I.cal, "日曆", cur) +
       '</nav></div>';
     app.className = "app";
     app.innerHTML = (VIEWS[UI.tab] || viewHome)() + tabs;
@@ -1970,7 +2032,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     return sheetWrap("要新增什麼？",
       opt("new", "#E8546E", I.mTicket, "開罰單", "罰" + esc(op) + "，或是自己自首") +
       opt("request", "#FFE0E5", I.mReq, "遞申請書", "抱抱、親親、想吃的東西") +
-      opt("reward", "#FFD15C", I.mCard, "送一張卡", "賴貓卡，或是自己設計的卡") +
+      opt("reward", "#FFD15C", I.mCard, "送一張票", "賴貓卡，或是自己設計的票") +
       opt("memory", "#CDEFE0", I.mPhoto, "記下回憶", "放一張相片，寫一句話") +
       opt("event", "#E1EFFC", I.mCal, "加到日曆", "約會、我的行程、生日"));
   }
@@ -2180,7 +2242,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   var COLOR_NAMES = { pink: "粉紅", mint: "薄荷綠", sky: "天空藍", lilac: "薰衣草紫" };
   function sheetReward() {
     var f = UI.form, op = esc(nm(other(S.me)));
-    return sheetWrap("送一張卡給" + nm(other(S.me)),
+    return sheetWrap("送一張票給" + nm(other(S.me)),
       '<div class="seg ink" role="group" aria-label="卡片種類"><button type="button" aria-pressed="' + (f.kind === "cat") + '" data-act="w-kind" data-v="cat">賴貓卡</button><button type="button" aria-pressed="' + (f.kind === "custom") + '" data-act="w-kind" data-v="custom">自訂卡</button></div>' +
       '<div id="card-preview" aria-label="預覽">' + cardHTML(rewardPreview(f), '', true) + '</div>' +
       (f.kind === "custom" ?
@@ -2194,7 +2256,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
         }).join('') + '</div></div>'
         : '<p class="note" style="color:var(--ink);font-size:14px">' + op + '收到罰單時，可以用一張賴貓卡直接免罰。賴貓卡只能由對方送，是給對方的獎勵。</p>') +
       '<label class="lab">為什麼送這張卡？<input id="w-reason" class="field" maxlength="60" data-bind="reason" value="' + esc(f.reason || "") + '" placeholder="例如：主動幫我做家事"></label>' +
-      '<button type="button" class="btn gold" style="font-weight:700;font-size:18px" data-act="submit-reward"' + busyAttr(rewardReady(f)) + '>' + I.gift + '放進' + op + '的卡包</button>');
+      '<button type="button" class="btn gold" style="font-weight:700;font-size:18px" data-act="submit-reward"' + busyAttr(rewardReady(f)) + '>' + I.gift + '放進' + op + '的票夾</button>');
   }
 
   function reqReady(f) { return !!(f.preset != null ? REQ_PRESETS[f.preset] : (f.qtitle || "").trim()); }
@@ -2779,7 +2841,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   function yrEntry() {
     var Y = yrSeason();
     if (!Y || !yrHas(Y)) return "";
-    return '<button type="button" class="yr-entry" data-act="yr-open" data-v="' + Y + '"><span class="yr-mini" aria-hidden="true">' + Y + '</span>' +
+    return '<button type="button" class="yr-entry" data-act="yr-open" data-v="' + Y + '"><svg class="yr-box" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><g transform="rotate(4 32 22)"><rect x="23.1" y="7.1" width="15.8" height="27.8" rx="1.4" fill="#FFF6E3" stroke="#3B2A33" stroke-width="2.2"/><path d="M33.3 7.5v27M23.5 16.6h15" stroke="#E0708F" stroke-width="3"/></g><rect x="6" y="30" width="52" height="27" rx="3" fill="#7A4B2C" stroke="#3B2A33" stroke-width="2.6"/><path d="M7.5 36h49" stroke="#3B2A33" stroke-width="2"/><rect x="28" y="40" width="8" height="8" rx="1.5" fill="#D2AE5E" stroke="#3B2A33" stroke-width="1.8"/></svg>' +
       '<span class="yr-entry-t"><small>七七大法官整理好了</small><b>' + Y + ' 年度卷宗</b><span class="go">拆開看看</span></span></button>';
   }
   function leavePick() {
@@ -2889,25 +2951,27 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
     for (var dd = 1; dd <= len; dd++) {
       var d = first.slice(0, 8) + ("0" + dd).slice(-2), items = dayItems(d), dots = {};
       items.forEach(function (e) { dots[e.ann ? "ev-ann" : evColor(e)] = 1; });
-      var dl = Object.keys(dots).slice(0, 4);
+      var dl = Object.keys(dots).slice(0, 4), hm = S.memories.filter(function (m) { return m.date === d; })[0];
+      var MK = window.MK || "b", mk = !hm ? "" : MK === "a" ? '<span class="mk-a" aria-hidden="true">' + memThumb(hm, "") + '</span>' : '<span class="mk-b" aria-hidden="true"></span>';
       cells += '<button type="button" class="cal-d' + (d === today ? ' today' : '') + (d < today ? ' past' : '') + '" aria-pressed="' + (d === c.sel) + '" data-act="cal-day" data-v="' + d + '" aria-label="' + c.m + '月' + dd + '日' + (items.length ? '，' + items.length + ' 件事' : '') + '">' +
-        '<b>' + dd + '</b><span class="cal-dots" aria-hidden="true">' + dl.map(function (k) { return '<i class="' + k + '"></i>'; }).join('') + '</span></button>';
+        '<b>' + dd + '</b>' + mk + '<span class="cal-dots" aria-hidden="true">' + dl.map(function (k) { return '<i class="' + k + '"></i>'; }).join('') + '</span></button>';
     }
     var sel = c.sel, list = dayItems(sel);
-    var dayH = '<div class="cal-day-h"><h2 class="h2">' + mdText(sel) + '（週' + wkText(sel) + '）' + (sel === today ? '・今天' : '') + '</h2></div>' +
-      (list.length ? list.map(function (e) { return evRow({ e: e, d: sel }); }).join('') : '<p class="note" style="margin:4px 0 0">這一天還沒有安排。</p>') +
-      '<button type="button" class="btn sm cal-add" data-act="ev-new" data-v="' + sel + '">' + I.plusSm + '加到這一天</button>';
-    var up = upcoming(6, 120);
-    return hd("我們的日曆", "兩個人的行程、約會和紀念日都在這裡") +
+    var dayH = '<div class="cal-day-h"><h2 class="h2">' + mdText(sel) + '（週' + wkText(sel) + '）' + (sel === today ? '・今天' : '') + '</h2><button type="button" class="circle sm-c" aria-label="加到這一天" data-act="ev-new" data-v="' + sel + '">' + I.plusSm + '</button></div>' +
+      (list.length ? list.map(function (e) { return evRow({ e: e, d: sel }); }).join('') : (S.memories.some(function (m) { return m.date === sel; }) ? '' : '<p class="note" style="margin:4px 0 0">沒有安排。</p>')) +
+      (function () { var ms = S.memories.filter(function (m) { return m.date === sel; }); return ms.length ? '<div class="mk-day"><span class="mk-lab">這天的回憶</span>' + ms.map(function (m) { return '<button type="button" class="good-mem" data-act="mem-open" data-id="' + esc(m.id) + '">' + memThumb(m, "") + '<span>' + esc(m.caption) + '</span></button>'; }).join('') + '</div>' : ''; })() +
+'';
+    var upA = upcoming(12, 120), up = UI.upAll ? upA : upA.slice(0, 3);
+    return hd("我們的日曆", "") +
       doc('<div class="cal-top"><button type="button" class="circle" aria-label="上一個月" data-act="cal-mon" data-v="-1">' + I.back + '</button>' +
           '<h2>' + c.y + ' 年 ' + c.m + ' 月</h2>' + (sel !== today || c.m !== +today.slice(5, 7) ? '<button type="button" class="cal-today" data-act="cal-go" data-v="' + today + '">今天</button>' : '') +
           '<button type="button" class="circle" aria-label="下一個月" data-act="cal-mon" data-v="1">' + I.next + '</button></div>' +
         '<div class="cal-wk" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>' +
         '<div class="cal-grid">' + cells + '</div>' +
-        '<div class="cal-key"><span><i class="ev-ours"></i>約會</span><span><i class="ev-a"></i>' + esc(nm("a")) + '的行程</span><span><i class="ev-b"></i>' + esc(nm("b")) + '的行程</span><span><i class="ev-ann"></i>紀念日</span></div>' +
+
         RULE2 + '<section aria-live="polite">' + dayH + '</section>' +
         RULE2 + '<section aria-labelledby="up-h"><h2 class="h2" id="up-h">接下來</h2>' +
-          (up.length ? up.map(function (x) { return evRow(x, true); }).join('') : '<p class="note" style="margin:4px 0 0">接下來還沒有安排。</p>') + '</section>', "one");
+          (up.length ? up.map(function (x) { return evRow(x, true); }).join('') : '<p class="note" style="margin:4px 0 0">接下來還沒有安排。</p>') + (upA.length > 3 ? '<button type="button" class="mem-all" data-act="up-more">' + (UI.upAll ? '收起' : '顯示更多（' + (upA.length - 3) + '）') + '</button>' : '') + '</section>', "one");
   }
   function calMove(delta) {
     var c = calState(), m = c.m + delta, y = c.y;
@@ -3612,6 +3676,8 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
         break;
       case "tab": UI.sheet = null; UI.form = {}; goTab(el.getAttribute("data-tab")); break;
       case "hist": UI.hist = v; render(); break;
+      case "good-more": UI.goodAll = !UI.goodAll; render(); break;
+      case "up-more": UI.upAll = !UI.upAll; render(); break;
       case "style": S.style = normStyle(el.getAttribute("data-style")); lsSet(STYLE_KEY, S.style); render(); break;
       case "look-mode": S.mode = v; lsSet(MODE_KEY, S.mode); render(); break;
       case "sheet": openSheet(el.getAttribute("data-sheet")); break;
@@ -3667,7 +3733,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
       case "w-kind": f.kind = v; renderLayer(); break;
       case "w-color": f.color = v; renderLayer(); break;
       case "w-icon": f.icon = v; renderLayer(); break;
-      case "submit-reward": send("giveCard", { kind: f.kind, title: f.ctitle, desc: f.cdesc, color: f.color, icon: f.icon, reason: f.reason }, "已把卡放進" + opn + "的卡包"); break;
+      case "submit-reward": send("giveCard", { kind: f.kind, title: f.ctitle, desc: f.cdesc, color: f.color, icon: f.icon, reason: f.reason }, "已把票放進" + opn + "的票夾"); break;
       case "use-card": openSheet("use", { id: id }); break;
       case "tkt-ask": f.confirmUse = id; renderLayer(); break;
       case "tkt-no": f.confirmUse = null; renderLayer(); break;
