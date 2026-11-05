@@ -3865,6 +3865,9 @@ button.empty-note { width:100%; text-align:left; }
   document.addEventListener("pointerup", sheetDragEnd);
   document.addEventListener("pointercancel", sheetDragEnd);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
+  /* 用到一半斷網：提一提；網絡回來就重新拿最新資料 */
+  window.addEventListener("offline", function () { toast("網絡斷了，暫時收不到新消息", true); });
+  window.addEventListener("online", function () { toast("網絡回來了"); refresh(); });
   setInterval(refresh, 30000);
 
   var yrPending = 0, walletPending = false;

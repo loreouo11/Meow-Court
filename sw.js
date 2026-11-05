@@ -1,6 +1,33 @@
 /* 賴貓法庭：接收推播通知（舊版備份 legacy/ 有自己的 sw.js） */
-self.addEventListener("install", function () { self.skipWaiting(); });
-self.addEventListener("activate", function (e) { e.waitUntil(self.clients.claim()); });
+/* 離線畫面：先把「休庭中」頁面和七七存起來；沒有網絡時打開網站就顯示這頁 */
+var OFFLINE = "meow-offline-v1";
+var OFFLINE_FILES = ["offline.html", "qiqi.svg"];
+
+self.addEventListener("install", function (e) {
+  self.skipWaiting();
+  e.waitUntil(caches.open(OFFLINE).then(function (c) { return c.addAll(OFFLINE_FILES); }).catch(function () {}));
+});
+self.addEventListener("activate", function (e) {
+  e.waitUntil(caches.keys().then(function (keys) {
+    return Promise.all(keys.filter(function (k) { return k.indexOf("meow-offline-") === 0 && k !== OFFLINE; }).map(function (k) { return caches.delete(k); }));
+  }).then(function () { return self.clients.claim(); }));
+});
+
+/* 只處理自己網站的 GET：照常上網拿最新的，拿不到才用存起來的。Supabase 等其他網址完全不經這裡。 */
+self.addEventListener("fetch", function (e) {
+  var req = e.request;
+  if (req.method !== "GET") return;
+  var url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  var nav = req.mode === "navigate";
+  var name = url.pathname.split("/").pop();
+  if (!nav && OFFLINE_FILES.indexOf(name) < 0) return;
+  e.respondWith(fetch(req).catch(function () {
+    return caches.open(OFFLINE).then(function (c) {
+      return nav ? c.match("offline.html") : c.match(name);
+    }).then(function (r) { return r || Response.error(); });
+  }));
+});
 
 self.addEventListener("push", function (e) {
   var d = {};

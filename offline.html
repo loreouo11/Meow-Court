@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>休庭中・賴貓法庭</title>
+<script>
+/* 跟網站用同一個外觀設定（存在手機裡），離線也讀得到 */
+(function () {
+  var r = document.documentElement, st = null, md = null;
+  try { st = localStorage.getItem("fajin-style"); md = localStorage.getItem("fajin-mode"); } catch (e) {}
+  if (st !== "coral" && st !== "sticker" && st !== "neon" && st !== "soft") st = "court";
+  md = md || "auto";
+  var dark = st === "neon" || md === "dark" || (md === "auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  r.setAttribute("data-style", st); r.setAttribute("data-mode", dark ? "dark" : "light");
+})();
+</script>
+<style>
+:root { --bg: #FBEFF3; --ink: #3B2A33; --muted: #7A5F6B; --paper: #FFFBF3; --accent: #E8546E; --on-accent: #fff;
+  --line: #3B2A33; --bw: 2.5px; --shadow: 4px 4px 0 #3B2A33; --r: 6px; --frame: #E8546E; color-scheme: light; }
+:root[data-style="coral"] { --bg: #FFEDE6; --ink: #14304A; --muted: #5E7184; --paper: #FFFFFF; --accent: #F0565C;
+  --line: rgba(31,95,139,.25); --bw: 1.5px; --shadow: 0 14px 30px rgba(251,106,82,.18); --r: 24px; --frame: transparent; }
+:root[data-style="soft"] { --bg: #F5E5E9; --ink: #4A2C2A; --muted: #765652; --paper: #FBF4EE; --accent: #C9506F;
+  --line: #DCBEC4; --bw: 1.5px; --shadow: 0 2px 6px rgba(74,44,42,.10); --frame: transparent; }
+:root[data-style="sticker"] { --paper: #FFFFFF; --r: 22px; }
+:root[data-mode="dark"] { color-scheme: dark; --bg: #1D1519; --ink: #F7EAF0; --muted: #C3A6B3; --paper: #2A1F25;
+  --line: #E6CBD6; --accent: #FF6F88; --shadow: 4px 4px 0 #000; }
+:root[data-mode="dark"][data-style="coral"] { --bg: #253247; --ink: #EAF1F8; --muted: #A3B5C9; --paper: #1E2C40;
+  --line: rgba(140,190,235,.28); --accent: #FF6A6F; --shadow: 0 14px 30px rgba(0,0,0,.45); }
+:root[data-mode="dark"][data-style="soft"] { --bg: #231A19; --ink: #F4E6DE; --muted: #BFA59E; --paper: #33262A;
+  --line: rgba(244,230,222,.16); --accent: #E7869C; --on-accent: #2A1A1C; --shadow: 0 2px 8px rgba(0,0,0,.45); }
+:root[data-style="neon"] { color-scheme: dark; --bg: #11132A; --ink: #F4F1FF; --muted: #A9A7CF; --paper: #1C1F3D;
+  --line: rgba(255,255,255,.16); --bw: 1px; --accent: #FF5C8A; --on-accent: #1A0B14; --r: 20px; --frame: transparent;
+  --shadow: 0 0 0 1px rgba(255,92,138,.18), 0 0 26px rgba(255,92,138,.16); }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); }
+body { min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  color: var(--ink); font-family: "Huninn", "PingFang TC", "Noto Sans TC", sans-serif; }
+.paper { width: 100%; max-width: 380px; padding: 28px 24px 24px; text-align: center; background: var(--paper);
+  border: var(--bw) solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); position: relative; }
+.paper::before { content: ""; position: absolute; inset: 6px; border: 1.5px solid var(--frame); border-radius: calc(var(--r) - 3px); pointer-events: none; }
+.case { margin: 0; font-size: 13px; letter-spacing: .2em; color: var(--muted); }
+img { display: block; width: 168px; height: auto; margin: 10px auto 4px; }
+h1 { margin: 6px 0 10px; font-size: 26px; font-family: "LXGW WenKai TC", "Kaiti TC", "STKaiti", serif; }
+p.t { margin: 0 0 22px; font-size: 15px; line-height: 1.7; color: var(--muted); }
+button { width: 100%; min-height: 52px; font: inherit; font-size: 17px; color: var(--on-accent); background: var(--accent);
+  border: var(--bw) solid var(--line); border-radius: 999px; cursor: pointer; }
+:root[data-style="coral"] button, :root[data-style="soft"] button, :root[data-style="neon"] button { border-color: transparent; }
+button:active { transform: translateY(1px); }
+.st { margin: 12px 0 0; min-height: 1.4em; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="paper" aria-labelledby="h">
+  <p class="case">本庭公告</p>
+  <img src="qiqi.svg#svgView(viewBox(84,108,368,356))" alt="七七在睡覺">
+  <h1 id="h">網絡斷了，暫時休庭</h1>
+  <p class="t">七七先睡一會兒。<br>連上網絡之後，這裡會自動回到法庭。</p>
+  <button type="button" id="retry">再試一次</button>
+  <p class="st" id="st" role="status" aria-live="polite"></p>
+</main>
+<script>
+(function () {
+  var st = document.getElementById("st");
+  function back() { location.replace("./"); }
+  document.getElementById("retry").addEventListener("click", function () {
+    if (navigator.onLine === false) { st.textContent = "還是沒有網絡，再等一下。"; return; }
+    st.textContent = "連線中…"; back();
+  });
+  window.addEventListener("online", function () { st.textContent = "網絡回來了，正在開庭…"; setTimeout(back, 400); });
+})();
+</script>
+</body>
+</html>
