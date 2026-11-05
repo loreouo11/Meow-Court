@@ -299,8 +299,20 @@ img { display: block; }
 
 /* 底部抽屜 */
 .overlay { position: fixed; inset: 0; z-index: 10; background: var(--overlay); display: flex; align-items: flex-end; justify-content: center; }
-.sheet { width: 100%; max-width: 440px; max-height: calc(100% - 44px); overflow-y: auto; overscroll-behavior: contain; background: var(--sheet-bg); border: var(--bw) solid var(--line); border-bottom: 0; border-radius: 28px 28px 0 0; padding: 10px 18px calc(28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px; animation: up .22s ease-out; }
-@keyframes up { from { transform: translateY(30px); opacity: .6; } to { transform: none; opacity: 1; } }
+.sheet { width: 100%; max-width: 440px; max-height: calc(100% - 44px); overflow-y: auto; overscroll-behavior: contain; background: var(--sheet-bg); border: var(--bw) solid var(--line); border-bottom: 0; border-radius: 28px 28px 0 0; padding: 10px 18px calc(28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px; animation: sheetin .3s cubic-bezier(.2,.9,.25,1) both; }
+/* 抽屜由下面滑上來；只在打開時播一次，同一個抽屜重畫時不再播（.stay） */
+@keyframes sheetin { from { transform: translateY(100%); } }
+@keyframes sheetout { to { transform: translateY(100%); } }
+@keyframes ovin { from { background-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@keyframes ovout { to { background-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@keyframes popin { from { opacity: 0; transform: translateY(12px) scale(.96); } }
+@keyframes popout { to { opacity: 0; transform: translateY(8px) scale(.97); } }
+.overlay { animation: ovin .2s ease-out both; }
+.pop { animation: popin .22s cubic-bezier(.2,.9,.3,1.15) both; }
+.overlay.stay, .overlay.stay .sheet, .overlay.stay .pop { animation: none; }
+.overlay.leaving { pointer-events: none; animation: ovout .2s ease-in both; }
+.overlay.leaving .sheet { animation: sheetout .2s cubic-bezier(.4,0,.9,.6) both; }
+.overlay.leaving .pop, .overlay.leaving .paper-stage { animation: popout .16s ease-in both; }
 .handle { flex: none; align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--handle); }
 .sheet-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .sheet-h h2 { margin: 0; font-family: var(--serif); font-weight: 700; font-size: 24px; line-height: 30px; overflow-wrap: anywhere; }
@@ -740,7 +752,7 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
 :root[data-style="soft"] .ava { color: #4A2C2A; border-width: 1.5px; }
 :root[data-style="soft"] .code { border-width: 1.5px; }
 
-@media (prefers-reduced-motion: reduce) { .sheet, .paper, .paper.bump, .p-acts, .mark { animation: none; } .pstamp.thunk { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sheet, .paper, .paper.bump, .p-acts, .mark, .overlay, .pop { animation: none; } .pstamp.thunk { animation: none; } }
 
 /* ===================== 年度卷宗（年度回顧） ===================== */
 .yr { position: fixed; inset: 0; z-index: 15; display: flex; flex-direction: column; isolation: isolate; background: var(--bg); color: var(--ink); overflow: hidden; -webkit-user-select: none; user-select: none; }
@@ -3198,10 +3210,21 @@ input[type="date"].field::-webkit-date-and-time-value { text-align: left; }
   function spUnsave(id) { SP.saved = SP.saved.filter(function (x) { return x.id !== id; }); spStore(); render(); toast("已從預設清單刪除"); }
 
   var SHEETS = { spinres: sheetSpinRes, newmenu: sheetMenu, "new": sheetNew, ticket: sheetTicket, vote: sheetVote, rule: sheetRule, reward: sheetReward, use: sheetUse, wallet: sheetWallet, leave: sheetLeave, request: sheetRequest, paper: sheetPaper, memory: sheetMemory, memories: sheetMemories, memview: sheetMemView, event: sheetEvent, eventview: sheetEventView };
+  var layerSheet = null;
   function renderLayer() {
-    var s = UI.sheet, html = "";
+    var s = UI.sheet, html = "", layer = document.getElementById("layer");
     if (auth && S.loaded && S.paired && SHEETS[s]) html = SHEETS[s]();
-    document.getElementById("layer").innerHTML = html;
+    var prev = layer.querySelector(".overlay:not(.leaving)"), same = !!html && s === layerSheet, gone = [].slice.call(layer.querySelectorAll(".overlay.leaving"));
+    layer.innerHTML = html;
+    gone.forEach(function (g) { layer.insertBefore(g, layer.firstChild); });
+    if (same) { var ov = layer.querySelector(".overlay"); if (ov) ov.classList.add("stay"); }
+    else if (!html && prev && !calm()) {
+      /* 關閉：舊的抽屜滑回下面才拿走 */
+      prev.classList.remove("stay"); prev.classList.add("leaving");
+      layer.insertBefore(prev, layer.firstChild);
+      setTimeout(function () { if (prev.parentNode) prev.remove(); }, 220);
+    }
+    layerSheet = html ? s : null;
     renderToast(); hydratePhotos();
   }
 
